@@ -1,72 +1,1128 @@
-import {useEffect,useRef,useState, type ReactNode} from 'react';
-import {createClient, type Session} from '@supabase/supabase-js';
-import {ArrowLeft,CalendarDays,Check,ChevronDown,Clock3,Download,LayoutDashboard,LogOut,Plus,Search,Trash2,UserCheck,Users} from 'lucide-react';
-const sb=createClient(import.meta.env.VITE_SUPABASE_URL||import.meta.env.VITE_SUPABASE_URL_PROD||'https://ncgbvbpkinrvrzxyttfz.supabase.co',import.meta.env.VITE_SUPABASE_ANON_KEY||import.meta.env.VITE_SUPABASE_ANON_KEY_PROD||'sb_publishable_mG6DsF6355IRpy9TJ2ziBw_DSoVyQqE');
-type Option={id:string;name:string};
-type Entry={client_id:string;activity_id:string;percentage:number};
-const day=()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`};
-function Picker({options,value,onChange,label}:{options:Option[];value:string;onChange:(v:string)=>void;label:string}){
- const [open,setOpen]=useState(false),[query,setQuery]=useState('');const root=useRef<HTMLDivElement>(null);
- useEffect(()=>{const close=(e:PointerEvent)=>{if(!root.current?.contains(e.target as Node))setOpen(false)};document.addEventListener('pointerdown',close);return()=>document.removeEventListener('pointerdown',close)},[]);
- const selected=options.find(o=>o.id===value);const filtered=options.filter(o=>o.name.toLocaleLowerCase().includes(query.toLocaleLowerCase()));
- return <div className="picker" ref={root} onKeyDown={e=>{if(e.key==='Escape'){setOpen(false);root.current?.querySelector('button')?.focus()}}}><button type="button" className="picker-trigger" aria-label={label} aria-expanded={open} onClick={()=>{setOpen(!open);setQuery('')}}><span>{selected?.name.split(' (')[0]||`Seleccionar ${label.toLowerCase()}`}</span><ChevronDown size={16}/></button>{open&&<div className="picker-menu"><input autoFocus aria-label={`Buscar ${label.toLowerCase()}`} placeholder="Buscar…" value={query} onChange={e=>setQuery(e.target.value)}/><div className="picker-options">{filtered.map(o=><button type="button" key={o.id} className={o.id===value?'selected':''} onClick={()=>{onChange(o.id);setOpen(false);root.current?.querySelector('button')?.focus()}}><span><strong>{o.name.split(' (')[0]}</strong>{o.name.includes(' (')&&<small>{o.name.slice(o.name.indexOf(' (')+2).replace(/\)$/,'')}</small>}</span>{o.id===value&&<Check size={16}/>}</button>)}{!filtered.length&&<p>Sin resultados</p>}</div></div>}</div>
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import { createClient, type Session } from "@supabase/supabase-js";
+import {
+  ArrowLeft,
+  CalendarDays,
+  Check,
+  ChevronDown,
+  Clock3,
+  Download,
+  LayoutDashboard,
+  LogOut,
+  Plus,
+  Search,
+  Trash2,
+  UserCheck,
+  Users,
+} from "lucide-react";
+const sb = createClient(
+  import.meta.env.VITE_SUPABASE_URL ||
+    import.meta.env.VITE_SUPABASE_URL_PROD ||
+    "https://ncgbvbpkinrvrzxyttfz.supabase.co",
+  import.meta.env.VITE_SUPABASE_ANON_KEY ||
+    import.meta.env.VITE_SUPABASE_ANON_KEY_PROD ||
+    "sb_publishable_mG6DsF6355IRpy9TJ2ziBw_DSoVyQqE",
+);
+type Option = { id: string; name: string };
+type Entry = { client_id: string; activity_id: string; percentage: number };
+const day = () => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+};
+function Picker({
+  options,
+  value,
+  onChange,
+  label,
+}: {
+  options: Option[];
+  value: string;
+  onChange: (v: string) => void;
+  label: string;
+}) {
+  const [open, setOpen] = useState(false),
+    [query, setQuery] = useState("");
+  const root = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const close = (e: PointerEvent) => {
+      if (!root.current?.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("pointerdown", close);
+    return () => document.removeEventListener("pointerdown", close);
+  }, []);
+  const selected = options.find((o) => o.id === value);
+  const filtered = options.filter((o) =>
+    o.name.toLocaleLowerCase().includes(query.toLocaleLowerCase()),
+  );
+  return (
+    <div
+      className="picker"
+      ref={root}
+      onKeyDown={(e) => {
+        if (e.key === "Escape") {
+          setOpen(false);
+          root.current?.querySelector("button")?.focus();
+        }
+      }}
+    >
+      <button
+        type="button"
+        className="picker-trigger"
+        aria-label={label}
+        aria-expanded={open}
+        onClick={() => {
+          setOpen(!open);
+          setQuery("");
+        }}
+      >
+        <span>
+          {selected?.name.split(" (")[0] ||
+            `Seleccionar ${label.toLowerCase()}`}
+        </span>
+        <ChevronDown size={16} />
+      </button>
+      {open && (
+        <div className="picker-menu">
+          <input
+            autoFocus
+            aria-label={`Buscar ${label.toLowerCase()}`}
+            placeholder="Buscar…"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
+          <div className="picker-options">
+            {filtered.map((o) => (
+              <button
+                type="button"
+                key={o.id}
+                className={o.id === value ? "selected" : ""}
+                onClick={() => {
+                  onChange(o.id);
+                  setOpen(false);
+                  root.current?.querySelector("button")?.focus();
+                }}
+              >
+                <span>
+                  <strong>{o.name.split(" (")[0]}</strong>
+                  {o.name.includes(" (") && (
+                    <small>
+                      {o.name
+                        .slice(o.name.indexOf(" (") + 2)
+                        .replace(/\)$/, "")}
+                    </small>
+                  )}
+                </span>
+                {o.id === value && <Check size={16} />}
+              </button>
+            ))}
+            {!filtered.length && <p>Sin resultados</p>}
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }
-export default function App(){
- const [session,setSession]=useState<Session|null>(null),[ready,setReady]=useState(false),[email,setEmail]=useState(''),[password,setPassword]=useState(''),[error,setError]=useState('');
- useEffect(()=>{sb.auth.getSession().then(({data})=>{setSession(data.session);setReady(true)});const {data}=sb.auth.onAuthStateChange((_e,s)=>setSession(s));return()=>data.subscription.unsubscribe()},[]);
- if(!ready)return <p>Cargando…</p>;
- if(!session)return <main className="login"><form className="card" onSubmit={async e=>{e.preventDefault();const {error}=await sb.auth.signInWithPassword({email,password});setError(error?.message||'')}}><div className="brand"><Clock3/> Central RH</div><h1>Timesheets</h1><p>Captura diaria de actividades</p><label>Correo<input required type="email" value={email} onChange={e=>setEmail(e.target.value)}/></label><label>Contraseña<input required type="password" value={password} onChange={e=>setPassword(e.target.value)}/></label>{error&&<p role="alert" className="error">{error}</p>}<button>Entrar</button></form></main>;
- return <Workspace key={session.user.id} session={session}/>;
+export default function App() {
+  const [session, setSession] = useState<Session | null>(null),
+    [ready, setReady] = useState(false),
+    [email, setEmail] = useState(""),
+    [password, setPassword] = useState(""),
+    [error, setError] = useState("");
+  useEffect(() => {
+    sb.auth.getSession().then(({ data }) => {
+      setSession(data.session);
+      setReady(true);
+    });
+    const { data } = sb.auth.onAuthStateChange((_e, s) => setSession(s));
+    return () => data.subscription.unsubscribe();
+  }, []);
+  if (!ready) return <p>Cargando…</p>;
+  if (!session)
+    return (
+      <main className="login">
+        <form
+          className="card"
+          onSubmit={async (e) => {
+            e.preventDefault();
+            const { error } = await sb.auth.signInWithPassword({
+              email,
+              password,
+            });
+            setError(error?.message || "");
+          }}
+        >
+          <div className="brand">
+            <Clock3 /> Central RH
+          </div>
+          <h1>Timesheets</h1>
+          <p>Captura diaria de actividades</p>
+          <label>
+            Correo
+            <input
+              required
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </label>
+          <label>
+            Contraseña
+            <input
+              required
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </label>
+          {error && (
+            <p role="alert" className="error">
+              {error}
+            </p>
+          )}
+          <button>Entrar</button>
+        </form>
+      </main>
+    );
+  return <Workspace key={session.user.id} session={session} />;
 }
-function Workspace({session}:{session:Session}){
- const [employee,setEmployee]=useState<string>(''),[admin,setAdmin]=useState(false),[clients,setClients]=useState<Option[]>([]),[activities,setActivities]=useState<Option[]>([]),[date,setDate]=useState(day()),[attendance,setAttendance]=useState('worked'),[mode,setMode]=useState('office'),[entry,setEntry]=useState('09:00'),[exit,setExit]=useState('18:00'),[rows,setRows]=useState<Entry[]>([]),[busy,setBusy]=useState(true),[saving,setSaving]=useState(false),[error,setError]=useState(''),[message,setMessage]=useState(''),[reports,setReports]=useState(false);
- useEffect(()=>{(async()=>{try{const results=await Promise.all([sb.rpc('my_employee_id'),sb.from('user_roles').select('role').eq('user_id',session.user.id).maybeSingle(),sb.from('clients').select('id,name').eq('active',true).order('name'),sb.from('activities').select('id,name').eq('active',true).order('name')]);for(const r of results)if(r.error)throw r.error;setEmployee(results[0].data||'');setAdmin(results[1].data?.role==='admin');setClients(results[2].data||[]);setActivities(results[3].data||[]);if(!results[0].data)throw Error('Tu cuenta no tiene un colaborador vinculado')}catch(e){setError((e as Error).message);setBusy(false)}})()},[session.user.id]);
- useEffect(()=>{if(!employee)return;let live=true;setBusy(true);setError('');setMessage('');(async()=>{try{const {data,error}=await sb.from('timesheets').select('*,timesheet_entries(client_id,activity_id,percentage)').eq('employee_id',employee).eq('work_date',date).maybeSingle();if(error)throw error;if(!live)return;setAttendance(data?.attendance||'worked');setMode(data?.mode||'office');setEntry(data?.entry_time?.slice(0,5)||'09:00');setExit(data?.exit_time?.slice(0,5)||'18:00');setRows(data?.timesheet_entries||[])}catch(e){if(live)setError((e as Error).message)}finally{if(live)setBusy(false)}})();return()=>{live=false}},[employee,date]);
- const total=rows.reduce((s,r)=>s+Math.round(r.percentage*100),0)/100;
- const save=async()=>{setSaving(true);setError('');setMessage('');try{const {error}=await sb.rpc('save_timesheet',{payload:{employee_id:employee,work_date:date,attendance,mode,entry_time:entry,exit_time:exit,entries:attendance==='worked'?rows:[]}});if(error)throw error;if(attendance!=='worked')setRows([]);setMessage('Día guardado correctamente')}catch(e){setError((e as Error).message)}finally{setSaving(false)}};
- const update=(i:number,patch:Partial<Entry>)=>setRows(prev=>prev.map((r,j)=>i===j?{...r,...patch}:r));
- return <main className="app"><header><div className="brand"><Clock3/> Central RH <span>Timesheets</span></div><div className="user">{admin&&<span className="admin-badge">Admin</span>}{session.user.email}<button title="Salir" className="icon" onClick={()=>sb.auth.signOut()}><LogOut/></button></div></header><section className={`content ${reports?'admin-content':''}`}>{reports?<AdminDashboard onBack={()=>setReports(false)}/>:<><div className="title"><div><p className="eyebrow">MI HOJA DE TIEMPO</p><h1>Captura diaria</h1></div>{admin&&<button className="secondary" onClick={()=>setReports(true)}><LayoutDashboard size={18}/> Panel admin</button>}</div><div className="panel"><label>Fecha<input type="date" value={date} disabled={saving} onChange={e=>{if(e.target.value)setDate(e.target.value)}}/></label>{busy?<p>Cargando día…</p>:<><fieldset disabled={saving}><legend>¿Trabajaste?</legend><label className="radio"><input type="radio" checked={attendance==='worked'} onChange={()=>setAttendance('worked')}/>Sí</label><label className="radio"><input type="radio" checked={attendance!=='worked'} onChange={()=>setAttendance('vacation')}/>No</label>{attendance!=='worked'&&<select aria-label="Motivo" value={attendance} onChange={e=>setAttendance(e.target.value)}><option value="vacation">Vacaciones</option><option value="absence">Falta</option></select>}</fieldset>{attendance==='worked'?<><div className="grid"><label>Modalidad<select value={mode} onChange={e=>setMode(e.target.value)}><option value="office">Presencial</option><option value="home_office">Home Office</option><option value="schedule_permission">Permiso de horario</option></select></label><label>Entrada<input type="time" value={entry} onChange={e=>setEntry(e.target.value)}/></label><label>Salida<input type="time" value={exit} onChange={e=>setExit(e.target.value)}/></label></div><div className="section-head"><h2>Distribución del tiempo</h2><span className={total===100?'ok':'warn'}>{total}% / 100%</span></div><div className="entries">{rows.map((r,i)=><div className="entry" key={i}><Picker label={`Cliente ${i+1}`} options={clients} value={r.client_id} onChange={v=>update(i,{client_id:v})}/><Picker label={`Actividad ${i+1}`} options={activities} value={r.activity_id} onChange={v=>update(i,{activity_id:v})}/><input aria-label={`Porcentaje ${i+1}`} type="number" min="0.01" max="100" step="0.01" value={r.percentage} onChange={e=>update(i,{percentage:Number(e.target.value)})}/><button className="icon" aria-label={`Eliminar fila ${i+1}`} onClick={()=>setRows(rows.filter((_,j)=>j!==i))}><Trash2 size={18}/></button></div>)}</div><button className="add" onClick={()=>setRows([...rows,{client_id:clients[0]?.id||'',activity_id:activities[0]?.id||'',percentage:0}])}><Plus size={18}/> Agregar actividad</button></>:<p className="notice">Las actividades se deshabilitan para vacaciones o falta.</p>}</>}{error&&<p role="alert" className="error">{error}</p>}{message&&<p role="status" className="success">{message}</p>}<div className="actions"><button disabled={busy||saving||!employee||(attendance==='worked'&&(total!==100||rows.some(r=>r.percentage<=0)))} onClick={save}>{saving?'Guardando…':'Guardar día'}</button></div></div></>}</section></main>
+function Workspace({ session }: { session: Session }) {
+  const [employee, setEmployee] = useState<string>(""),
+    [admin, setAdmin] = useState(false),
+    [clients, setClients] = useState<Option[]>([]),
+    [activities, setActivities] = useState<Option[]>([]),
+    [date, setDate] = useState(day()),
+    [attendance, setAttendance] = useState("worked"),
+    [mode, setMode] = useState("office"),
+    [entry, setEntry] = useState("09:00"),
+    [exit, setExit] = useState("18:00"),
+    [permissionEntry, setPermissionEntry] = useState("09:00"),
+    [permissionExit, setPermissionExit] = useState("18:00"),
+    [rows, setRows] = useState<Entry[]>([]),
+    [busy, setBusy] = useState(true),
+    [saving, setSaving] = useState(false),
+    [error, setError] = useState(""),
+    [message, setMessage] = useState(""),
+    [reports, setReports] = useState(false);
+  useEffect(() => {
+    (async () => {
+      try {
+        const results = await Promise.all([
+          sb.rpc("my_employee_id"),
+          sb
+            .from("user_roles")
+            .select("role")
+            .eq("user_id", session.user.id)
+            .maybeSingle(),
+          sb.from("clients").select("id,name").eq("active", true).order("name"),
+          sb
+            .from("activities")
+            .select("id,name")
+            .eq("active", true)
+            .order("name"),
+        ]);
+        for (const r of results) if (r.error) throw r.error;
+        setEmployee(results[0].data || "");
+        setAdmin(results[1].data?.role === "admin");
+        setClients(results[2].data || []);
+        setActivities(results[3].data || []);
+        if (!results[0].data)
+          throw Error("Tu cuenta no tiene un colaborador vinculado");
+      } catch (e) {
+        setError((e as Error).message);
+        setBusy(false);
+      }
+    })();
+  }, [session.user.id]);
+  useEffect(() => {
+    if (!employee) return;
+    let live = true;
+    setBusy(true);
+    setError("");
+    setMessage("");
+    (async () => {
+      try {
+        const { data, error } = await sb
+          .from("timesheets")
+          .select("*,timesheet_entries(client_id,activity_id,percentage)")
+          .eq("employee_id", employee)
+          .eq("work_date", date)
+          .maybeSingle();
+        if (error) throw error;
+        if (!live) return;
+        setAttendance(data?.attendance || "worked");
+        setMode(data?.mode || "office");
+        setEntry(data?.entry_time?.slice(0, 5) || "09:00");
+        setExit(data?.exit_time?.slice(0, 5) || "18:00");
+        setPermissionEntry(data?.permission_entry_time?.slice(0, 5) || "09:00");
+        setPermissionExit(data?.permission_exit_time?.slice(0, 5) || "18:00");
+        setRows(data?.timesheet_entries || []);
+      } catch (e) {
+        if (live) setError((e as Error).message);
+      } finally {
+        if (live) setBusy(false);
+      }
+    })();
+    return () => {
+      live = false;
+    };
+  }, [employee, date]);
+  const total =
+    rows.reduce((s, r) => s + Math.round(r.percentage * 100), 0) / 100;
+  const scheduleReady =
+    mode !== "schedule_permission" ||
+    (permissionEntry && permissionExit && permissionExit > permissionEntry);
+  const save = async () => {
+    setSaving(true);
+    setError("");
+    setMessage("");
+    try {
+      const { error } = await sb.rpc("save_timesheet", {
+        payload: {
+          employee_id: employee,
+          work_date: date,
+          attendance,
+          mode,
+          entry_time: entry,
+          exit_time: exit,
+          permission_entry_time:
+            mode === "schedule_permission" ? permissionEntry : "",
+          permission_exit_time:
+            mode === "schedule_permission" ? permissionExit : "",
+          entries: attendance === "worked" ? rows : [],
+        },
+      });
+      if (error) throw error;
+      if (attendance !== "worked") setRows([]);
+      setMessage("Día guardado correctamente");
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setSaving(false);
+    }
+  };
+  const update = (i: number, patch: Partial<Entry>) =>
+    setRows((prev) => prev.map((r, j) => (i === j ? { ...r, ...patch } : r)));
+  return (
+    <main className="app">
+      <header>
+        <div className="brand">
+          <Clock3 /> Central RH <span>Timesheets</span>
+        </div>
+        <div className="user">
+          {admin && <span className="admin-badge">Admin</span>}
+          {session.user.email}
+          <button
+            title="Salir"
+            className="icon"
+            onClick={() => sb.auth.signOut()}
+          >
+            <LogOut />
+          </button>
+        </div>
+      </header>
+      <section className={`content ${reports ? "admin-content" : ""}`}>
+        {reports ? (
+          <AdminDashboard onBack={() => setReports(false)} />
+        ) : (
+          <>
+            <div className="title">
+              <div>
+                <p className="eyebrow">MI HOJA DE TIEMPO</p>
+                <h1>Captura diaria</h1>
+              </div>
+              {admin && (
+                <button className="secondary" onClick={() => setReports(true)}>
+                  <LayoutDashboard size={18} /> Panel admin
+                </button>
+              )}
+            </div>
+            <div className="panel">
+              <label>
+                Fecha
+                <input
+                  type="date"
+                  value={date}
+                  disabled={saving}
+                  onChange={(e) => {
+                    if (e.target.value) setDate(e.target.value);
+                  }}
+                />
+              </label>
+              {busy ? (
+                <p>Cargando día…</p>
+              ) : (
+                <>
+                  <fieldset disabled={saving}>
+                    <legend>¿Trabajaste?</legend>
+                    <label className="radio">
+                      <input
+                        type="radio"
+                        checked={attendance === "worked"}
+                        onChange={() => setAttendance("worked")}
+                      />
+                      Sí
+                    </label>
+                    <label className="radio">
+                      <input
+                        type="radio"
+                        checked={attendance !== "worked"}
+                        onChange={() => setAttendance("vacation")}
+                      />
+                      No
+                    </label>
+                    {attendance !== "worked" && (
+                      <select
+                        aria-label="Motivo"
+                        value={attendance}
+                        onChange={(e) => setAttendance(e.target.value)}
+                      >
+                        <option value="vacation">Vacaciones</option>
+                        <option value="absence">Falta</option>
+                      </select>
+                    )}
+                  </fieldset>
+                  {attendance === "worked" ? (
+                    <>
+                      <label>
+                        Modalidad
+                        <select
+                          value={mode}
+                          onChange={(e) => setMode(e.target.value)}
+                        >
+                          <option value="office">Presencial</option>
+                          <option value="home_office">Home Office</option>
+                          <option value="schedule_permission">
+                            Permiso de horario
+                          </option>
+                        </select>
+                      </label>
+                      {mode === "schedule_permission" && (
+                        <div className="schedule-block permission-block">
+                          <h3>Horario del permiso</h3>
+                          <div className="schedule-grid">
+                            <label>
+                              Desde
+                              <input
+                                aria-label="Inicio del permiso"
+                                type="time"
+                                value={permissionEntry}
+                                onChange={(e) =>
+                                  setPermissionEntry(e.target.value)
+                                }
+                              />
+                            </label>
+                            <label>
+                              Hasta
+                              <input
+                                aria-label="Fin del permiso"
+                                type="time"
+                                value={permissionExit}
+                                onChange={(e) =>
+                                  setPermissionExit(e.target.value)
+                                }
+                              />
+                            </label>
+                          </div>
+                        </div>
+                      )}
+                      <div className="schedule-block">
+                        <h3>
+                          {mode === "schedule_permission"
+                            ? "Horario real trabajado"
+                            : "Horario de trabajo"}
+                        </h3>
+                        <div className="schedule-grid">
+                          <label>
+                            Entrada
+                            <input
+                              aria-label="Entrada"
+                              type="time"
+                              value={entry}
+                              onChange={(e) => setEntry(e.target.value)}
+                            />
+                          </label>
+                          <label>
+                            Salida
+                            <input
+                              aria-label="Salida"
+                              type="time"
+                              value={exit}
+                              onChange={(e) => setExit(e.target.value)}
+                            />
+                          </label>
+                        </div>
+                      </div>
+                      <div className="section-head">
+                        <h2>Distribución del tiempo</h2>
+                        <span className={total === 100 ? "ok" : "warn"}>
+                          {total}% / 100%
+                        </span>
+                      </div>
+                      {total > 100 && (
+                        <p className="over-warning" role="alert">
+                          Te estás pasando del 100% del tiempo. Reduce los
+                          porcentajes antes de guardar.
+                        </p>
+                      )}
+                      <div className="entries">
+                        {rows.map((r, i) => (
+                          <div className="entry" key={i}>
+                            <Picker
+                              label={`Cliente ${i + 1}`}
+                              options={clients}
+                              value={r.client_id}
+                              onChange={(v) => update(i, { client_id: v })}
+                            />
+                            <Picker
+                              label={`Actividad ${i + 1}`}
+                              options={activities}
+                              value={r.activity_id}
+                              onChange={(v) => update(i, { activity_id: v })}
+                            />
+                            <input
+                              aria-label={`Porcentaje ${i + 1}`}
+                              type="number"
+                              min="0.01"
+                              max="100"
+                              step="0.01"
+                              value={r.percentage}
+                              onChange={(e) =>
+                                update(i, {
+                                  percentage: Number(e.target.value),
+                                })
+                              }
+                            />
+                            <button
+                              className="icon"
+                              aria-label={`Eliminar fila ${i + 1}`}
+                              onClick={() =>
+                                setRows(rows.filter((_, j) => j !== i))
+                              }
+                            >
+                              <Trash2 size={18} />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                      <button
+                        className="add"
+                        onClick={() =>
+                          setRows([
+                            ...rows,
+                            {
+                              client_id: clients[0]?.id || "",
+                              activity_id: activities[0]?.id || "",
+                              percentage: 0,
+                            },
+                          ])
+                        }
+                      >
+                        <Plus size={18} /> Agregar actividad
+                      </button>
+                    </>
+                  ) : (
+                    <p className="notice">
+                      Las actividades se deshabilitan para vacaciones o falta.
+                    </p>
+                  )}
+                </>
+              )}
+              {error && (
+                <p role="alert" className="error">
+                  {error}
+                </p>
+              )}
+              {message && (
+                <p role="status" className="success">
+                  {message}
+                </p>
+              )}
+              <div className="actions">
+                <button
+                  disabled={
+                    busy ||
+                    saving ||
+                    !employee ||
+                    (attendance === "worked" &&
+                      (total !== 100 ||
+                        rows.some((r) => r.percentage <= 0) ||
+                        !scheduleReady))
+                  }
+                  onClick={save}
+                >
+                  {saving ? "Guardando…" : "Guardar día"}
+                </button>
+              </div>
+            </div>
+          </>
+        )}
+      </section>
+    </main>
+  );
 }
 
-type AdminTab='summary'|'people'|'clients'|'absences';
-const monthStart=()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-01`};
-const workedHours=(start?:string,end?:string)=>{if(!start||!end)return 0;const [sh,sm]=start.split(':').map(Number),[eh,em]=end.split(':').map(Number);return Math.max(0,(eh*60+em-sh*60-sm)/60)};
-const csvCell=(value:unknown)=>{let text=String(value??'');if(/^[\s]*[=+@-]/.test(text))text="'"+text;return `"${text.replaceAll('"','""')}"`};
+type AdminTab = "summary" | "people" | "clients" | "absences";
+const monthStart = () => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-01`;
+};
+const workedHours = (start?: string, end?: string) => {
+  if (!start || !end) return 0;
+  const [sh, sm] = start.split(":").map(Number),
+    [eh, em] = end.split(":").map(Number);
+  return Math.max(0, (eh * 60 + em - sh * 60 - sm) / 60);
+};
+const csvCell = (value: unknown) => {
+  let text = String(value ?? "");
+  if (/^[\s]*[=+@-]/.test(text)) text = "'" + text;
+  return `"${text.replaceAll('"', '""')}"`;
+};
 
-function AdminDashboard({onBack}:{onBack:()=>void}){
- const [from,setFrom]=useState(monthStart()),[to,setTo]=useState(day()),[tab,setTab]=useState<AdminTab>('summary'),[query,setQuery]=useState(''),[employees,setEmployees]=useState<any[]>([]),[sheets,setSheets]=useState<any[]>([]),[busy,setBusy]=useState(true),[error,setError]=useState('');
- useEffect(()=>{let live=true;(async()=>{setBusy(true);setError('');try{if(from>to)throw Error('La fecha inicial debe ser anterior a la fecha final.');const employeeRequest=sb.from('employees').select('id,full_name,position,status').eq('status','Activo').order('full_name');const all:any[]=[];for(let start=0;;start+=500){const {data,error}=await sb.from('timesheets').select('id,employee_id,work_date,attendance,mode,entry_time,exit_time,position_snapshot,employee:employees(full_name,position),timesheet_entries(id,percentage,client:clients(id,name),activity:activities(id,name))').gte('work_date',from).lte('work_date',to).order('work_date',{ascending:false}).range(start,start+499);if(error)throw error;all.push(...(data||[]));if((data?.length||0)<500)break}const employeeResult=await employeeRequest;if(employeeResult.error)throw employeeResult.error;if(live){setEmployees(employeeResult.data||[]);setSheets(all)}}catch(e){if(live){setEmployees([]);setSheets([]);setError((e as Error).message)}}finally{if(live)setBusy(false)}})();return()=>{live=false}},[from,to]);
+function AdminDashboard({ onBack }: { onBack: () => void }) {
+  const [from, setFrom] = useState(monthStart()),
+    [to, setTo] = useState(day()),
+    [tab, setTab] = useState<AdminTab>("summary"),
+    [query, setQuery] = useState(""),
+    [employees, setEmployees] = useState<any[]>([]),
+    [sheets, setSheets] = useState<any[]>([]),
+    [busy, setBusy] = useState(true),
+    [error, setError] = useState("");
+  useEffect(() => {
+    let live = true;
+    (async () => {
+      setBusy(true);
+      setError("");
+      try {
+        if (from > to)
+          throw Error("La fecha inicial debe ser anterior a la fecha final.");
+        const employeeRequest = sb
+          .from("employees")
+          .select("id,full_name,position,status")
+          .eq("status", "Activo")
+          .order("full_name");
+        const all: any[] = [];
+        for (let start = 0; ; start += 500) {
+          const { data, error } = await sb
+            .from("timesheets")
+            .select(
+              "id,employee_id,work_date,attendance,mode,entry_time,exit_time,position_snapshot,employee:employees(full_name,position),timesheet_entries(id,percentage,client:clients(id,name),activity:activities(id,name))",
+            )
+            .gte("work_date", from)
+            .lte("work_date", to)
+            .order("work_date", { ascending: false })
+            .range(start, start + 499);
+          if (error) throw error;
+          all.push(...(data || []));
+          if ((data?.length || 0) < 500) break;
+        }
+        const employeeResult = await employeeRequest;
+        if (employeeResult.error) throw employeeResult.error;
+        if (live) {
+          setEmployees(employeeResult.data || []);
+          setSheets(all);
+        }
+      } catch (e) {
+        if (live) {
+          setEmployees([]);
+          setSheets([]);
+          setError((e as Error).message);
+        }
+      } finally {
+        if (live) setBusy(false);
+      }
+    })();
+    return () => {
+      live = false;
+    };
+  }, [from, to]);
 
- const worked=sheets.filter(s=>s.attendance==='worked'),vacations=sheets.filter(s=>s.attendance==='vacation'),absences=sheets.filter(s=>s.attendance==='absence');
- const peopleWithCapture=new Set(sheets.map(s=>s.employee_id));
- const coverage=employees.length?Math.round(peopleWithCapture.size/employees.length*100):0;
- const hours=worked.reduce((sum,s)=>sum+workedHours(s.entry_time,s.exit_time),0);
- const missing=employees.filter(e=>!sheets.some(s=>s.employee_id===e.id&&s.work_date===to));
- const personRows=employees.map(e=>{const own=sheets.filter(s=>s.employee_id===e.id),ownWorked=own.filter(s=>s.attendance==='worked');return {name:e.full_name,position:e.position,captures:own.length,worked:ownWorked.length,vacation:own.filter(s=>s.attendance==='vacation').length,absence:own.filter(s=>s.attendance==='absence').length,hours:ownWorked.reduce((sum,s)=>sum+workedHours(s.entry_time,s.exit_time),0)}}).filter(r=>`${r.name} ${r.position}`.toLowerCase().includes(query.toLowerCase()));
- const clientMap=new Map<string,{name:string,equivalent:number,people:Set<string>,activities:Map<string,number>}>();
- const activityMap=new Map<string,number>();
- for(const sheet of worked)for(const entry of sheet.timesheet_entries||[]){const client=entry.client?.name||'Sin cliente',activity=entry.activity?.name||'Sin actividad',percentage=Number(entry.percentage)||0;const item=clientMap.get(client)||{name:client,equivalent:0,people:new Set<string>(),activities:new Map<string,number>()};item.equivalent+=percentage/100;item.people.add(sheet.employee_id);item.activities.set(activity,(item.activities.get(activity)||0)+percentage/100);clientMap.set(client,item);activityMap.set(activity,(activityMap.get(activity)||0)+percentage/100)}
- const clientRows=[...clientMap.values()].map(c=>({name:c.name,people:c.people.size,equivalent:c.equivalent,top:[...c.activities].sort((a,b)=>b[1]-a[1])[0]?.[0]||'—'})).filter(r=>r.name.toLowerCase().includes(query.toLowerCase())).sort((a,b)=>b.equivalent-a.equivalent);
- const activityRows=[...activityMap].map(([name,equivalent])=>({name,equivalent})).sort((a,b)=>b.equivalent-a.equivalent);
- const absenceRows=sheets.filter(s=>s.attendance!=='worked').filter(s=>`${s.employee?.full_name||''} ${s.employee?.position||''}`.toLowerCase().includes(query.toLowerCase()));
- const tabs:[AdminTab,string][]=[['summary','Resumen'],['people','Personas'],['clients','Clientes'],['absences','Ausencias']];
- const exportData=()=>{let heading:string[]=[],data:(string|number)[][]=[];if(tab==='people'){heading=['Colaborador','Puesto','Capturas','Días trabajados','Vacaciones','Faltas','Horas'];data=personRows.map(r=>[r.name,r.position,r.captures,r.worked,r.vacation,r.absence,r.hours.toFixed(1)])}else if(tab==='clients'){heading=['Cliente','Personas','Días equivalentes','Actividad principal'];data=clientRows.map(r=>[r.name,r.people,r.equivalent.toFixed(2),r.top])}else if(tab==='absences'){heading=['Fecha','Colaborador','Puesto','Tipo'];data=absenceRows.map(r=>[r.work_date,r.employee?.full_name||'',r.employee?.position||'',r.attendance==='vacation'?'Vacaciones':'Falta'])}else{heading=['Indicador','Valor'];data=[['Colaboradores activos',employees.length],['Personas con captura',peopleWithCapture.size],['Registros',sheets.length],['Días trabajados',worked.length],['Vacaciones',vacations.length],['Faltas',absences.length],['Horas registradas',hours.toFixed(1)]]}const blob=new Blob(['\ufeff'+[heading,...data].map(r=>r.map(csvCell).join(',')).join('\r\n')],{type:'text/csv;charset=utf-8'}),link=document.createElement('a');link.href=URL.createObjectURL(blob);link.download=`central-rh-${tab}-${from}-${to}.csv`;link.click();setTimeout(()=>URL.revokeObjectURL(link.href),1000)};
+  const worked = sheets.filter((s) => s.attendance === "worked"),
+    vacations = sheets.filter((s) => s.attendance === "vacation"),
+    absences = sheets.filter((s) => s.attendance === "absence");
+  const peopleWithCapture = new Set(sheets.map((s) => s.employee_id));
+  const coverage = employees.length
+    ? Math.round((peopleWithCapture.size / employees.length) * 100)
+    : 0;
+  const hours = worked.reduce(
+    (sum, s) => sum + workedHours(s.entry_time, s.exit_time),
+    0,
+  );
+  const missing = employees.filter(
+    (e) => !sheets.some((s) => s.employee_id === e.id && s.work_date === to),
+  );
+  const personRows = employees
+    .map((e) => {
+      const own = sheets.filter((s) => s.employee_id === e.id),
+        ownWorked = own.filter((s) => s.attendance === "worked");
+      return {
+        name: e.full_name,
+        position: e.position,
+        captures: own.length,
+        worked: ownWorked.length,
+        vacation: own.filter((s) => s.attendance === "vacation").length,
+        absence: own.filter((s) => s.attendance === "absence").length,
+        hours: ownWorked.reduce(
+          (sum, s) => sum + workedHours(s.entry_time, s.exit_time),
+          0,
+        ),
+      };
+    })
+    .filter((r) =>
+      `${r.name} ${r.position}`.toLowerCase().includes(query.toLowerCase()),
+    );
+  const clientMap = new Map<
+    string,
+    {
+      name: string;
+      equivalent: number;
+      people: Set<string>;
+      activities: Map<string, number>;
+    }
+  >();
+  const activityMap = new Map<string, number>();
+  for (const sheet of worked)
+    for (const entry of sheet.timesheet_entries || []) {
+      const client = entry.client?.name || "Sin cliente",
+        activity = entry.activity?.name || "Sin actividad",
+        percentage = Number(entry.percentage) || 0;
+      const item = clientMap.get(client) || {
+        name: client,
+        equivalent: 0,
+        people: new Set<string>(),
+        activities: new Map<string, number>(),
+      };
+      item.equivalent += percentage / 100;
+      item.people.add(sheet.employee_id);
+      item.activities.set(
+        activity,
+        (item.activities.get(activity) || 0) + percentage / 100,
+      );
+      clientMap.set(client, item);
+      activityMap.set(
+        activity,
+        (activityMap.get(activity) || 0) + percentage / 100,
+      );
+    }
+  const clientRows = [...clientMap.values()]
+    .map((c) => ({
+      name: c.name,
+      people: c.people.size,
+      equivalent: c.equivalent,
+      top: [...c.activities].sort((a, b) => b[1] - a[1])[0]?.[0] || "—",
+    }))
+    .filter((r) => r.name.toLowerCase().includes(query.toLowerCase()))
+    .sort((a, b) => b.equivalent - a.equivalent);
+  const activityRows = [...activityMap]
+    .map(([name, equivalent]) => ({ name, equivalent }))
+    .sort((a, b) => b.equivalent - a.equivalent);
+  const absenceRows = sheets
+    .filter((s) => s.attendance !== "worked")
+    .filter((s) =>
+      `${s.employee?.full_name || ""} ${s.employee?.position || ""}`
+        .toLowerCase()
+        .includes(query.toLowerCase()),
+    );
+  const tabs: [AdminTab, string][] = [
+    ["summary", "Resumen"],
+    ["people", "Personas"],
+    ["clients", "Clientes"],
+    ["absences", "Ausencias"],
+  ];
+  const exportData = () => {
+    let heading: string[] = [],
+      data: (string | number)[][] = [];
+    if (tab === "people") {
+      heading = [
+        "Colaborador",
+        "Puesto",
+        "Capturas",
+        "Días trabajados",
+        "Vacaciones",
+        "Faltas",
+        "Horas",
+      ];
+      data = personRows.map((r) => [
+        r.name,
+        r.position,
+        r.captures,
+        r.worked,
+        r.vacation,
+        r.absence,
+        r.hours.toFixed(1),
+      ]);
+    } else if (tab === "clients") {
+      heading = [
+        "Cliente",
+        "Personas",
+        "Días equivalentes",
+        "Actividad principal",
+      ];
+      data = clientRows.map((r) => [
+        r.name,
+        r.people,
+        r.equivalent.toFixed(2),
+        r.top,
+      ]);
+    } else if (tab === "absences") {
+      heading = ["Fecha", "Colaborador", "Puesto", "Tipo"];
+      data = absenceRows.map((r) => [
+        r.work_date,
+        r.employee?.full_name || "",
+        r.employee?.position || "",
+        r.attendance === "vacation" ? "Vacaciones" : "Falta",
+      ]);
+    } else {
+      heading = ["Indicador", "Valor"];
+      data = [
+        ["Colaboradores activos", employees.length],
+        ["Personas con captura", peopleWithCapture.size],
+        ["Registros", sheets.length],
+        ["Días trabajados", worked.length],
+        ["Vacaciones", vacations.length],
+        ["Faltas", absences.length],
+        ["Horas registradas", hours.toFixed(1)],
+      ];
+    }
+    const blob = new Blob(
+        [
+          "\ufeff" +
+            [heading, ...data]
+              .map((r) => r.map(csvCell).join(","))
+              .join("\r\n"),
+        ],
+        { type: "text/csv;charset=utf-8" },
+      ),
+      link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `central-rh-${tab}-${from}-${to}.csv`;
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+  };
 
- return <div className="admin-dashboard">
-  <div className="admin-title"><div><button className="back-link" onClick={onBack}><ArrowLeft size={17}/> Volver a captura</button><p className="eyebrow">ADMINISTRACIÓN</p><h1>Panel de seguimiento</h1><p>Consulta el avance del equipo y la distribución del tiempo.</p></div><button className="secondary export-button" onClick={exportData} disabled={busy}><Download size={17}/> Exportar CSV</button></div>
-  <div className="admin-toolbar"><div className="date-filter"><label>Desde<input type="date" value={from} onChange={e=>e.target.value&&setFrom(e.target.value)}/></label><span>—</span><label>Hasta<input type="date" value={to} onChange={e=>e.target.value&&setTo(e.target.value)}/></label></div>{tab!=='summary'&&<label className="search"><Search size={17}/><input aria-label="Buscar" placeholder="Buscar…" value={query} onChange={e=>setQuery(e.target.value)}/></label>}</div>
-  <nav className="admin-tabs" aria-label="Secciones del panel">{tabs.map(([id,label])=><button key={id} className={tab===id?'active':''} onClick={()=>{setTab(id);setQuery('')}}>{label}{id==='absences'&&absenceRows.length>0&&<span>{absenceRows.length}</span>}</button>)}</nav>
-  {error&&<p role="alert" className="error">{error}</p>}
-  {busy?<div className="admin-loading">Cargando información…</div>:<>
-   <div className="metrics"><Metric icon={<Users/>} label="Colaboradores activos" value={employees.length}/><Metric icon={<UserCheck/>} label="Con captura" value={peopleWithCapture.size} detail={`${coverage}% del equipo`}/><Metric icon={<CalendarDays/>} label="Registros del período" value={sheets.length}/><Metric icon={<Clock3/>} label="Horas registradas" value={hours.toFixed(1)}/></div>
-   {tab==='summary'&&<div className="summary-grid"><section className="admin-card"><div className="card-heading"><div><h2>Avance al {new Date(`${to}T12:00:00`).toLocaleDateString('es-MX',{day:'numeric',month:'long'})}</h2><p>Personas que aún no han capturado en la fecha final.</p></div><span className={missing.length?'count-warn':'count-ok'}>{missing.length} pendientes</span></div><div className="progress"><span style={{width:`${100-(employees.length?missing.length/employees.length*100:0)}%`}}/></div>{missing.length?<div className="people-chips">{missing.slice(0,12).map(e=><span key={e.id}>{e.full_name}</span>)}{missing.length>12&&<span>+{missing.length-12} más</span>}</div>:<p className="all-done"><Check size={18}/> Todo el equipo activo ha capturado.</p>}</section><section className="admin-card"><div className="card-heading"><div><h2>Estado del período</h2><p>Resumen de asistencia registrada.</p></div></div><div className="status-list"><div><span className="status-dot worked"/>Trabajados<strong>{worked.length}</strong></div><div><span className="status-dot vacation"/>Vacaciones<strong>{vacations.length}</strong></div><div><span className="status-dot absence"/>Faltas<strong>{absences.length}</strong></div></div></section><section className="admin-card"><div className="card-heading"><div><h2>Clientes con más dedicación</h2><p>Días equivalentes según porcentaje reportado.</p></div></div><RankList rows={clientRows.slice(0,5).map(r=>({name:r.name,value:r.equivalent}))}/></section><section className="admin-card"><div className="card-heading"><div><h2>Actividades principales</h2><p>Actividad acumulada en el período.</p></div></div><RankList rows={activityRows.slice(0,5).map(r=>({name:r.name,value:r.equivalent}))}/></section></div>}
-   {tab==='people'&&<AdminTable headings={['Colaborador','Puesto','Capturas','Trabajados','Vacaciones','Faltas','Horas']} rows={personRows.map(r=>[r.name,r.position,r.captures,r.worked,r.vacation,r.absence,r.hours.toFixed(1)])} empty="No hay colaboradores que coincidan."/>}
-   {tab==='clients'&&<AdminTable headings={['Cliente','Personas','Días equivalentes','Actividad principal']} rows={clientRows.map(r=>[r.name,r.people,r.equivalent.toFixed(2),r.top])} empty="No hay actividad de clientes en este período."/>}
-   {tab==='absences'&&<AdminTable headings={['Fecha','Colaborador','Puesto','Tipo']} rows={absenceRows.map(r=>[new Date(`${r.work_date}T12:00:00`).toLocaleDateString('es-MX'),r.employee?.full_name||'—',r.employee?.position||'—',<span className={`status-pill ${r.attendance}`}>{r.attendance==='vacation'?'Vacaciones':'Falta'}</span>])} empty="No hay vacaciones ni faltas en este período."/>}
-  </>}
- </div>
+  return (
+    <div className="admin-dashboard">
+      <div className="admin-title">
+        <div>
+          <button className="back-link" onClick={onBack}>
+            <ArrowLeft size={17} /> Volver a captura
+          </button>
+          <p className="eyebrow">ADMINISTRACIÓN</p>
+          <h1>Panel de seguimiento</h1>
+          <p>Consulta el avance del equipo y la distribución del tiempo.</p>
+        </div>
+        <button
+          className="secondary export-button"
+          onClick={exportData}
+          disabled={busy}
+        >
+          <Download size={17} /> Exportar CSV
+        </button>
+      </div>
+      <div className="admin-toolbar">
+        <div className="date-filter">
+          <label>
+            Desde
+            <input
+              type="date"
+              value={from}
+              onChange={(e) => e.target.value && setFrom(e.target.value)}
+            />
+          </label>
+          <span>—</span>
+          <label>
+            Hasta
+            <input
+              type="date"
+              value={to}
+              onChange={(e) => e.target.value && setTo(e.target.value)}
+            />
+          </label>
+        </div>
+        {tab !== "summary" && (
+          <label className="search">
+            <Search size={17} />
+            <input
+              aria-label="Buscar"
+              placeholder="Buscar…"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+            />
+          </label>
+        )}
+      </div>
+      <nav className="admin-tabs" aria-label="Secciones del panel">
+        {tabs.map(([id, label]) => (
+          <button
+            key={id}
+            className={tab === id ? "active" : ""}
+            onClick={() => {
+              setTab(id);
+              setQuery("");
+            }}
+          >
+            {label}
+            {id === "absences" && absenceRows.length > 0 && (
+              <span>{absenceRows.length}</span>
+            )}
+          </button>
+        ))}
+      </nav>
+      {error && (
+        <p role="alert" className="error">
+          {error}
+        </p>
+      )}
+      {busy ? (
+        <div className="admin-loading">Cargando información…</div>
+      ) : (
+        <>
+          <div className="metrics">
+            <Metric
+              icon={<Users />}
+              label="Colaboradores activos"
+              value={employees.length}
+            />
+            <Metric
+              icon={<UserCheck />}
+              label="Con captura"
+              value={peopleWithCapture.size}
+              detail={`${coverage}% del equipo`}
+            />
+            <Metric
+              icon={<CalendarDays />}
+              label="Registros del período"
+              value={sheets.length}
+            />
+            <Metric
+              icon={<Clock3 />}
+              label="Horas registradas"
+              value={hours.toFixed(1)}
+            />
+          </div>
+          {tab === "summary" && (
+            <div className="summary-grid">
+              <section className="admin-card">
+                <div className="card-heading">
+                  <div>
+                    <h2>
+                      Avance al{" "}
+                      {new Date(`${to}T12:00:00`).toLocaleDateString("es-MX", {
+                        day: "numeric",
+                        month: "long",
+                      })}
+                    </h2>
+                    <p>Personas que aún no han capturado en la fecha final.</p>
+                  </div>
+                  <span className={missing.length ? "count-warn" : "count-ok"}>
+                    {missing.length} pendientes
+                  </span>
+                </div>
+                <div className="progress">
+                  <span
+                    style={{
+                      width: `${100 - (employees.length ? (missing.length / employees.length) * 100 : 0)}%`,
+                    }}
+                  />
+                </div>
+                {missing.length ? (
+                  <div className="people-chips">
+                    {missing.slice(0, 12).map((e) => (
+                      <span key={e.id}>{e.full_name}</span>
+                    ))}
+                    {missing.length > 12 && (
+                      <span>+{missing.length - 12} más</span>
+                    )}
+                  </div>
+                ) : (
+                  <p className="all-done">
+                    <Check size={18} /> Todo el equipo activo ha capturado.
+                  </p>
+                )}
+              </section>
+              <section className="admin-card">
+                <div className="card-heading">
+                  <div>
+                    <h2>Estado del período</h2>
+                    <p>Resumen de asistencia registrada.</p>
+                  </div>
+                </div>
+                <div className="status-list">
+                  <div>
+                    <span className="status-dot worked" />
+                    Trabajados<strong>{worked.length}</strong>
+                  </div>
+                  <div>
+                    <span className="status-dot vacation" />
+                    Vacaciones<strong>{vacations.length}</strong>
+                  </div>
+                  <div>
+                    <span className="status-dot absence" />
+                    Faltas<strong>{absences.length}</strong>
+                  </div>
+                </div>
+              </section>
+              <section className="admin-card">
+                <div className="card-heading">
+                  <div>
+                    <h2>Clientes con más dedicación</h2>
+                    <p>Días equivalentes según porcentaje reportado.</p>
+                  </div>
+                </div>
+                <RankList
+                  rows={clientRows
+                    .slice(0, 5)
+                    .map((r) => ({ name: r.name, value: r.equivalent }))}
+                />
+              </section>
+              <section className="admin-card">
+                <div className="card-heading">
+                  <div>
+                    <h2>Actividades principales</h2>
+                    <p>Actividad acumulada en el período.</p>
+                  </div>
+                </div>
+                <RankList
+                  rows={activityRows
+                    .slice(0, 5)
+                    .map((r) => ({ name: r.name, value: r.equivalent }))}
+                />
+              </section>
+            </div>
+          )}
+          {tab === "people" && (
+            <AdminTable
+              headings={[
+                "Colaborador",
+                "Puesto",
+                "Capturas",
+                "Trabajados",
+                "Vacaciones",
+                "Faltas",
+                "Horas",
+              ]}
+              rows={personRows.map((r) => [
+                r.name,
+                r.position,
+                r.captures,
+                r.worked,
+                r.vacation,
+                r.absence,
+                r.hours.toFixed(1),
+              ])}
+              empty="No hay colaboradores que coincidan."
+            />
+          )}
+          {tab === "clients" && (
+            <AdminTable
+              headings={[
+                "Cliente",
+                "Personas",
+                "Días equivalentes",
+                "Actividad principal",
+              ]}
+              rows={clientRows.map((r) => [
+                r.name,
+                r.people,
+                r.equivalent.toFixed(2),
+                r.top,
+              ])}
+              empty="No hay actividad de clientes en este período."
+            />
+          )}
+          {tab === "absences" && (
+            <AdminTable
+              headings={["Fecha", "Colaborador", "Puesto", "Tipo"]}
+              rows={absenceRows.map((r) => [
+                new Date(`${r.work_date}T12:00:00`).toLocaleDateString("es-MX"),
+                r.employee?.full_name || "—",
+                r.employee?.position || "—",
+                <span className={`status-pill ${r.attendance}`}>
+                  {r.attendance === "vacation" ? "Vacaciones" : "Falta"}
+                </span>,
+              ])}
+              empty="No hay vacaciones ni faltas en este período."
+            />
+          )}
+        </>
+      )}
+    </div>
+  );
 }
 
-function Metric({icon,label,value,detail}:{icon:ReactNode;label:string;value:string|number;detail?:string}){return <div className="metric"><span className="metric-icon">{icon}</span><div><p>{label}</p><strong>{value}</strong>{detail&&<small>{detail}</small>}</div></div>}
-function RankList({rows}:{rows:{name:string;value:number}[]}){const max=Math.max(...rows.map(r=>r.value),1);return rows.length?<div className="rank-list">{rows.map(r=><div key={r.name}><div><span>{r.name.split(' (')[0]}</span><strong>{r.value.toFixed(2)}</strong></div><div className="rank-bar"><span style={{width:`${r.value/max*100}%`}}/></div></div>)}</div>:<p className="empty">Sin información en este período.</p>}
-function AdminTable({headings,rows,empty}:{headings:string[];rows:ReactNode[][];empty:string}){return <section className="admin-card table-card"><div className="table-wrap"><table><thead><tr>{headings.map(h=><th key={h}>{h}</th>)}</tr></thead><tbody>{rows.map((row,i)=><tr key={i}>{row.map((value,j)=><td key={j}>{value}</td>)}</tr>)}</tbody></table></div>{!rows.length&&<p className="empty">{empty}</p>}</section>}
+function Metric({
+  icon,
+  label,
+  value,
+  detail,
+}: {
+  icon: ReactNode;
+  label: string;
+  value: string | number;
+  detail?: string;
+}) {
+  return (
+    <div className="metric">
+      <span className="metric-icon">{icon}</span>
+      <div>
+        <p>{label}</p>
+        <strong>{value}</strong>
+        {detail && <small>{detail}</small>}
+      </div>
+    </div>
+  );
+}
+function RankList({ rows }: { rows: { name: string; value: number }[] }) {
+  const max = Math.max(...rows.map((r) => r.value), 1);
+  return rows.length ? (
+    <div className="rank-list">
+      {rows.map((r) => (
+        <div key={r.name}>
+          <div>
+            <span>{r.name.split(" (")[0]}</span>
+            <strong>{r.value.toFixed(2)}</strong>
+          </div>
+          <div className="rank-bar">
+            <span style={{ width: `${(r.value / max) * 100}%` }} />
+          </div>
+        </div>
+      ))}
+    </div>
+  ) : (
+    <p className="empty">Sin información en este período.</p>
+  );
+}
+function AdminTable({
+  headings,
+  rows,
+  empty,
+}: {
+  headings: string[];
+  rows: ReactNode[][];
+  empty: string;
+}) {
+  return (
+    <section className="admin-card table-card">
+      <div className="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              {headings.map((h) => (
+                <th key={h}>{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((row, i) => (
+              <tr key={i}>
+                {row.map((value, j) => (
+                  <td key={j}>{value}</td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      {!rows.length && <p className="empty">{empty}</p>}
+    </section>
+  );
+}
