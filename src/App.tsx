@@ -25,6 +25,7 @@ const sb = createClient(
 );
 type Option = { id: string; name: string };
 type Entry = { client_id: string; activity_id: string; percentage: number };
+const HIDDEN_CLIENTS = new Set(["Tiempo interno", "Cliente de prueba"]);
 const day = () => {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
@@ -277,7 +278,11 @@ function Workspace({ session }: { session: Session }) {
         for (const r of results) if (r.error) throw r.error;
         setEmployee(results[0].data || "");
         setAdmin(results[1].data?.role === "admin");
-        setClients(results[2].data || []);
+        setClients(
+          (results[2].data || []).filter(
+            (client) => !HIDDEN_CLIENTS.has(client.name),
+          ),
+        );
         setActivities(results[3].data || []);
         if (!results[0].data)
           throw Error("Tu cuenta no tiene un colaborador vinculado");
@@ -769,7 +774,11 @@ function AdminDashboard({ onBack }: { onBack: () => void }) {
       equivalent: c.equivalent,
       top: [...c.activities].sort((a, b) => b[1] - a[1])[0]?.[0] || "—",
     }))
-    .filter((r) => r.name.toLowerCase().includes(query.toLowerCase()))
+    .filter(
+      (r) =>
+        !HIDDEN_CLIENTS.has(r.name) &&
+        r.name.toLowerCase().includes(query.toLowerCase()),
+    )
     .sort((a, b) => b.equivalent - a.equivalent);
   const activityRows = [...activityMap]
     .map(([name, equivalent]) => ({ name, equivalent }))

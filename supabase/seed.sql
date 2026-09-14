@@ -1,4 +1,6 @@
-insert into public.clients (name) values ('Farmacias Similares'), ('Cliente de prueba'), ('Tiempo interno') on conflict (name) do nothing;
+insert into public.clients (name) values
+('Central de Negocios'), ('Sansui'), ('Sika'), ('Senosiain'), ('Dongfeng'), ('Waldo’s'), ('Farmacias Similares')
+on conflict (name) do nothing;
 insert into public.activities (name) values
 ('Atención a cliente (mails, llamadas, minutas, tiempo de transportación a oficina de cliente)'),
 ('Reuniones en oficinas de Cliente (juntas, presentaciones, consulta de bases de datos, etc)'), ('Planeación Estratégica'), ('Planeación táctica'),

@@ -20,6 +20,7 @@ button,.primary{background:var(--cn-primary)}
 button:hover,.primary:hover{background:var(--cn-primary-dark)}
 .secondary{color:var(--cn-primary);border-color:#c5d9ec;background:#fff}
 .secondary:hover{background:#edf5fc}
+.picker-trigger:hover,.picker-trigger:focus-visible{background:#fff;color:#24364b;border-color:var(--cn-primary)}
 .admin-badge{background:#e5f0fb;color:var(--cn-primary)}
 .panel,.admin-card,.metric,.admin-loading{border-color:var(--cn-border)}
 .metric-icon{background:#e7f1fb;color:var(--cn-primary)}
