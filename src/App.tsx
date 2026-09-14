@@ -1,7 +1,7 @@
 import {useEffect,useRef,useState} from 'react';
 import {createClient, type Session} from '@supabase/supabase-js';
 import {Clock3,LogOut,Plus,Trash2,Check,ChevronDown} from 'lucide-react';
-const sb=createClient(import.meta.env.VITE_SUPABASE_URL||'http://127.0.0.1:54321',import.meta.env.VITE_SUPABASE_ANON_KEY||'sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH');
+const sb=createClient(import.meta.env.VITE_SUPABASE_URL||import.meta.env.VITE_SUPABASE_URL_PROD||'https://ncgbvbpkinrvrzxyttfz.supabase.co',import.meta.env.VITE_SUPABASE_ANON_KEY||import.meta.env.VITE_SUPABASE_ANON_KEY_PROD||'sb_publishable_mG6DsF6355IRpy9TJ2ziBw_DSoVyQqE');
 type Option={id:string;name:string};
 type Entry={client_id:string;activity_id:string;percentage:number};
 const day=()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`};
