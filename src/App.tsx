@@ -113,6 +113,16 @@ function AuthScreen({
     setSaving(true);
     try {
       if (view === "signup") {
+        const { data: alreadyRegistered, error: checkError } = await sb.rpc(
+          "email_is_registered",
+          { p_email: email.trim() },
+        );
+        if (checkError) throw checkError;
+        if (alreadyRegistered) {
+          throw Error(
+            "Este correo ya tiene una cuenta. Inicia sesión o recupera tu contraseña.",
+          );
+        }
         const { data, error: authError } = await sb.auth.signUp({
           email,
           password,
@@ -122,6 +132,11 @@ function AuthScreen({
           },
         });
         if (authError) throw authError;
+        if (!data.user?.identities?.length) {
+          throw Error(
+            "Este correo ya tiene una cuenta. Inicia sesión o recupera tu contraseña.",
+          );
+        }
         if (data.session) onSession(data.session);
         else setMessage("Revisa tu correo para confirmar la cuenta y entrar.");
       } else if (view === "forgot") {
@@ -209,6 +224,9 @@ function AuthScreen({
             <input
               required
               minLength={6}
+              autoComplete={
+                view === "signup" ? "new-password" : "current-password"
+              }
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -221,6 +239,7 @@ function AuthScreen({
             <input
               required
               minLength={6}
+              autoComplete="new-password"
               type="password"
               value={confirm}
               onChange={(e) => setConfirm(e.target.value)}
