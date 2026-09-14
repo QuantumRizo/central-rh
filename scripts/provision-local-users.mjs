@@ -30,6 +30,11 @@ const users = [
   { email: 'brenda@centraldenegociosmx.com', password: '123456', full_name: 'De Viana Cruz Brenda Gabriela', role: 'collaborator' },
   { email: 'jose@centrales.com.mx', password: '123456', full_name: 'González Guarneros José Antonio', role: 'collaborator' },
   { email: 'sofy@centrales.com.mx', password: '123456', full_name: 'Guerrero Portillo Dana Sofía', role: 'collaborator' },
+  { email: 'zoe@centraldenegociosmx.com', password: '123456', full_name: 'Zuñiga Jiménez Dafne Zoé', role: 'collaborator' },
+  { email: 'tanya@centrales.com.mx', password: '123456', full_name: 'Ponce Acuña Tanya', role: 'collaborator' },
+  { email: 'minerva@centraldenegociosmx.com', password: '123456', full_name: 'Méndez Arreola Maria Minerva', role: 'collaborator' },
+  { email: 'danielab@centraldenegociosmx.com', password: '123456', full_name: 'Dulce Daniela Nieto Saldaña', role: 'collaborator' },
+  { email: 'katya@centraldenegociosmx.com', password: '123456', full_name: 'Alonso Gutérrez Katya', role: 'collaborator' },
 ];
 const headers = { apikey: serviceKey, Authorization: `Bearer ${serviceKey}`, 'Content-Type': 'application/json' };
 for (const input of users) {
