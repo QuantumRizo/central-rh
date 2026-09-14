@@ -9,6 +9,7 @@
 
 :root{--cn-primary:#0b5eb7;--cn-primary-dark:#062e67;--cn-primary-light:#8faedd;--cn-accent:#5e7d95;--cn-bg:#f2f7f6;--cn-text:#243333;--cn-muted:#5f7373;--cn-border:#e0eaea}
 body{background:var(--cn-bg);color:var(--cn-text)}
+.app{position:relative;isolation:isolate}.app::before{content:"";position:fixed;z-index:-1;right:34px;bottom:26px;width:250px;height:150px;background:url('/Logo_CN_2025_Negro.webp') center/contain no-repeat;opacity:.045;pointer-events:none}
 .login{background:linear-gradient(135deg,rgba(6,46,103,.97),rgba(11,94,183,.88)),url('/centralmx-brand-texture.jpg') center/cover}
 .card{border-color:var(--cn-border);box-shadow:0 24px 70px rgba(6,46,103,.2)}
 .brand{color:var(--cn-primary);gap:9px}
