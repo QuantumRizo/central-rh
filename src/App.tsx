@@ -1,4 +1,10 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type FormEvent,
+  type ReactNode,
+} from "react";
 import { createClient, type Session } from "@supabase/supabase-js";
 import {
   ArrowLeft,
@@ -77,6 +83,253 @@ function AdminSkeleton() {
       </div>
       <Skeleton className="skeleton-table" />
     </div>
+  );
+}
+type AuthView = "login" | "signup" | "forgot" | "reset";
+function AuthScreen({
+  view,
+  onView,
+  onSession,
+}: {
+  view: AuthView;
+  onView: (view: AuthView) => void;
+  onSession: (session: Session | null) => void;
+}) {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
+  const [saving, setSaving] = useState(false);
+  const submit = async (e: FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setMessage("");
+    if ((view === "signup" || view === "reset") && password !== confirm) {
+      setError("Las contraseñas no coinciden.");
+      return;
+    }
+    setSaving(true);
+    try {
+      if (view === "signup") {
+        const { data, error: authError } = await sb.auth.signUp({
+          email,
+          password,
+          options: {
+            data: { full_name: name.trim() },
+            emailRedirectTo: window.location.origin,
+          },
+        });
+        if (authError) throw authError;
+        if (data.session) onSession(data.session);
+        else setMessage("Revisa tu correo para confirmar la cuenta y entrar.");
+      } else if (view === "forgot") {
+        const { error: authError } = await sb.auth.resetPasswordForEmail(
+          email,
+          {
+            redirectTo: window.location.origin,
+          },
+        );
+        if (authError) throw authError;
+        setMessage("Te enviamos un enlace para restablecer tu contraseña.");
+      } else if (view === "reset") {
+        const { error: authError } = await sb.auth.updateUser({ password });
+        if (authError) throw authError;
+        await sb.auth.signOut();
+        onView("login");
+        setMessage("Contraseña actualizada. Ya puedes iniciar sesión.");
+      } else {
+        const { data, error: authError } = await sb.auth.signInWithPassword({
+          email,
+          password,
+        });
+        if (authError) throw authError;
+        onSession(data.session);
+      }
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setSaving(false);
+    }
+  };
+  const title =
+    view === "signup"
+      ? "Crear cuenta"
+      : view === "forgot"
+        ? "Recuperar contraseña"
+        : view === "reset"
+          ? "Nueva contraseña"
+          : "Timesheets";
+  return (
+    <main className="login">
+      <form className="card auth-card" onSubmit={submit}>
+        <img
+          className="cn-login-logo"
+          src="/Logo_CN_2025_Negro.webp"
+          alt="Central MX"
+        />
+        <div className="brand">
+          <Clock3 /> Central RH
+        </div>
+        <h1>{title}</h1>
+        <p>
+          {view === "signup"
+            ? "Crea tu acceso para capturar actividades."
+            : view === "forgot"
+              ? "Te enviaremos un enlace por correo."
+              : view === "reset"
+                ? "Elige una contraseña nueva para tu cuenta."
+                : "Captura diaria de actividades"}
+        </p>
+        {view === "signup" && (
+          <label>
+            Nombre completo
+            <input
+              required
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
+          </label>
+        )}
+        {view !== "reset" && (
+          <label>
+            Correo
+            <input
+              required
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </label>
+        )}
+        {view !== "forgot" && (
+          <label>
+            Contraseña
+            <input
+              required
+              minLength={6}
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </label>
+        )}
+        {(view === "signup" || view === "reset") && (
+          <label>
+            Confirmar contraseña
+            <input
+              required
+              minLength={6}
+              type="password"
+              value={confirm}
+              onChange={(e) => setConfirm(e.target.value)}
+            />
+          </label>
+        )}
+        {error && (
+          <p role="alert" className="error">
+            {error}
+          </p>
+        )}
+        {message && (
+          <p role="status" className="success">
+            {message}
+          </p>
+        )}
+        <button disabled={saving}>
+          {saving ? (
+            <Skeleton className="button-skeleton" />
+          ) : view === "login" ? (
+            "Entrar"
+          ) : view === "signup" ? (
+            "Crear cuenta"
+          ) : view === "forgot" ? (
+            "Enviar enlace"
+          ) : (
+            "Actualizar contraseña"
+          )}
+        </button>
+        <div className="auth-links">
+          {view === "login" && (
+            <>
+              <button type="button" onClick={() => onView("signup")}>
+                Crear cuenta
+              </button>
+              <button type="button" onClick={() => onView("forgot")}>
+                Olvidé mi contraseña
+              </button>
+            </>
+          )}
+          {view !== "login" && view !== "reset" && (
+            <button type="button" onClick={() => onView("login")}>
+              Volver a iniciar sesión
+            </button>
+          )}
+        </div>
+      </form>
+    </main>
+  );
+}
+function ChangePassword({ onDone }: { onDone: () => void }) {
+  const [password, setPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
+  const [saving, setSaving] = useState(false);
+  const submit = async (e: FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setMessage("");
+    if (password !== confirm) return setError("Las contraseñas no coinciden.");
+    setSaving(true);
+    const { error: authError } = await sb.auth.updateUser({ password });
+    setSaving(false);
+    if (authError) setError(authError.message);
+    else {
+      setPassword("");
+      setConfirm("");
+      setMessage("Contraseña actualizada.");
+    }
+  };
+  return (
+    <form className="account-panel" onSubmit={submit}>
+      <strong>Cambiar contraseña</strong>
+      <input
+        aria-label="Nueva contraseña"
+        required
+        minLength={6}
+        type="password"
+        placeholder="Nueva contraseña"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+      />
+      <input
+        aria-label="Confirmar contraseña"
+        required
+        minLength={6}
+        type="password"
+        placeholder="Confirmar contraseña"
+        value={confirm}
+        onChange={(e) => setConfirm(e.target.value)}
+      />
+      {error && (
+        <p role="alert" className="error">
+          {error}
+        </p>
+      )}
+      {message && (
+        <p role="status" className="success">
+          {message}
+        </p>
+      )}
+      <div>
+        <button disabled={saving}>{saving ? "Guardando…" : "Guardar"}</button>
+        <button type="button" className="secondary" onClick={onDone}>
+          Cerrar
+        </button>
+      </div>
+    </form>
   );
 }
 function Picker({
@@ -175,68 +428,22 @@ function Picker({
 export default function App() {
   const [session, setSession] = useState<Session | null>(null),
     [ready, setReady] = useState(false),
-    [email, setEmail] = useState(""),
-    [password, setPassword] = useState(""),
-    [error, setError] = useState("");
+    [authView, setAuthView] = useState<AuthView>("login");
   useEffect(() => {
     sb.auth.getSession().then(({ data }) => {
       setSession(data.session);
       setReady(true);
     });
-    const { data } = sb.auth.onAuthStateChange((_e, s) => setSession(s));
+    const { data } = sb.auth.onAuthStateChange((event, s) => {
+      if (event === "PASSWORD_RECOVERY") setAuthView("reset");
+      setSession(s);
+    });
     return () => data.subscription.unsubscribe();
   }, []);
   if (!ready) return <LoginSkeleton />;
-  if (!session)
+  if (!session || authView === "reset")
     return (
-      <main className="login">
-        <form
-          className="card"
-          onSubmit={async (e) => {
-            e.preventDefault();
-            const { error } = await sb.auth.signInWithPassword({
-              email,
-              password,
-            });
-            setError(error?.message || "");
-          }}
-        >
-          <img
-            className="cn-login-logo"
-            src="/Logo_CN_2025_Negro.webp"
-            alt="Central MX"
-          />
-          <div className="brand">
-            <Clock3 /> Central RH
-          </div>
-          <h1>Timesheets</h1>
-          <p>Captura diaria de actividades</p>
-          <label>
-            Correo
-            <input
-              required
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-          </label>
-          <label>
-            Contraseña
-            <input
-              required
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-          </label>
-          {error && (
-            <p role="alert" className="error">
-              {error}
-            </p>
-          )}
-          <button>Entrar</button>
-        </form>
-      </main>
+      <AuthScreen view={authView} onView={setAuthView} onSession={setSession} />
     );
   return <Workspace key={session.user.id} session={session} />;
 }
@@ -257,7 +464,8 @@ function Workspace({ session }: { session: Session }) {
     [saving, setSaving] = useState(false),
     [error, setError] = useState(""),
     [message, setMessage] = useState(""),
-    [reports, setReports] = useState(false);
+    [reports, setReports] = useState(false),
+    [accountOpen, setAccountOpen] = useState(false);
   useEffect(() => {
     (async () => {
       try {
@@ -376,6 +584,13 @@ function Workspace({ session }: { session: Session }) {
           {admin && <span className="admin-badge">Admin</span>}
           {session.user.email}
           <button
+            title="Cuenta"
+            className="account-button"
+            onClick={() => setAccountOpen((open) => !open)}
+          >
+            Cuenta
+          </button>
+          <button
             title="Salir"
             className="icon"
             onClick={() => sb.auth.signOut()}
@@ -384,6 +599,7 @@ function Workspace({ session }: { session: Session }) {
           </button>
         </div>
       </header>
+      {accountOpen && <ChangePassword onDone={() => setAccountOpen(false)} />}
       <section className={`content ${reports ? "admin-content" : ""}`}>
         {reports ? (
           <AdminDashboard onBack={() => setReports(false)} />

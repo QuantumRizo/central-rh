@@ -16,6 +16,7 @@ body{background:var(--cn-bg);color:var(--cn-text)}
 .brand span{color:var(--cn-accent)}
 .cn-login-logo{display:block;width:min(250px,80%);height:auto;margin:0 auto 22px}
 .cn-header-logo{width:84px;height:auto;max-height:34px;object-fit:contain;margin-right:4px}
+.auth-card h1{margin-top:22px}.auth-links{display:flex;justify-content:space-between;gap:10px;margin-top:12px}.auth-links button{background:transparent;color:var(--cn-primary);padding:4px;font-size:12px}.auth-links button:hover{background:#edf5fc;color:var(--cn-primary-dark)}.button-skeleton{width:72px;height:16px;background:#ffffff66}.account-button{background:transparent;color:var(--cn-primary);padding:7px 9px;font-size:12px}.account-button:hover{background:#edf5fc;color:var(--cn-primary-dark)}.account-panel{position:absolute;right:5vw;top:78px;z-index:30;display:grid;gap:10px;width:min(320px,calc(100vw - 32px));padding:16px;background:#fff;border:1px solid var(--cn-border);border-radius:12px;box-shadow:0 18px 40px rgba(6,46,103,.16)}.account-panel strong{font-size:14px}.account-panel input{width:100%}.account-panel p{margin:0;font-size:12px}.account-panel>div{display:flex;justify-content:flex-end;gap:8px}.account-panel>div button{width:auto;margin:0;padding:9px 12px}.account-panel .secondary{background:#fff}
 button,.primary{background:var(--cn-primary)}
 button:hover,.primary:hover{background:var(--cn-primary-dark)}
 .secondary{color:var(--cn-primary);border-color:#c5d9ec;background:#fff}
