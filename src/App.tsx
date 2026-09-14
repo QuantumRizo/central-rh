@@ -29,6 +29,55 @@ const day = () => {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 };
+function Skeleton({ className = "" }: { className?: string }) {
+  return <span className={`skeleton ${className}`} aria-hidden="true" />;
+}
+function LoginSkeleton() {
+  return (
+    <main className="login">
+      <div className="card loading-card" aria-label="Cargando aplicación">
+        <Skeleton className="skeleton-logo" />
+        <Skeleton className="skeleton-title" />
+        <Skeleton className="skeleton-subtitle" />
+        <Skeleton className="skeleton-field" />
+        <Skeleton className="skeleton-field" />
+        <Skeleton className="skeleton-button" />
+      </div>
+    </main>
+  );
+}
+function SheetSkeleton() {
+  return (
+    <div className="sheet-skeleton" aria-label="Cargando captura diaria">
+      <Skeleton className="skeleton-section-title" />
+      <div className="skeleton-grid">
+        <Skeleton className="skeleton-field" />
+        <Skeleton className="skeleton-field" />
+        <Skeleton className="skeleton-field" />
+      </div>
+      <Skeleton className="skeleton-divider" />
+      <Skeleton className="skeleton-section-title short" />
+      <Skeleton className="skeleton-row" />
+      <Skeleton className="skeleton-button small" />
+    </div>
+  );
+}
+function AdminSkeleton() {
+  return (
+    <div className="admin-skeleton" aria-label="Cargando panel">
+      <div className="skeleton-metrics">
+        {[1, 2, 3, 4].map((item) => (
+          <Skeleton key={item} className="skeleton-metric" />
+        ))}
+      </div>
+      <div className="skeleton-admin-grid">
+        <Skeleton className="skeleton-admin-card" />
+        <Skeleton className="skeleton-admin-card" />
+      </div>
+      <Skeleton className="skeleton-table" />
+    </div>
+  );
+}
 function Picker({
   options,
   value,
@@ -136,7 +185,7 @@ export default function App() {
     const { data } = sb.auth.onAuthStateChange((_e, s) => setSession(s));
     return () => data.subscription.unsubscribe();
   }, []);
-  if (!ready) return <p>Cargando…</p>;
+  if (!ready) return <LoginSkeleton />;
   if (!session)
     return (
       <main className="login">
@@ -151,6 +200,11 @@ export default function App() {
             setError(error?.message || "");
           }}
         >
+          <img
+            className="cn-login-logo"
+            src="/Logo_CN_2025_Negro.webp"
+            alt="Central MX"
+          />
           <div className="brand">
             <Clock3 /> Central RH
           </div>
@@ -306,6 +360,11 @@ function Workspace({ session }: { session: Session }) {
     <main className="app">
       <header>
         <div className="brand">
+          <img
+            className="cn-header-logo"
+            src="/Logo_CN_2025_Negro.webp"
+            alt="Central MX"
+          />
           <Clock3 /> Central RH <span>Timesheets</span>
         </div>
         <div className="user">
@@ -349,7 +408,7 @@ function Workspace({ session }: { session: Session }) {
                 />
               </label>
               {busy ? (
-                <p>Cargando día…</p>
+                <SheetSkeleton />
               ) : (
                 <>
                   <fieldset disabled={saving}>
@@ -873,7 +932,7 @@ function AdminDashboard({ onBack }: { onBack: () => void }) {
         </p>
       )}
       {busy ? (
-        <div className="admin-loading">Cargando información…</div>
+        <AdminSkeleton />
       ) : (
         <>
           <div className="metrics">
