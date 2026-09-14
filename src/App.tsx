@@ -172,16 +172,16 @@ function AuthScreen({
         <div className="brand">
           <Clock3 /> Central RH
         </div>
-        <h1>{title}</h1>
-        <p>
-          {view === "signup"
-            ? "Crea tu acceso para capturar actividades."
-            : view === "forgot"
-              ? "Te enviaremos un enlace por correo."
-              : view === "reset"
-                ? "Elige una contraseña nueva para tu cuenta."
-                : "Captura diaria de actividades"}
-        </p>
+        {view !== "login" && <h1>{title}</h1>}
+        {view !== "login" && (
+          <p>
+            {view === "signup"
+              ? "Crea tu acceso para capturar actividades."
+              : view === "forgot"
+                ? "Te enviaremos un enlace por correo."
+                : "Elige una contraseña nueva para tu cuenta."}
+          </p>
+        )}
         {view === "signup" && (
           <label>
             Nombre completo
@@ -1210,11 +1210,11 @@ function AdminDashboard({ onBack }: { onBack: () => void }) {
                 </div>
                 {missing.length ? (
                   <div className="people-chips">
-                    {missing.slice(0, 12).map((e) => (
+                    {missing.slice(0, 6).map((e) => (
                       <span key={e.id}>{e.full_name}</span>
                     ))}
-                    {missing.length > 12 && (
-                      <span>+{missing.length - 12} más</span>
+                    {missing.length > 6 && (
+                      <span>+{missing.length - 6} más</span>
                     )}
                   </div>
                 ) : (

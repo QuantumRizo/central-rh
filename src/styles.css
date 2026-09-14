@@ -9,8 +9,12 @@
 
 :root{--cn-primary:#0b5eb7;--cn-primary-dark:#062e67;--cn-primary-light:#8faedd;--cn-accent:#5e7d95;--cn-bg:#f2f7f6;--cn-text:#243333;--cn-muted:#5f7373;--cn-border:#e0eaea}
 body{background:var(--cn-bg);color:var(--cn-text)}
-.app{position:relative;isolation:isolate}.app::before{content:"";position:fixed;z-index:-1;right:34px;bottom:26px;width:250px;height:150px;background:url('/Logo_CN_2025_Negro.webp') center/contain no-repeat;opacity:.045;pointer-events:none}
-.login{background:linear-gradient(135deg,rgba(6,46,103,.97),rgba(11,94,183,.88)),url('/centralmx-brand-texture.jpg') center/cover}
+.app{position:relative;isolation:isolate;min-height:100vh;background-image:linear-gradient(135deg,rgba(232,241,255,.48),rgba(242,247,246,.84)),url('/centralmx-brand-texture.jpg');background-position:center;background-size:cover;background-attachment:fixed}.app::before{content:"";position:fixed;z-index:-1;right:34px;bottom:26px;width:250px;height:150px;background:url('/Logo_CN_2025_Negro.webp') center/contain no-repeat;opacity:.045;pointer-events:none}
+.app header{background:rgba(255,255,255,.72);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+.panel,.admin-card,.metric,.admin-toolbar{background:rgba(255,255,255,.72);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.login{background-image:linear-gradient(135deg,rgba(232,241,255,.52),rgba(8,61,132,.16)),url('/centralmx-brand-texture.jpg');background-position:center;background-size:cover;background-attachment:fixed}
+.login .card{background:rgba(255,255,255,.43);border:1px solid rgba(255,255,255,.7);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);box-shadow:0 24px 70px rgba(6,46,103,.2)}
+.login .card input{background:rgba(255,255,255,.5);border-color:rgba(111,143,190,.38)}
 .card{border-color:var(--cn-border);box-shadow:0 24px 70px rgba(6,46,103,.2)}
 .brand{color:var(--cn-primary);gap:9px}
 .brand span{color:var(--cn-accent)}
@@ -22,6 +26,7 @@ button:hover,.primary:hover{background:var(--cn-primary-dark)}
 .secondary{color:var(--cn-primary);border-color:#c5d9ec;background:#fff}
 .secondary:hover{background:#edf5fc}
 .picker-trigger:hover,.picker-trigger:focus-visible{background:#fff;color:#24364b;border-color:var(--cn-primary)}
+.add:hover,.add:focus-visible{background:#dbeefb;color:var(--cn-primary-dark)}
 .admin-badge{background:#e5f0fb;color:var(--cn-primary)}
 .panel,.admin-card,.metric,.admin-loading{border-color:var(--cn-border)}
 .metric-icon{background:#e7f1fb;color:var(--cn-primary)}
@@ -34,3 +39,6 @@ button:hover,.primary:hover{background:var(--cn-primary-dark)}
 .loading-card{display:grid;gap:16px}.skeleton-logo{width:190px;height:34px;margin:0 auto 8px}.skeleton-title{width:62%;height:42px}.skeleton-subtitle{width:70%;height:18px}.skeleton-field{height:48px;width:100%}.skeleton-button{height:48px;width:100%;margin-top:8px}.sheet-skeleton{display:grid;gap:16px;padding:6px 0}.skeleton-section-title{height:21px;width:31%}.skeleton-section-title.short{width:42%}.skeleton-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.skeleton-divider{height:1px;width:100%;margin:8px 0}.skeleton-row{height:48px;width:100%}.skeleton-button.small{width:170px;height:42px}.admin-skeleton{display:grid;gap:16px}.skeleton-metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.skeleton-metric{height:92px}.skeleton-admin-grid{display:grid;grid-template-columns:1.3fr 1fr;gap:12px}.skeleton-admin-card{height:230px}.skeleton-table{height:280px}.skeleton:focus,.skeleton>*{outline:0}
 @media(max-width:850px){.skeleton-metrics{grid-template-columns:repeat(2,1fr)}.skeleton-admin-grid{grid-template-columns:1fr}.skeleton-grid{grid-template-columns:1fr}}
 @media(prefers-reduced-motion:reduce){.skeleton::after{animation:none}}
+.admin-tabs button:hover,.admin-tabs button:focus-visible{background:#e7f1fb;color:var(--cn-primary-dark)}
+.admin-tabs button.active,.admin-tabs button.active:hover,.admin-tabs button.active:focus-visible{color:#fff;background:var(--cn-primary)}
+.people-chips{max-height:116px;overflow:auto;padding:2px 2px 2px 0}
