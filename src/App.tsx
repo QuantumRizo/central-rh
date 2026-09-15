@@ -24,9 +24,10 @@ import {
   Trash2,
   UserCheck,
   Users,
+  X,
 } from "lucide-react";
 type Option = { id: string; name: string };
-type Entry = { client_id: string; activity_id: string; percentage: number };
+type Entry = { client_id: string; activity_id: string; percentage: number; hours?: number };
 const sheetSnapshot = (value: {
   attendance: string;
   mode: string;
@@ -46,6 +47,7 @@ const sheetSnapshot = (value: {
     client_id: row.client_id,
     activity_id: row.activity_id,
     percentage: Number(row.percentage) || 0,
+    hours: Number(row.hours) || 0,
   })),
 });
 const HIDDEN_CLIENTS = new Set(["Tiempo interno", "Cliente de prueba"]);
@@ -568,7 +570,15 @@ function Workspace({ session }: { session: Session }) {
         setExit(data?.exit_time?.slice(0, 5) || "18:00");
         setPermissionEntry(data?.permission_entry_time?.slice(0, 5) || "09:00");
         setPermissionExit(data?.permission_exit_time?.slice(0, 5) || "18:00");
-        setRows(data?.timesheet_entries || []);
+        const loadedHours = workedHours(
+          data?.entry_time?.slice(0, 5) || "09:00",
+          data?.exit_time?.slice(0, 5) || "18:00",
+        );
+        const loadedRows = (data?.timesheet_entries || []).map((row: Entry) => ({
+          ...row,
+          hours: Number(((Number(row.percentage) || 0) * loadedHours / 100).toFixed(2)),
+        }));
+        setRows(loadedRows);
         setBaseline(sheetSnapshot({
           attendance: data?.attendance || 'worked',
           mode: data?.mode || 'office',
@@ -576,7 +586,7 @@ function Workspace({ session }: { session: Session }) {
           exit: data?.exit_time?.slice(0,5) || '18:00',
           permissionEntry: data?.permission_entry_time?.slice(0,5) || '09:00',
           permissionExit: data?.permission_exit_time?.slice(0,5) || '18:00',
-          rows: data?.timesheet_entries || [],
+          rows: loadedRows,
         }));
       } catch (e) {
         if (live) setError((e as Error).message);
@@ -588,8 +598,10 @@ function Workspace({ session }: { session: Session }) {
       live = false;
     };
   }, [employee, date]);
-  const total =
-    rows.reduce((s, r) => s + Math.round(r.percentage * 100), 0) / 100;
+  const workdayHours = workedHours(entry, exit);
+  const totalHours = rows.reduce((sum, row) => sum + (Number(row.hours) || 0), 0);
+  const total = workdayHours ? (totalHours / workdayHours) * 100 : 0;
+  const hoursAreComplete = Math.abs(totalHours - workdayHours) < 0.01;
   const scheduleReady =
     mode !== "schedule_permission" ||
     (permissionEntry && permissionExit && permissionExit > permissionEntry);
@@ -599,6 +611,17 @@ function Workspace({ session }: { session: Session }) {
     setError("");
     setMessage("");
     try {
+      const saveRows = rows.map((row) => ({
+        client_id: row.client_id,
+        activity_id: row.activity_id,
+        percentage: Number(((Number(row.hours) || 0) / workdayHours * 100).toFixed(2)),
+      }));
+      if (saveRows.length) {
+        const previousTotal = saveRows
+          .slice(0, -1)
+          .reduce((sum, row) => sum + row.percentage, 0);
+        saveRows[saveRows.length - 1].percentage = Number((100 - previousTotal).toFixed(2));
+      }
       const { error } = await sb.rpc("save_timesheet", {
         payload: {
           employee_id: employee,
@@ -611,12 +634,15 @@ function Workspace({ session }: { session: Session }) {
             mode === "schedule_permission" ? permissionEntry : "",
           permission_exit_time:
             mode === "schedule_permission" ? permissionExit : "",
-          entries: attendance === "worked" ? rows : [],
+          entries: attendance === "worked" ? saveRows : [],
         },
       });
       if (error) throw error;
-      if (attendance !== "worked") setRows([]);
-      setBaseline(sheetSnapshot({attendance,mode,entry,exit,permissionEntry,permissionExit,rows:attendance === 'worked' ? rows : []}));
+      const savedRows = attendance === "worked"
+        ? rows.map((row, index) => ({ ...row, percentage: saveRows[index]?.percentage || 0 }))
+        : [];
+      setRows(savedRows);
+      setBaseline(sheetSnapshot({attendance,mode,entry,exit,permissionEntry,permissionExit,rows:attendance === 'worked' ? savedRows : []}));
       setMessage("Día guardado correctamente");
     } catch (e) {
       setError((e as Error).message);
@@ -792,15 +818,22 @@ function Workspace({ session }: { session: Session }) {
                         </div>
                       </div>
                       <div className="section-head">
-                        <h2>Distribución del tiempo</h2>
-                        <span className={total === 100 ? "ok" : "warn"}>
-                          {total}% / 100%
+                        <div>
+                          <h2>Distribución del tiempo</h2>
+                          <p className="section-help">Captura horas; el sistema calcula el porcentaje automáticamente.</p>
+                        </div>
+                        <span className={hoursAreComplete ? "ok" : "warn"}>
+                          {totalHours.toFixed(2)} h / {workdayHours.toFixed(2)} h · {total.toFixed(1)}%
                         </span>
                       </div>
-                      {total > 100 && (
+                      {totalHours > workdayHours && (
                         <p className="over-warning" role="alert">
-                          Te estás pasando del 100% del tiempo. Reduce los
-                          porcentajes antes de guardar.
+                          Te estás pasando de la jornada real. Reduce las horas antes de guardar.
+                        </p>
+                      )}
+                      {!hoursAreComplete && totalHours < workdayHours && (
+                        <p className="under-warning" role="status">
+                          Faltan {(workdayHours - totalHours).toFixed(2)} horas por distribuir.
                         </p>
                       )}
                       <div className="entries">
@@ -818,19 +851,24 @@ function Workspace({ session }: { session: Session }) {
                               value={r.activity_id}
                               onChange={(v) => update(i, { activity_id: v })}
                             />
-                            <input
-                              aria-label={`Porcentaje ${i + 1}`}
-                              type="number"
-                              min="0.01"
-                              max="100"
-                              step="0.01"
-                              value={r.percentage}
-                              onChange={(e) =>
-                                update(i, {
-                                  percentage: Number(e.target.value),
-                                })
-                              }
-                            />
+                            <div className="hours-field">
+                              <input
+                                aria-label={`Horas de actividad ${i + 1}`}
+                                type="number"
+                                min="0"
+                                max={workdayHours}
+                                step="0.25"
+                                value={r.hours ?? 0}
+                                onChange={(e) => {
+                                  const hours = Number(e.target.value);
+                                  update(i, {
+                                    hours,
+                                    percentage: workdayHours ? (hours / workdayHours) * 100 : 0,
+                                  });
+                                }}
+                              />
+                              <small>{workdayHours ? ((Number(r.hours) || 0) / workdayHours * 100).toFixed(1) : "0.0"}%</small>
+                            </div>
                             <button
                               className="icon"
                               aria-label={`Eliminar fila ${i + 1}`}
@@ -851,6 +889,7 @@ function Workspace({ session }: { session: Session }) {
                             {
                               client_id: clients[0]?.id || "",
                               activity_id: activities[0]?.id || "",
+                              hours: 0,
                               percentage: 0,
                             },
                           ])
@@ -885,8 +924,8 @@ function Workspace({ session }: { session: Session }) {
                     !employee ||
                     baseline === null ||
                     (attendance === "worked" &&
-                      (total !== 100 ||
-                        rows.some((r) => r.percentage <= 0) ||
+                      (!hoursAreComplete ||
+                        rows.some((r) => (Number(r.hours) || 0) <= 0) ||
                         !scheduleReady))
                   }
                   onClick={save}
@@ -929,7 +968,9 @@ function AdminDashboard({ onBack }: { onBack: () => void }) {
     [employees, setEmployees] = useState<any[]>([]),
     [sheets, setSheets] = useState<any[]>([]),
     [busy, setBusy] = useState(true),
-    [error, setError] = useState("");
+    [error, setError] = useState(""),
+    [selectedClientName, setSelectedClientName] = useState<string | null>(null),
+    [selectedPersonId, setSelectedPersonId] = useState<string | null>(null);
   useEffect(() => {
     let live = true;
     (async () => {
@@ -998,6 +1039,7 @@ function AdminDashboard({ onBack }: { onBack: () => void }) {
       const own = sheets.filter((s) => s.employee_id === e.id),
         ownWorked = own.filter((s) => s.attendance === "worked");
       return {
+        id: e.id,
         name: e.full_name,
         position: e.position,
         captures: own.length,
@@ -1069,6 +1111,94 @@ function AdminDashboard({ onBack }: { onBack: () => void }) {
         .toLowerCase()
         .includes(query.toLowerCase()),
     );
+  const selectedClientDetail = selectedClientName
+    ? (() => {
+        const client = clientMap.get(selectedClientName);
+        if (!client) return null;
+        const people = new Map<
+          string,
+          {
+            id: string;
+            name: string;
+            position: string;
+            equivalent: number;
+            days: Set<string>;
+            activities: Map<string, number>;
+          }
+        >();
+        const activities = new Map<string, number>();
+        for (const sheet of worked) {
+          for (const entry of sheet.timesheet_entries || []) {
+            if (entry.client?.name !== selectedClientName) continue;
+            const activity = entry.activity?.name || "Sin actividad";
+            const percentage = Number(entry.percentage) || 0;
+            const person = people.get(sheet.employee_id) || {
+              id: sheet.employee_id,
+              name: sheet.employee?.full_name || "Colaborador sin nombre",
+              position: sheet.employee?.position || sheet.position_snapshot || "—",
+              equivalent: 0,
+              days: new Set<string>(),
+              activities: new Map<string, number>(),
+            };
+            person.equivalent += percentage / 100;
+            person.days.add(sheet.work_date);
+            person.activities.set(
+              activity,
+              (person.activities.get(activity) || 0) + percentage,
+            );
+            people.set(sheet.employee_id, person);
+            activities.set(activity, (activities.get(activity) || 0) + percentage);
+          }
+        }
+        const activityTotal = [...activities.values()].reduce((sum, value) => sum + value, 0);
+        return {
+          ...client,
+          activities: [...activities]
+            .map(([name, percentage]) => ({
+              name,
+              percentage,
+              share: activityTotal ? (percentage / activityTotal) * 100 : 0,
+            }))
+            .sort((a, b) => b.percentage - a.percentage),
+          people: [...people.values()].sort((a, b) => b.equivalent - a.equivalent),
+        };
+      })()
+    : null;
+  const selectedPersonDetail = selectedPersonId
+    ? (() => {
+        const person = employees.find((employee) => employee.id === selectedPersonId);
+        if (!person) return null;
+        const own = sheets.filter((sheet) => sheet.employee_id === selectedPersonId);
+        const ownWorked = own.filter((sheet) => sheet.attendance === "worked");
+        const activities = new Map<string, number>();
+        for (const sheet of ownWorked)
+          for (const entry of sheet.timesheet_entries || []) {
+            const activity = entry.activity?.name || "Sin actividad";
+            activities.set(activity, (activities.get(activity) || 0) + (Number(entry.percentage) || 0));
+          }
+        const activityTotal = [...activities.values()].reduce((sum, value) => sum + value, 0);
+        const activityNames = [...activities]
+          .sort((a, b) => b[1] - a[1])
+          .map(([name]) => name);
+        return {
+          person,
+          own,
+          ownWorked,
+          hours: ownWorked.reduce(
+            (sum, sheet) => sum + workedHours(sheet.entry_time, sheet.exit_time),
+            0,
+          ),
+          activities: [...activities]
+            .map(([name, percentage]) => ({
+              name,
+              percentage,
+              share: activityTotal ? (percentage / activityTotal) * 100 : 0,
+            }))
+            .sort((a, b) => b.percentage - a.percentage),
+          activityNames,
+        };
+      })()
+    : null;
   const tabs: [AdminTab, string][] = [
     ["summary", "Resumen"],
     ["people", "Personas"],
@@ -1206,6 +1336,8 @@ function AdminDashboard({ onBack }: { onBack: () => void }) {
               setTab(id);
               setSelection(null);
               setQuery("");
+              setSelectedClientName(null);
+              setSelectedPersonId(null);
             }}
           >
             {label}
@@ -1402,6 +1534,262 @@ function AdminDashboard({ onBack }: { onBack: () => void }) {
   );
 }
 
+function LegacyActivitySummary({
+  rows,
+  title = "Actividades principales",
+  description = "Distribución acumulada en el período.",
+}: {
+  rows: { name: string; percentage: number; share: number }[];
+  title?: string;
+  description?: string;
+}) {
+  return (
+    <section className="admin-card activity-summary">
+      <div className="card-heading">
+        <div>
+          <h2>{title}</h2>
+          <p>{description}</p>
+        </div>
+      </div>
+      {rows.length ? (
+        <div className="detail-activity-list">
+          {rows.map((row) => (
+            <div className="detail-activity" key={row.name}>
+              <div className="detail-activity-label">
+                <span>{row.name}</span>
+                <strong>{row.share.toFixed(0)}%</strong>
+              </div>
+              <div className="rank-bar">
+                <span style={{ width: `${Math.min(row.share, 100)}%` }} />
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p className="empty">Sin actividades en este período.</p>
+      )}
+    </section>
+  );
+}
+
+function DetailHeader({
+  eyebrow,
+  title,
+  description,
+  backLabel,
+  onClose,
+}: {
+  eyebrow: string;
+  title: string;
+  description: string;
+  backLabel: string;
+  onClose: () => void;
+}) {
+  return (
+    <div className="detail-header">
+      <div>
+        <button className="back-link" onClick={onClose}>
+          <ArrowLeft size={17} /> {backLabel}
+        </button>
+        <p className="eyebrow">{eyebrow}</p>
+        <h2>{title}</h2>
+        <p>{description}</p>
+      </div>
+      <button className="icon detail-close" aria-label="Cerrar detalle" onClick={onClose}>
+        <X size={19} />
+      </button>
+    </div>
+  );
+}
+
+function ClientDetail({
+  detail,
+  from,
+  to,
+  onClose,
+}: {
+  detail: any;
+  from: string;
+  to: string;
+  onClose: () => void;
+}) {
+  return (
+    <div className="detail-view">
+      <DetailHeader
+        eyebrow="DETALLE DEL CLIENTE"
+        title={detail.name}
+        description={`Personas y actividades registradas del ${from} al ${to}.`}
+        backLabel="Volver a clientes"
+        onClose={onClose}
+      />
+      <div className="detail-metrics">
+        <Metric icon={<Users />} label="Personas trabajando" value={detail.people.length} />
+        <Metric
+          icon={<Clock3 />}
+          label="Días equivalentes"
+          value={detail.equivalent.toFixed(2)}
+        />
+        <Metric
+          icon={<LayoutDashboard />}
+          label="Actividades"
+          value={detail.activities.length}
+        />
+      </div>
+      <div className="detail-grid">
+        <LegacyActivitySummary
+          rows={detail.activities}
+          title="Actividades principales"
+          description="Proporción del tiempo reportado para este cliente."
+        />
+        <section className="admin-card people-detail-card">
+          <div className="card-heading">
+            <div>
+              <h2>Personas asignadas</h2>
+              <p>Qué actividad realiza cada persona y su porcentaje promedio diario.</p>
+            </div>
+          </div>
+          {detail.people.length ? (
+            <div className="assigned-people">
+              {detail.people.map((person: any) => {
+                const personTotal = [...person.activities.values()].reduce(
+                  (sum: number, value: number) => sum + value,
+                  0,
+                );
+                return (
+                  <div className="assigned-person" key={person.id}>
+                    <div className="assigned-person-heading">
+                      <div>
+                        <strong>{person.name}</strong>
+                        <small>{person.position}</small>
+                      </div>
+                      <span>{person.equivalent.toFixed(2)} días eq.</span>
+                    </div>
+                    <div className="assigned-activities">
+                      {[...person.activities]
+                        .sort((a, b) => b[1] - a[1])
+                        .map(([name, percentage]) => (
+                          <div key={name}>
+                            <span>{name}</span>
+                            <strong>
+                              {(percentage / Math.max(person.days.size, 1)).toFixed(1)}%
+                            </strong>
+                          </div>
+                        ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <p className="empty">Sin personas en este período.</p>
+          )}
+        </section>
+      </div>
+    </div>
+  );
+}
+
+function PersonDetail({
+  detail,
+  from,
+  to,
+  onClose,
+}: {
+  detail: any;
+  from: string;
+  to: string;
+  onClose: () => void;
+}) {
+  const activityValue = (sheet: any, activityName: string) =>
+    (sheet.timesheet_entries || [])
+      .filter((entry: any) => (entry.activity?.name || "Sin actividad") === activityName)
+      .reduce((sum: number, entry: any) => sum + (Number(entry.percentage) || 0), 0);
+  return (
+    <div className="detail-view">
+      <DetailHeader
+        eyebrow="DETALLE DE LA PERSONA"
+        title={detail.person.full_name}
+        description={`${detail.person.position} · Resumen del ${from} al ${to}.`}
+        backLabel="Volver a personas"
+        onClose={onClose}
+      />
+      <div className="detail-metrics person-metrics">
+        <Metric icon={<CalendarDays />} label="Capturas" value={detail.own.length} />
+        <Metric icon={<Check />} label="Días trabajados" value={detail.ownWorked.length} />
+        <Metric icon={<Clock3 />} label="Horas reales" value={detail.hours.toFixed(1)} />
+        <Metric
+          icon={<UserCheck />}
+          label="No trabajados"
+          value={detail.own.filter((sheet: any) => sheet.attendance !== "worked").length}
+        />
+      </div>
+      <LegacyActivitySummary
+        rows={detail.activities}
+        title="Resumen de actividades"
+        description="Distribución de las actividades trabajadas por la persona."
+      />
+      <section className="admin-card table-card person-log-card">
+        <div className="card-heading detail-table-heading">
+          <div>
+            <h2>Tiempo y actividades por día</h2>
+            <p>Horas reales registradas y porcentaje capturado en cada actividad.</p>
+          </div>
+        </div>
+        <div className="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                {[
+                  "Fecha",
+                  "Estado",
+                  "Horario",
+                  "Horas reales",
+                  ...detail.activityNames,
+                ].map((heading) => (
+                  <th key={heading}>{heading}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {detail.own.map((sheet: any) => (
+                <tr key={sheet.id}>
+                  <td>
+                    {new Date(`${sheet.work_date}T12:00:00`).toLocaleDateString("es-MX")}
+                  </td>
+                  <td>
+                    <span className={`status-pill ${sheet.attendance}`}>
+                      {sheet.attendance === "worked"
+                        ? "Trabajado"
+                        : sheet.attendance === "vacation"
+                          ? "Vacaciones"
+                          : "Falta"}
+                    </span>
+                  </td>
+                  <td>
+                    {sheet.attendance === "worked" && sheet.entry_time && sheet.exit_time
+                      ? `${sheet.entry_time.slice(0, 5)} – ${sheet.exit_time.slice(0, 5)}`
+                      : "—"}
+                  </td>
+                  <td>
+                    {sheet.attendance === "worked"
+                      ? workedHours(sheet.entry_time, sheet.exit_time).toFixed(1)
+                      : "—"}
+                  </td>
+                  {detail.activityNames.map((activityName: string) => {
+                    const percentage = activityValue(sheet, activityName);
+                    return <td key={activityName}>{percentage ? `${percentage.toFixed(1)}%` : "—"}</td>;
+                  })}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        {!detail.own.length && <p className="empty">Sin registros en este período.</p>}
+      </section>
+    </div>
+  );
+}
+
 function Metric({
   icon,
   label,
@@ -1489,10 +1877,12 @@ function AdminTable({
   headings,
   rows,
   empty,
+  onRowClick,
 }: {
   headings: string[];
   rows: ReactNode[][];
   empty: string;
+  onRowClick?: (index: number) => void;
 }) {
   return (
     <section className="admin-card table-card">
@@ -1506,8 +1896,20 @@ function AdminTable({
             </tr>
           </thead>
           <tbody>
-            {rows.map((row, i) => (
-              <tr key={i}>
+              {rows.map((row, i) => (
+              <tr
+                key={i}
+                className={onRowClick ? "clickable-row" : ""}
+                onClick={() => onRowClick?.(i)}
+                onKeyDown={(event) => {
+                  if (onRowClick && (event.key === "Enter" || event.key === " ")) {
+                    event.preventDefault();
+                    onRowClick(i);
+                  }
+                }}
+                tabIndex={onRowClick ? 0 : undefined}
+                role={onRowClick ? "button" : undefined}
+              >
                 {row.map((value, j) => (
                   <td key={j}>{value}</td>
                 ))}
