@@ -27,6 +27,27 @@ import {
 } from "lucide-react";
 type Option = { id: string; name: string };
 type Entry = { client_id: string; activity_id: string; percentage: number };
+const sheetSnapshot = (value: {
+  attendance: string;
+  mode: string;
+  entry: string;
+  exit: string;
+  permissionEntry: string;
+  permissionExit: string;
+  rows: Entry[];
+}) => JSON.stringify({
+  attendance: value.attendance,
+  mode: value.mode,
+  entry: value.entry,
+  exit: value.exit,
+  permissionEntry: value.permissionEntry,
+  permissionExit: value.permissionExit,
+  rows: value.rows.map((row) => ({
+    client_id: row.client_id,
+    activity_id: row.activity_id,
+    percentage: Number(row.percentage) || 0,
+  })),
+});
 const HIDDEN_CLIENTS = new Set(["Tiempo interno", "Cliente de prueba"]);
 const day = () => {
   const d = new Date();
@@ -481,7 +502,7 @@ function Workspace({ session }: { session: Session }) {
     [reports, setReports] = useState(false),
     [activeModule, setActiveModule] = useState<"timesheets" | "evaluaciones">("timesheets"),
     [accountOpen, setAccountOpen] = useState(false);
-  const draft = JSON.stringify({attendance,mode,entry,exit,permissionEntry,permissionExit,rows});
+  const draft = sheetSnapshot({attendance,mode,entry,exit,permissionEntry,permissionExit,rows});
   const dirty = baseline !== null && draft !== baseline;
   const canLeave = () => !dirty || window.confirm('Tienes cambios sin guardar. ¿Quieres continuar sin guardarlos?');
   useEffect(() => {
@@ -548,7 +569,15 @@ function Workspace({ session }: { session: Session }) {
         setPermissionEntry(data?.permission_entry_time?.slice(0, 5) || "09:00");
         setPermissionExit(data?.permission_exit_time?.slice(0, 5) || "18:00");
         setRows(data?.timesheet_entries || []);
-        setBaseline(JSON.stringify({attendance:data?.attendance || 'worked',mode:data?.mode || 'office',entry:data?.entry_time?.slice(0,5)||'09:00',exit:data?.exit_time?.slice(0,5)||'18:00',permissionEntry:data?.permission_entry_time?.slice(0,5)||'09:00',permissionExit:data?.permission_exit_time?.slice(0,5)||'18:00',rows:data?.timesheet_entries || []}));
+        setBaseline(sheetSnapshot({
+          attendance: data?.attendance || 'worked',
+          mode: data?.mode || 'office',
+          entry: data?.entry_time?.slice(0,5) || '09:00',
+          exit: data?.exit_time?.slice(0,5) || '18:00',
+          permissionEntry: data?.permission_entry_time?.slice(0,5) || '09:00',
+          permissionExit: data?.permission_exit_time?.slice(0,5) || '18:00',
+          rows: data?.timesheet_entries || [],
+        }));
       } catch (e) {
         if (live) setError((e as Error).message);
       } finally {
@@ -587,7 +616,7 @@ function Workspace({ session }: { session: Session }) {
       });
       if (error) throw error;
       if (attendance !== "worked") setRows([]);
-      setBaseline(JSON.stringify({...JSON.parse(draft),rows:attendance === 'worked' ? rows : []}));
+      setBaseline(sheetSnapshot({attendance,mode,entry,exit,permissionEntry,permissionExit,rows:attendance === 'worked' ? rows : []}));
       setMessage("Día guardado correctamente");
     } catch (e) {
       setError((e as Error).message);
