@@ -42,3 +42,46 @@ button:hover,.primary:hover{background:var(--cn-primary-dark)}
 .admin-tabs button:hover,.admin-tabs button:focus-visible{background:#e7f1fb;color:var(--cn-primary-dark)}
 .admin-tabs button.active,.admin-tabs button.active:hover,.admin-tabs button.active:focus-visible{color:#fff;background:var(--cn-primary)}
 .people-chips{max-height:116px;overflow:auto;padding:2px 2px 2px 0}
+
+/* Contain page margins so the background continues below the last card. */
+.app{display:flow-root;padding-bottom:48px;min-height:100dvh}
+.app:has(.admin-content)::before{display:none}
+.admin-content{--admin-ink:#23344b;--admin-muted:#61738a;--admin-line:#dce5ef;color:var(--admin-ink);margin:36px auto 0}
+.admin-dashboard{gap:24px;min-width:0}
+.admin-title{gap:20px}.admin-title h1{font-size:30px;letter-spacing:-.035em}
+.admin-content .admin-card,.admin-content .metric,.admin-content .admin-toolbar{background:rgba(255,255,255,.9);border:1px solid var(--admin-line);border-radius:16px;box-shadow:0 4px 16px rgba(35,52,75,.025)}
+.admin-content .admin-toolbar{padding:16px 20px}
+.admin-content .back-link:hover,.admin-content .back-link:focus-visible{background:#e7f1fb;color:var(--cn-primary-dark);border-radius:4px}
+.admin-content .admin-tabs{width:fit-content;max-width:100%;padding:4px;border:1px solid var(--admin-line);border-radius:12px;background:rgba(255,255,255,.8);gap:4px}
+.admin-content .admin-tabs button{border-radius:8px;padding:10px 18px;color:var(--admin-muted)}
+.admin-content .admin-tabs button:hover,.admin-content .admin-tabs button:focus-visible{background:#e7f1fb;color:var(--cn-primary-dark)}
+.admin-content .admin-tabs button.active{background:var(--cn-primary);color:#fff}
+.admin-content .admin-tabs button.active:after{display:none}
+.admin-content .metrics{gap:16px;grid-template-columns:repeat(4,minmax(0,1fr))}
+.admin-content .metric{padding:20px;align-items:flex-start;min-width:0}
+.admin-content .metric>div{min-width:0}.admin-content .metric strong{font-size:28px;letter-spacing:-.035em}
+.admin-content .metric small{display:block;margin:6px 0 0;color:var(--admin-muted);font-weight:500}
+.admin-content .summary-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;align-items:start}
+.admin-content .admin-card{padding:24px}.admin-content .table-card{padding:0}
+.admin-content .card-heading{flex-wrap:wrap;gap:12px}.admin-content .card-heading h2{font-size:16px;letter-spacing:-.015em}
+.admin-content .card-heading p{line-height:1.6;color:var(--admin-muted)}
+.admin-content .count-warn,.admin-content .count-ok,.admin-content .status-pill,.admin-content .admin-tabs button span{background:#e7f1fb;color:var(--cn-primary-dark)}
+.admin-content .all-done{color:var(--cn-primary-dark)}
+.admin-content .status-dot{background:var(--cn-primary)}
+.admin-content .status-dot.vacation{background:#8faedd}.admin-content .status-dot.absence{background:transparent;border:2px solid var(--cn-primary)}
+.admin-content .status-list{gap:0;margin-top:18px}.admin-content .status-list>div{padding:12px 0;border-bottom:1px solid #edf1f6}.admin-content .status-list>div:last-child{border-bottom:0}
+.admin-content .rank-list{gap:20px;margin-top:24px}.admin-content .rank-list>div>div:first-child{font-size:13px;line-height:1.5}
+.admin-content .rank-list span{white-space:normal;overflow-wrap:anywhere}.admin-content .rank-list strong{flex-shrink:0;color:var(--cn-primary-dark)}
+.admin-content .rank-bar{height:4px;margin-top:8px}
+.pending-details summary{cursor:pointer;color:var(--cn-primary-dark);font-size:13px;font-weight:600;padding:8px 0;width:fit-content}
+.pending-details summary:hover{color:var(--cn-primary)}
+.pending-details summary:focus-visible{outline:2px solid var(--cn-primary);outline-offset:4px;border-radius:3px}
+.pending-details ul{list-style:none;padding:0;margin:12px 0 0;max-height:240px;overflow:auto;border-top:1px solid var(--admin-line)}
+.pending-details li{padding:10px 0;border-bottom:1px solid #edf1f6;font-size:13px;color:var(--admin-muted)}
+.detail-link{background:transparent;color:var(--cn-primary-dark);padding:4px 0;text-align:left;justify-content:flex-start;text-decoration:underline;text-underline-offset:3px}
+.detail-link:hover,.detail-link:focus-visible{background:#e7f1fb;color:var(--cn-primary-dark)}
+.report-detail{display:grid;gap:16px}.report-detail h2,.report-detail p{margin:0}.report-note{font-size:12px;color:#61738a;line-height:1.6}
+.detail-filters{display:flex;flex-wrap:wrap;gap:12px;align-items:end}.detail-filters label{display:grid;gap:6px;font-size:12px;min-width:0;flex:1}.detail-filters select{width:100%;max-width:100%}.report-detail>.secondary{justify-self:start}
+.pending-rows{max-height:420px;overflow:auto}.pending-rows details,.history-row{border-bottom:1px solid #dce5ef;padding:12px 0;font-size:13px}.pending-rows summary,.history-row summary{cursor:pointer;line-height:1.6}.pending-rows summary span{float:right;color:#61738a}.pending-rows label{display:flex;gap:12px;align-items:center;margin:12px 0}.pending-rows p{line-height:1.8}.history-row p{margin:12px 0}.report-detail td{vertical-align:top}.report-detail .table-wrap{max-height:480px;overflow:auto}
+@media(max-width:1000px){.admin-content .metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:650px){.app{padding-bottom:28px}.admin-content{margin-top:24px}.admin-content .summary-grid{grid-template-columns:minmax(0,1fr)}.admin-content .metric{padding:14px;gap:10px}.admin-content .metric strong{font-size:24px}.admin-content .admin-card{padding:20px}.admin-content .table-card{padding:0}.admin-content .admin-tabs{width:100%}.admin-content .admin-tabs button{padding:10px 12px;flex:1}.admin-title h1{font-size:27px}}

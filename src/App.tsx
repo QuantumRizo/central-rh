@@ -6,6 +6,7 @@ import {
   type ReactNode,
 } from "react";
 import { createClient, type Session } from "@supabase/supabase-js";
+import { PendingDays, ReportDetails } from './ReportDetails';
 import {
   ArrowLeft,
   CalendarDays,
@@ -467,6 +468,7 @@ export default function App() {
   return <Workspace key={session.user.id} session={session} />;
 }
 function Workspace({ session }: { session: Session }) {
+  const [baseline, setBaseline] = useState<string | null>(null);
   const [employee, setEmployee] = useState<string>(""),
     [admin, setAdmin] = useState(false),
     [clients, setClients] = useState<Option[]>([]),
@@ -485,6 +487,15 @@ function Workspace({ session }: { session: Session }) {
     [message, setMessage] = useState(""),
     [reports, setReports] = useState(false),
     [accountOpen, setAccountOpen] = useState(false);
+  const draft = JSON.stringify({attendance,mode,entry,exit,permissionEntry,permissionExit,rows});
+  const dirty = baseline !== null && draft !== baseline;
+  const canLeave = () => !dirty || window.confirm('Tienes cambios sin guardar. ¿Quieres continuar sin guardarlos?');
+  useEffect(() => {
+    if (!dirty) return;
+    const warn = (e: BeforeUnloadEvent) => { e.preventDefault(); e.returnValue = ''; };
+    window.addEventListener('beforeunload', warn);
+    return () => window.removeEventListener('beforeunload', warn);
+  }, [dirty]);
   useEffect(() => {
     (async () => {
       try {
@@ -523,6 +534,7 @@ function Workspace({ session }: { session: Session }) {
     if (!employee) return;
     let live = true;
     setBusy(true);
+    setBaseline(null);
     setError("");
     setMessage("");
     (async () => {
@@ -542,6 +554,7 @@ function Workspace({ session }: { session: Session }) {
         setPermissionEntry(data?.permission_entry_time?.slice(0, 5) || "09:00");
         setPermissionExit(data?.permission_exit_time?.slice(0, 5) || "18:00");
         setRows(data?.timesheet_entries || []);
+        setBaseline(JSON.stringify({attendance:data?.attendance || 'worked',mode:data?.mode || 'office',entry:data?.entry_time?.slice(0,5)||'09:00',exit:data?.exit_time?.slice(0,5)||'18:00',permissionEntry:data?.permission_entry_time?.slice(0,5)||'09:00',permissionExit:data?.permission_exit_time?.slice(0,5)||'18:00',rows:data?.timesheet_entries || []}));
       } catch (e) {
         if (live) setError((e as Error).message);
       } finally {
@@ -558,6 +571,7 @@ function Workspace({ session }: { session: Session }) {
     mode !== "schedule_permission" ||
     (permissionEntry && permissionExit && permissionExit > permissionEntry);
   const save = async () => {
+    if (baseline === null || busy || saving) return;
     setSaving(true);
     setError("");
     setMessage("");
@@ -579,6 +593,7 @@ function Workspace({ session }: { session: Session }) {
       });
       if (error) throw error;
       if (attendance !== "worked") setRows([]);
+      setBaseline(JSON.stringify({...JSON.parse(draft),rows:attendance === 'worked' ? rows : []}));
       setMessage("Día guardado correctamente");
     } catch (e) {
       setError((e as Error).message);
@@ -612,7 +627,7 @@ function Workspace({ session }: { session: Session }) {
           <button
             title="Salir"
             className="icon"
-            onClick={() => sb.auth.signOut()}
+            onClick={() => { if (canLeave()) sb.auth.signOut(); }}
           >
             <LogOut />
           </button>
@@ -630,7 +645,7 @@ function Workspace({ session }: { session: Session }) {
                 <h1>Captura diaria</h1>
               </div>
               {admin && (
-                <button className="secondary" onClick={() => setReports(true)}>
+                <button className="secondary" onClick={() => { if (canLeave()) setReports(true); }}>
                   <LayoutDashboard size={18} /> Panel admin
                 </button>
               )}
@@ -643,7 +658,7 @@ function Workspace({ session }: { session: Session }) {
                   value={date}
                   disabled={saving}
                   onChange={(e) => {
-                    if (e.target.value) setDate(e.target.value);
+                    if (e.target.value && canLeave()) setDate(e.target.value);
                   }}
                 />
               </label>
@@ -837,11 +852,13 @@ function Workspace({ session }: { session: Session }) {
                 </p>
               )}
               <div className="actions">
+                {dirty && <span className="report-note">Cambios sin guardar</span>}
                 <button
                   disabled={
                     busy ||
                     saving ||
                     !employee ||
+                    baseline === null ||
                     (attendance === "worked" &&
                       (total !== 100 ||
                         rows.some((r) => r.percentage <= 0) ||
@@ -878,6 +895,8 @@ const csvCell = (value: unknown) => {
 };
 
 function AdminDashboard({ onBack }: { onBack: () => void }) {
+  const [selection, setSelection] = useState<{type:'person'|'client';name:string}|null>(null);
+  const [revision, setRevision] = useState(0);
   const [from, setFrom] = useState(monthStart()),
     [to, setTo] = useState(day()),
     [tab, setTab] = useState<AdminTab>("summary"),
@@ -896,7 +915,7 @@ function AdminDashboard({ onBack }: { onBack: () => void }) {
           throw Error("La fecha inicial debe ser anterior a la fecha final.");
         const employeeRequest = sb
           .from("employees")
-          .select("id,full_name,position,status")
+          .select("id,full_name,position,status,start_date")
           .eq("status", "Activo")
           .order("full_name");
         const all: any[] = [];
@@ -933,7 +952,7 @@ function AdminDashboard({ onBack }: { onBack: () => void }) {
     return () => {
       live = false;
     };
-  }, [from, to]);
+  }, [from, to, revision]);
 
   const worked = sheets.filter((s) => s.attendance === "worked"),
     vacations = sheets.filter((s) => s.attendance === "vacation"),
@@ -1160,6 +1179,7 @@ function AdminDashboard({ onBack }: { onBack: () => void }) {
             className={tab === id ? "active" : ""}
             onClick={() => {
               setTab(id);
+              setSelection(null);
               setQuery("");
             }}
           >
@@ -1228,14 +1248,14 @@ function AdminDashboard({ onBack }: { onBack: () => void }) {
                   />
                 </div>
                 {missing.length ? (
-                  <div className="people-chips">
-                    {missing.slice(0, 6).map((e) => (
-                      <span key={e.id}>{e.full_name}</span>
-                    ))}
-                    {missing.length > 6 && (
-                      <span>+{missing.length - 6} más</span>
-                    )}
-                  </div>
+                  <details className="pending-details" key={to}>
+                    <summary>Ver {missing.length} personas pendientes</summary>
+                    <ul>
+                      {missing.map((e) => (
+                        <li key={e.id}>{e.full_name}</li>
+                      ))}
+                    </ul>
+                  </details>
                 ) : (
                   <p className="all-done">
                     <Check size={18} /> Todo el equipo activo ha capturado.
@@ -1304,7 +1324,7 @@ function AdminDashboard({ onBack }: { onBack: () => void }) {
                 "Horas",
               ]}
               rows={personRows.map((r) => [
-                r.name,
+                <button className="detail-link" onClick={()=>setSelection({type:'person',name:r.name})}>{r.name}</button>,
                 r.position,
                 r.captures,
                 r.worked,
@@ -1324,7 +1344,7 @@ function AdminDashboard({ onBack }: { onBack: () => void }) {
                 "Actividad principal",
               ]}
               rows={clientRows.map((r) => [
-                r.name,
+                <button className="detail-link" onClick={()=>setSelection({type:'client',name:r.name})}>{r.name}</button>,
                 r.people,
                 r.equivalent.toFixed(2),
                 r.top,
@@ -1332,6 +1352,8 @@ function AdminDashboard({ onBack }: { onBack: () => void }) {
               empty="No hay actividad de clientes en este período."
             />
           )}
+          {selection && (tab === 'people' || tab === 'clients') && <ReportDetails key={selection.type+selection.name+from+to} sheets={sheets} selection={selection} onClose={()=>setSelection(null)} db={sb} />}
+          {tab === 'people' && <PendingDays employees={employees} sheets={sheets} from={from} to={to} today={day()} db={sb} onRefresh={()=>setRevision(r=>r+1)} />}
           {tab === "absences" && (
             <AdminTable
               headings={["Fecha", "Colaborador", "Puesto", "Tipo"]}
