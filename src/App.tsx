@@ -836,6 +836,14 @@ function Workspace({ session }: { session: Session }) {
                           Faltan {(workdayHours - totalHours).toFixed(2)} horas por distribuir.
                         </p>
                       )}
+                      {rows.length > 0 && (
+                        <div className="entry-labels" aria-hidden="true">
+                          <span>Cliente</span>
+                          <span>Actividad</span>
+                          <span>Horas / % del día</span>
+                          <span />
+                        </div>
+                      )}
                       <div className="entries">
                         {rows.map((r, i) => (
                           <div className="entry" key={i}>
@@ -853,6 +861,7 @@ function Workspace({ session }: { session: Session }) {
                             />
                             <div className="hours-field">
                               <input
+                                className="hours-input"
                                 aria-label={`Horas de actividad ${i + 1}`}
                                 type="number"
                                 min="0"
@@ -867,7 +876,11 @@ function Workspace({ session }: { session: Session }) {
                                   });
                                 }}
                               />
-                              <small>{workdayHours ? ((Number(r.hours) || 0) / workdayHours * 100).toFixed(1) : "0.0"}%</small>
+                              <span className="hours-unit">h</span>
+                              <div className="hours-conversion" aria-live="polite">
+                                <strong>{workdayHours ? ((Number(r.hours) || 0) / workdayHours * 100).toFixed(1) : "0.0"}%</strong>
+                                <small>del día</small>
+                              </div>
                             </div>
                             <button
                               className="icon"
