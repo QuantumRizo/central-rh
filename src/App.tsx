@@ -5,12 +5,15 @@ import {
   type FormEvent,
   type ReactNode,
 } from "react";
-import { createClient, type Session } from "@supabase/supabase-js";
+import { type Session } from "@supabase/supabase-js";
 import { PendingDays, ReportDetails } from './ReportDetails';
+import { EvaluacionesModule } from './evaluaciones/EvaluacionesModule';
+import { sb } from './lib/supabase';
 import {
   ArrowLeft,
   CalendarDays,
   Check,
+  ClipboardCheck,
   ChevronDown,
   Clock3,
   Download,
@@ -22,14 +25,6 @@ import {
   UserCheck,
   Users,
 } from "lucide-react";
-const sb = createClient(
-  import.meta.env.VITE_SUPABASE_URL ||
-    import.meta.env.VITE_SUPABASE_URL_PROD ||
-    "https://ncgbvbpkinrvrzxyttfz.supabase.co",
-  import.meta.env.VITE_SUPABASE_ANON_KEY ||
-    import.meta.env.VITE_SUPABASE_ANON_KEY_PROD ||
-    "sb_publishable_mG6DsF6355IRpy9TJ2ziBw_DSoVyQqE",
-);
 type Option = { id: string; name: string };
 type Entry = { client_id: string; activity_id: string; percentage: number };
 const HIDDEN_CLIENTS = new Set(["Tiempo interno", "Cliente de prueba"]);
@@ -185,9 +180,7 @@ function AuthScreen({
           src="/Logo_CN_2025_Negro.webp"
           alt="Central MX"
         />
-        <div className="brand">
-          <Clock3 /> Central RH
-        </div>
+        <div className="brand">Plataforma RH</div>
         {view !== "login" && <h1>{title}</h1>}
         {view !== "login" && (
           <p>
@@ -486,6 +479,7 @@ function Workspace({ session }: { session: Session }) {
     [error, setError] = useState(""),
     [message, setMessage] = useState(""),
     [reports, setReports] = useState(false),
+    [activeModule, setActiveModule] = useState<"timesheets" | "evaluaciones">("timesheets"),
     [accountOpen, setAccountOpen] = useState(false);
   const draft = JSON.stringify({attendance,mode,entry,exit,permissionEntry,permissionExit,rows});
   const dirty = baseline !== null && draft !== baseline;
@@ -605,37 +599,39 @@ function Workspace({ session }: { session: Session }) {
     setRows((prev) => prev.map((r, j) => (i === j ? { ...r, ...patch } : r)));
   return (
     <main className="app">
-      <header>
-        <div className="brand">
-          <img
-            className="cn-header-logo"
-            src="/Logo_CN_2025_Negro.webp"
-            alt="Central MX"
-          />
-          <Clock3 /> Central RH <span>Timesheets</span>
+      <aside className="app-sidebar">
+        <div className="sidebar-brand">
+          <img className="cn-header-logo" src="/Logo_CN_2025_Negro.webp" alt="Central MX" />
+          <div><strong>Plataforma RH</strong><span>Gestión de personas</span></div>
         </div>
-        <div className="user">
-          {admin && <span className="admin-badge">Admin</span>}
-          {session.user.email}
+        <p className="sidebar-section-label">Módulos</p>
+        <nav className="module-nav" aria-label="Módulos">
           <button
-            title="Cuenta"
-            className="account-button"
-            onClick={() => setAccountOpen((open) => !open)}
+            className={activeModule === "timesheets" ? "active" : ""}
+            onClick={() => { if (canLeave()) { setActiveModule("timesheets"); setReports(false); } }}
           >
-            Cuenta
+            <Clock3 size={18} /> <span>Timesheets</span>
           </button>
           <button
-            title="Salir"
-            className="icon"
-            onClick={() => { if (canLeave()) sb.auth.signOut(); }}
+            className={activeModule === "evaluaciones" ? "active" : ""}
+            onClick={() => { if (canLeave()) { setActiveModule("evaluaciones"); setReports(false); } }}
           >
-            <LogOut />
+            <ClipboardCheck size={18} /> <span>Evaluaciones</span>
           </button>
+        </nav>
+        <div className="sidebar-footer">
+          <div className="sidebar-user"><div>{admin && <span className="admin-badge">Admin</span>}</div><strong>{session.user.email}</strong></div>
+          <div className="sidebar-user-actions">
+            <button title="Cuenta" className="sidebar-account" onClick={() => setAccountOpen((open) => !open)}>Cuenta</button>
+            <button title="Salir" className="sidebar-logout" onClick={() => { if (canLeave()) sb.auth.signOut(); }}><LogOut size={17} /></button>
+          </div>
         </div>
-      </header>
+      </aside>
       {accountOpen && <ChangePassword onDone={() => setAccountOpen(false)} />}
-      <section className={`content ${reports ? "admin-content" : ""}`}>
-        {reports ? (
+      <section className={`content ${reports ? "admin-content" : activeModule === "evaluaciones" ? "evaluation-content" : ""}`}>
+        {activeModule === "evaluaciones" ? (
+          <EvaluacionesModule employeeId={employee} isAdmin={admin} />
+        ) : reports ? (
           <AdminDashboard onBack={() => setReports(false)} />
         ) : (
           <>
@@ -1336,21 +1332,24 @@ function AdminDashboard({ onBack }: { onBack: () => void }) {
             />
           )}
           {tab === "clients" && (
-            <AdminTable
-              headings={[
-                "Cliente",
-                "Personas",
-                "Días equivalentes",
-                "Actividad principal",
-              ]}
-              rows={clientRows.map((r) => [
-                <button className="detail-link" onClick={()=>setSelection({type:'client',name:r.name})}>{r.name}</button>,
-                r.people,
-                r.equivalent.toFixed(2),
-                r.top,
-              ])}
-              empty="No hay actividad de clientes en este período."
-            />
+            <>
+              <ActivitySummary rows={activityRows} />
+              <AdminTable
+                headings={[
+                  "Cliente",
+                  "Personas",
+                  "Días equivalentes",
+                  "Actividad principal",
+                ]}
+                rows={clientRows.map((r) => [
+                  <button className="detail-link" onClick={()=>setSelection({type:'client',name:r.name})}>{r.name}</button>,
+                  r.people,
+                  r.equivalent.toFixed(2),
+                  r.top,
+                ])}
+                empty="No hay actividad de clientes en este período."
+              />
+            </>
           )}
           {selection && (tab === 'people' || tab === 'clients') && <ReportDetails key={selection.type+selection.name+from+to} sheets={sheets} selection={selection} onClose={()=>setSelection(null)} db={sb} />}
           {tab === 'people' && <PendingDays employees={employees} sheets={sheets} from={from} to={to} today={day()} db={sb} onRefresh={()=>setRevision(r=>r+1)} />}
@@ -1414,6 +1413,47 @@ function RankList({ rows }: { rows: { name: string; value: number }[] }) {
     </div>
   ) : (
     <p className="empty">Sin información en este período.</p>
+  );
+}
+function ActivitySummary({ rows }: { rows: { name: string; equivalent: number }[] }) {
+  const total = rows.reduce((sum, row) => sum + row.equivalent, 0);
+
+  return (
+    <section className="admin-card activity-summary">
+      <div className="card-heading">
+        <div>
+          <h2>Actividades principales</h2>
+          <p>Actividad acumulada en el período.</p>
+        </div>
+      </div>
+      {rows.length > 0 && total > 0 ? (
+        <div className="activity-summary-list">
+          {rows.slice(0, 8).map((row) => {
+            const share = row.equivalent / total;
+            return (
+              <div className="activity-summary-row" key={row.name}>
+                <div className="activity-summary-label">
+                  <span>{row.name}</span>
+                  <strong>{share.toFixed(2)}</strong>
+                </div>
+                <div
+                  className="activity-summary-bar"
+                  role="progressbar"
+                  aria-label={`${row.name}: ${(share * 100).toFixed(0)}%`}
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-valuenow={share * 100}
+                >
+                  <span style={{ width: `${share * 100}%` }} />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        <p className="empty">Sin actividades en este período.</p>
+      )}
+    </section>
   );
 }
 function AdminTable({
