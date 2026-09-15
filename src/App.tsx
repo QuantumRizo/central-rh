@@ -1296,12 +1296,12 @@ function AdminDashboard({ onBack }: { onBack: () => void }) {
               <section className="admin-card">
                 <div className="card-heading">
                   <div>
-                    <h2>Actividades principales</h2>
-                    <p>Actividad acumulada en el período.</p>
+                    <h2>Dedicación por cliente</h2>
+                    <p>Tiempo acumulado por cliente en el período.</p>
                   </div>
                 </div>
                 <RankList
-                  rows={activityRows
+                  rows={clientRows
                     .slice(0, 5)
                     .map((r) => ({ name: r.name, value: r.equivalent }))}
                 />
@@ -1333,7 +1333,7 @@ function AdminDashboard({ onBack }: { onBack: () => void }) {
           )}
           {tab === "clients" && (
             <>
-              <ActivitySummary rows={activityRows} />
+              <ActivitySummary rows={clientRows.map(({ name, equivalent }) => ({ name, equivalent }))} />
               <AdminTable
                 headings={[
                   "Cliente",
@@ -1422,8 +1422,8 @@ function ActivitySummary({ rows }: { rows: { name: string; equivalent: number }[
     <section className="admin-card activity-summary">
       <div className="card-heading">
         <div>
-          <h2>Actividades principales</h2>
-          <p>Actividad acumulada en el período.</p>
+          <h2>Dedicación por cliente</h2>
+          <p>Tiempo acumulado por cliente en el período.</p>
         </div>
       </div>
       {rows.length > 0 && total > 0 ? (
