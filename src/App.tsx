@@ -605,6 +605,42 @@ function Workspace({ session }: { session: Session }) {
   const scheduleReady =
     mode !== "schedule_permission" ||
     (permissionEntry && permissionExit && permissionExit > permissionEntry);
+  const isWeekend = (() => {
+    const d = new Date(date + 'T12:00:00');
+    const dow = d.getDay();
+    return dow === 0 || dow === 6;
+  })();
+  const weekendDayName = (() => {
+    const d = new Date(date + 'T12:00:00');
+    return d.getDay() === 6 ? 'sábado' : 'domingo';
+  })();
+  const [deleting, setDeleting] = useState(false);
+  const deleteSheet = async () => {
+    if (!window.confirm('Eliminar el registro de este dia? Esta accion no se puede deshacer.')) return;
+    setDeleting(true);
+    setError('');
+    setMessage('');
+    try {
+      const { error } = await sb.rpc('delete_timesheet', {
+        p_employee_id: employee,
+        p_work_date: date,
+      });
+      if (error) throw error;
+      setAttendance('worked');
+      setMode('office');
+      setEntry('09:00');
+      setExit('18:00');
+      setPermissionEntry('09:00');
+      setPermissionExit('18:00');
+      setRows([]);
+      setBaseline(sheetSnapshot({ attendance: 'worked', mode: 'office', entry: '09:00', exit: '18:00', permissionEntry: '09:00', permissionExit: '18:00', rows: [] }));
+      setMessage('Registro eliminado correctamente.');
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setDeleting(false);
+    }
+  };
   const save = async () => {
     if (baseline === null || busy || saving) return;
     setSaving(true);
@@ -713,6 +749,24 @@ function Workspace({ session }: { session: Session }) {
                   }}
                 />
               </label>
+              {isWeekend && (
+                <div className="weekend-notice" role="status">
+                  <span className="weekend-notice-icon">🏖️</span>
+                  <div>
+                    <strong>Este {weekendDayName} es opcional</strong>
+                    <p>No necesitas llenar tu timesheet hoy. Solo hazlo si realmente trabajaste.</p>
+                    {baseline !== null && !busy && (
+                      <button
+                        className="weekend-delete-btn"
+                        disabled={deleting || saving}
+                        onClick={deleteSheet}
+                      >
+                        {deleting ? 'Eliminando...' : 'Eliminar registro de este dia'}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
               {busy ? (
                 <SheetSkeleton />
               ) : (
@@ -1044,7 +1098,8 @@ function AdminDashboard({ onBack }: { onBack: () => void }) {
     (sum, s) => sum + workedHours(s.entry_time, s.exit_time),
     0,
   );
-  const missing = employees.filter(
+  const toIsWeekend = (() => { const d = new Date(to + 'T12:00:00'); return d.getDay() === 0 || d.getDay() === 6; })();
+  const missing = toIsWeekend ? [] : employees.filter(
     (e) => !sheets.some((s) => s.employee_id === e.id && s.work_date === to),
   );
   const personRows = employees
@@ -1406,9 +1461,13 @@ function AdminDashboard({ onBack }: { onBack: () => void }) {
                     </h2>
                     <p>Personas que aún no han capturado en la fecha final.</p>
                   </div>
-                  <span className={missing.length ? "count-warn" : "count-ok"}>
-                    {missing.length} pendientes
-                  </span>
+                  {toIsWeekend ? (
+                    <span className="count-weekend">Fin de semana</span>
+                  ) : (
+                    <span className={missing.length ? "count-warn" : "count-ok"}>
+                      {missing.length} pendientes
+                    </span>
+                  )}
                 </div>
                 <div className="progress">
                   <span
@@ -1417,7 +1476,11 @@ function AdminDashboard({ onBack }: { onBack: () => void }) {
                     }}
                   />
                 </div>
-                {missing.length ? (
+                {toIsWeekend ? (
+                  <p className="all-done weekend-note" role="status">
+                    🏖️ La fecha final es {new Date(to + 'T12:00:00').getDay() === 6 ? 'sábado' : 'domingo'} — día no laboral. Los fines de semana son opcionales y no se contabilizan como pendientes.
+                  </p>
+                ) : missing.length ? (
                   <details className="pending-details" key={to}>
                     <summary>Ver {missing.length} personas pendientes</summary>
                     <ul>
