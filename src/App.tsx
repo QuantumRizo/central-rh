@@ -17,6 +17,7 @@ import {
   ChevronDown,
   Clock3,
   Download,
+  Info,
   LayoutDashboard,
   LogOut,
   Plus,
@@ -738,33 +739,33 @@ function Workspace({ session }: { session: Session }) {
               )}
             </div>
             <div className="panel">
-              <label>
-                Fecha
-                <input
-                  type="date"
-                  value={date}
-                  disabled={saving}
-                  onChange={(e) => {
-                    if (e.target.value && canLeave()) setDate(e.target.value);
-                  }}
-                />
-              </label>
-              {isWeekend && (
-                <div className="weekend-notice" role="status">
-                  <span className="weekend-notice-icon">🏖️</span>
-                  <div>
-                    <strong>Este {weekendDayName} es opcional</strong>
-                    <p>No necesitas llenar tu timesheet hoy. Solo hazlo si realmente trabajaste.</p>
-                    {baseline !== null && !busy && (
-                      <button
-                        className="weekend-delete-btn"
-                        disabled={deleting || saving}
-                        onClick={deleteSheet}
-                      >
-                        {deleting ? 'Eliminando...' : 'Eliminar registro de este dia'}
-                      </button>
-                    )}
-                  </div>
+              <div className="date-header-row">
+                <label className="date-input-label">
+                  Fecha
+                  <input
+                    type="date"
+                    value={date}
+                    disabled={saving}
+                    onChange={(e) => {
+                      if (e.target.value && canLeave()) setDate(e.target.value);
+                    }}
+                  />
+                </label>
+                <div className={`weekend-hint ${isWeekend ? "is-active" : ""}`} role="note">
+                  <Info size={15} />
+                  <span>Los fines de semana no requieren registro, salvo que hayas laborado.</span>
+                </div>
+              </div>
+              {isWeekend && baseline !== null && !busy && (
+                <div className="weekend-record-warning" role="status">
+                  <span>Existe un registro capturado este {weekendDayName}. Si no laboraste, puedes eliminarlo:</span>
+                  <button
+                    className="weekend-delete-btn"
+                    disabled={deleting || saving}
+                    onClick={deleteSheet}
+                  >
+                    {deleting ? 'Eliminando...' : 'Eliminar registro de este día'}
+                  </button>
                 </div>
               )}
               {busy ? (
