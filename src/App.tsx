@@ -29,6 +29,19 @@ import {
 } from "lucide-react";
 type Option = { id: string; name: string };
 type Entry = { client_id: string; activity_id: string; percentage: number; hours?: number };
+const mergeDuplicateEntries = (entries: Entry[]) => {
+  const merged = new Map<string, Entry>();
+  for (const row of entries) {
+    const key = `${row.client_id}:${row.activity_id}`;
+    const existing = merged.get(key);
+    if (existing) {
+      existing.hours = (Number(existing.hours) || 0) + (Number(row.hours) || 0);
+    } else {
+      merged.set(key, { ...row });
+    }
+  }
+  return [...merged.values()];
+};
 const sheetSnapshot = (value: {
   attendance: string;
   mode: string;
@@ -648,7 +661,8 @@ function Workspace({ session }: { session: Session }) {
     setError("");
     setMessage("");
     try {
-      const saveRows = rows.map((row) => ({
+      const mergedRows = attendance === "worked" ? mergeDuplicateEntries(rows) : [];
+      const saveRows = mergedRows.map((row) => ({
         client_id: row.client_id,
         activity_id: row.activity_id,
         percentage: Number(((Number(row.hours) || 0) / workdayHours * 100).toFixed(2)),
@@ -675,12 +689,15 @@ function Workspace({ session }: { session: Session }) {
         },
       });
       if (error) throw error;
-      const savedRows = attendance === "worked"
-        ? rows.map((row, index) => ({ ...row, percentage: saveRows[index]?.percentage || 0 }))
-        : [];
+      const savedRows = mergedRows.map((row, index) => ({
+        ...row,
+        percentage: saveRows[index].percentage,
+      }));
       setRows(savedRows);
       setBaseline(sheetSnapshot({attendance,mode,entry,exit,permissionEntry,permissionExit,rows:attendance === 'worked' ? savedRows : []}));
-      setMessage("Día guardado correctamente");
+      setMessage(mergedRows.length < rows.length
+        ? "Día guardado. Se sumaron las horas de las actividades repetidas."
+        : "Día guardado correctamente");
     } catch (e) {
       setError((e as Error).message);
     } finally {
