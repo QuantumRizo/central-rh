@@ -499,6 +499,7 @@ export default function App() {
 }
 function Workspace({ session }: { session: Session }) {
   const [baseline, setBaseline] = useState<string | null>(null);
+  const [savedSheetDate, setSavedSheetDate] = useState<string | null>(null);
   const [employee, setEmployee] = useState<string>(""),
     [admin, setAdmin] = useState(false),
     [clients, setClients] = useState<Option[]>([]),
@@ -566,6 +567,7 @@ function Workspace({ session }: { session: Session }) {
     let live = true;
     setBusy(true);
     setBaseline(null);
+    setSavedSheetDate(null);
     setError("");
     setMessage("");
     (async () => {
@@ -578,6 +580,7 @@ function Workspace({ session }: { session: Session }) {
           .maybeSingle();
         if (error) throw error;
         if (!live) return;
+        setSavedSheetDate(data ? date : null);
         setAttendance(data?.attendance || "worked");
         setMode(data?.mode || "office");
         setEntry(data?.entry_time?.slice(0, 5) || "09:00");
@@ -630,7 +633,8 @@ function Workspace({ session }: { session: Session }) {
   })();
   const [deleting, setDeleting] = useState(false);
   const deleteSheet = async () => {
-    if (!window.confirm('Eliminar el registro de este dia? Esta accion no se puede deshacer.')) return;
+    if (deleting || saving || savedSheetDate !== date) return;
+    if (!window.confirm(`¿Eliminar el registro de este ${weekendDayName}? Esta acción no se puede deshacer.${dirty ? ' También se perderán los cambios sin guardar.' : ''}`)) return;
     setDeleting(true);
     setError('');
     setMessage('');
@@ -647,6 +651,7 @@ function Workspace({ session }: { session: Session }) {
       setPermissionEntry('09:00');
       setPermissionExit('18:00');
       setRows([]);
+      setSavedSheetDate(null);
       setBaseline(sheetSnapshot({ attendance: 'worked', mode: 'office', entry: '09:00', exit: '18:00', permissionEntry: '09:00', permissionExit: '18:00', rows: [] }));
       setMessage('Registro eliminado correctamente.');
     } catch (e) {
@@ -656,7 +661,7 @@ function Workspace({ session }: { session: Session }) {
     }
   };
   const save = async () => {
-    if (baseline === null || busy || saving) return;
+    if (baseline === null || busy || saving || deleting) return;
     setSaving(true);
     setError("");
     setMessage("");
@@ -689,6 +694,7 @@ function Workspace({ session }: { session: Session }) {
         },
       });
       if (error) throw error;
+      setSavedSheetDate(date);
       const savedRows = mergedRows.map((row, index) => ({
         ...row,
         percentage: saveRows[index].percentage,
@@ -762,7 +768,7 @@ function Workspace({ session }: { session: Session }) {
                   <input
                     type="date"
                     value={date}
-                    disabled={saving}
+                    disabled={saving || deleting}
                     onChange={(e) => {
                       if (e.target.value && canLeave()) setDate(e.target.value);
                     }}
@@ -773,7 +779,7 @@ function Workspace({ session }: { session: Session }) {
                   <span>Los fines de semana no requieren registro, salvo que hayas laborado.</span>
                 </div>
               </div>
-              {isWeekend && baseline !== null && !busy && (
+              {isWeekend && savedSheetDate === date && !busy && (
                 <div className="weekend-record-warning" role="status">
                   <span>Existe un registro capturado este {weekendDayName}. Si no laboraste, puedes eliminarlo:</span>
                   <button
@@ -789,7 +795,7 @@ function Workspace({ session }: { session: Session }) {
                 <SheetSkeleton />
               ) : (
                 <>
-                  <fieldset disabled={saving}>
+                  <fieldset disabled={saving || deleting}>
                     <legend>¿Trabajaste?</legend>
                     <label className="radio">
                       <input
@@ -1006,6 +1012,7 @@ function Workspace({ session }: { session: Session }) {
                   disabled={
                     busy ||
                     saving ||
+                    deleting ||
                     !employee ||
                     baseline === null ||
                     (attendance === "worked" &&
@@ -1477,7 +1484,7 @@ function AdminDashboard({ onBack }: { onBack: () => void }) {
                         month: "long",
                       })}
                     </h2>
-                    <p>Personas que aún no han capturado en la fecha final.</p>
+                    <p>{toIsWeekend ? 'La captura de esta fecha es opcional.' : 'Personas que aún no han capturado en la fecha final.'}</p>
                   </div>
                   {toIsWeekend ? (
                     <span className="count-weekend">Fin de semana</span>
@@ -1487,13 +1494,15 @@ function AdminDashboard({ onBack }: { onBack: () => void }) {
                     </span>
                   )}
                 </div>
-                <div className="progress">
-                  <span
-                    style={{
-                      width: `${100 - (employees.length ? (missing.length / employees.length) * 100 : 0)}%`,
-                    }}
-                  />
-                </div>
+                {!toIsWeekend && (
+                  <div className="progress">
+                    <span
+                      style={{
+                        width: `${100 - (employees.length ? (missing.length / employees.length) * 100 : 0)}%`,
+                      }}
+                    />
+                  </div>
+                )}
                 {toIsWeekend ? (
                   <p className="all-done weekend-note" role="status">
                     🏖️ La fecha final es {new Date(to + 'T12:00:00').getDay() === 6 ? 'sábado' : 'domingo'} — día no laboral. Los fines de semana son opcionales y no se contabilizan como pendientes.
