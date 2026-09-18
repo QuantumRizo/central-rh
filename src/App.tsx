@@ -10,6 +10,7 @@ import { PendingDays, ReportDetails } from './ReportDetails';
 import { EvaluacionesModule } from './evaluaciones/EvaluacionesModule';
 import { Profile } from './Profile';
 import { ProfilesDirectory } from './ProfilesDirectory';
+import { ChangePassword } from './ChangePassword';
 import { sb } from './lib/supabase';
 import {
   ArrowLeft,
@@ -459,7 +460,7 @@ function Workspace({ session }: { session: Session }) {
     [error, setError] = useState(""),
     [message, setMessage] = useState(""),
     [reports, setReports] = useState(false),
-    [activeModule, setActiveModule] = useState<"timesheets" | "evaluaciones" | "perfil" | "perfiles">("timesheets");
+    [activeModule, setActiveModule] = useState<"timesheets" | "evaluaciones" | "perfil" | "perfiles" | "cambiar-contrasena">("timesheets");
   const draft = sheetSnapshot({attendance,mode,entry,exit,permissionEntry,permissionExit,rows});
   const dirty = baseline !== null && draft !== baseline;
   const canLeave = () => !dirty || window.confirm('Tienes cambios sin guardar. ¿Quieres continuar sin guardarlos?');
@@ -689,17 +690,16 @@ function Workspace({ session }: { session: Session }) {
         </nav>
         <div className="sidebar-footer">
           <div className="sidebar-user"><div>{admin && <span className="admin-badge">Admin</span>}</div><strong>{session.user.email}</strong></div>
-          <div className="sidebar-user-actions">
-            <button title="Abrir cuenta y perfil" className="sidebar-account" onClick={() => { if (canLeave()) { setActiveModule("perfil"); setReports(false); } }}>Cuenta</button>
-            <button title="Salir" className="sidebar-logout" onClick={() => { if (canLeave()) sb.auth.signOut(); }}><LogOut size={17} /></button>
-          </div>
+          <div className="sidebar-user-actions"><button title="Salir" className="sidebar-logout" onClick={() => { if (canLeave()) sb.auth.signOut(); }}><LogOut size={17} /></button></div>
         </div>
       </aside>
-      <section className={`content ${reports ? "admin-content" : activeModule === "evaluaciones" ? "evaluation-content" : activeModule === "perfil" ? "profile-content" : activeModule === "perfiles" ? "profiles-content" : ""}`}>
+      <section className={`content ${reports ? "admin-content" : activeModule === "evaluaciones" ? "evaluation-content" : activeModule === "perfil" || activeModule === "cambiar-contrasena" ? "profile-content" : activeModule === "perfiles" ? "profiles-content" : ""}`}>
         {activeModule === "perfiles" && admin ? (
-          <ProfilesDirectory session={session} viewerEmployeeId={employee} isAdmin={admin} onEvaluations={() => setActiveModule("evaluaciones")} />
+          <ProfilesDirectory session={session} viewerEmployeeId={employee} isAdmin={admin} onEvaluations={() => setActiveModule("evaluaciones")} onChangePassword={() => setActiveModule("cambiar-contrasena")} />
+        ) : activeModule === "cambiar-contrasena" ? (
+          <ChangePassword session={session} onBack={() => setActiveModule("perfil")} />
         ) : activeModule === "perfil" ? (
-          <Profile session={session} employeeId={employee} viewerEmployeeId={employee} isAdmin={admin} onEvaluations={() => setActiveModule("evaluaciones")} />
+          <Profile session={session} employeeId={employee} viewerEmployeeId={employee} isAdmin={admin} onEvaluations={() => setActiveModule("evaluaciones")} onChangePassword={() => setActiveModule("cambiar-contrasena")} />
         ) : activeModule === "evaluaciones" ? (
           <EvaluacionesModule employeeId={employee} isAdmin={admin} />
         ) : reports ? (

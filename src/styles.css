@@ -352,7 +352,7 @@ button,input,select,textarea{touch-action:manipulation}
 .profile-report-score{color:var(--cn-primary);font-size:18px}
 .profile-report small{grid-column:1/-1}
 .profile-empty{margin:0;color:#61738a;font-size:13px}
-.profile-account-card{display:grid;gap:14px}.profile-account-email{margin:0;color:#61738a;font-size:13px}.profile-password-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;align-items:end}.profile-password-form label{display:grid;gap:7px;color:#475569;font-size:12px;font-weight:700}.profile-password-actions{display:flex;align-items:center;gap:10px;grid-column:1/-1}.profile-password-actions p{margin:0;flex:1}.profile-password-actions button{white-space:nowrap}
+.profile-account-card{display:grid;gap:14px}.profile-account-email{margin:0;color:#61738a;font-size:13px}.profile-change-password{justify-self:start}.password-card{max-width:760px}.password-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;align-items:end}.password-form label{display:grid;gap:7px;color:#475569;font-size:12px;font-weight:700}.password-form>p{grid-column:1/-1;margin:0}.password-actions{display:flex;gap:10px;grid-column:1/-1}.password-actions button{white-space:nowrap}
 @media(max-width:850px){.profile-grid{grid-template-columns:1fr}.profile-report-list{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:650px){
   .app-sidebar{grid-template-columns:minmax(0,1fr) auto;grid-template-rows:auto auto;row-gap:10px}
@@ -377,6 +377,7 @@ button,input,select,textarea{touch-action:manipulation}
   .profile-edit-form{grid-template-columns:1fr}
   .profile-edit-actions{grid-column:auto;display:grid;grid-template-columns:1fr 1fr}
   .profile-edit-actions button{width:100%}
+  .profile-change-password{width:100%}.password-form{grid-template-columns:1fr}.password-form>p{grid-column:auto}.password-actions{grid-column:auto;display:grid;grid-template-columns:1fr 1fr}.password-actions button{width:100%;min-height:44px}
   .profile-password-form{grid-template-columns:1fr}.profile-password-actions{grid-column:auto;display:grid;gap:9px}.profile-password-actions button{width:100%;min-height:44px}.profile-password-actions p{width:100%}
   .profile-report-list{grid-template-columns:1fr}
   .profile-evaluations>button{width:100%;min-height:44px}

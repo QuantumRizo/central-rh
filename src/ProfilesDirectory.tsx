@@ -26,11 +26,12 @@ const firstSurname = (name: string) => {
 };
 const initials = (name: string) => name.trim().split(/\s+/).slice(0, 2).map((part) => part[0]).join('').toUpperCase();
 
-export function ProfilesDirectory({ session, viewerEmployeeId, isAdmin, onEvaluations }: {
+export function ProfilesDirectory({ session, viewerEmployeeId, isAdmin, onEvaluations, onChangePassword }: {
   session: Session;
   viewerEmployeeId: string;
   isAdmin: boolean;
   onEvaluations: () => void;
+  onChangePassword: () => void;
 }) {
   const [people, setPeople] = useState<Person[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -76,7 +77,7 @@ export function ProfilesDirectory({ session, viewerEmployeeId, isAdmin, onEvalua
     return { count: filtered.length, sections: [...grouped.entries()] };
   }, [people, query, position, department, status, order]);
 
-  if (selectedId) return <Profile key={selectedId} session={session} employeeId={selectedId} viewerEmployeeId={viewerEmployeeId} isAdmin={isAdmin} onBack={() => setSelectedId(null)} onEvaluations={onEvaluations} />;
+  if (selectedId) return <Profile key={selectedId} session={session} employeeId={selectedId} viewerEmployeeId={viewerEmployeeId} isAdmin={isAdmin} onBack={() => setSelectedId(null)} onEvaluations={onEvaluations} onChangePassword={onChangePassword} />;
 
   return <div className="profiles-directory">
     <div className="profiles-heading"><div><p className="eyebrow">ADMINISTRACIÓN</p><h1>Perfiles</h1><p>Consulta la información de los colaboradores y abre su perfil.</p></div><span className="profiles-total"><Users size={18} /> {people.length} colaboradores</span></div>
