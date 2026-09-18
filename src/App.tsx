@@ -949,7 +949,7 @@ function Workspace({ session }: { session: Session }) {
                     </>
                   ) : (
                     <p className="notice">
-                      Las actividades se deshabilitan para vacaciones o falta.
+                      Las actividades se deshabilitan para vacaciones, falta o feriado.
                     </p>
                   )}
                 </>
