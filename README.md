@@ -1,44 +1,28 @@
-# Central RH — Timesheets local
+# Central RH
 
-## Estado actual
+Plataforma interna de Recursos Humanos construida con React, TypeScript, Vite y Supabase.
 
-Supabase local está configurado con el proyecto `Central_RH`. Las migraciones crean el modelo de colaboradores, clientes, actividades, roles y timesheets con RLS. El seed carga 42 colaboradores y 18 actividades.
+## Entorno vigente
 
-Usuarios de prueba locales:
-
-- `felix@centraldenegociosmx.com` / `123456` — administrador y colaborador
-- `carolina@centraldenegociosmx.com` / `123456` — colaboradora
-
-## Comandos
+El backend es **Supabase en la nube** (`Central RH`, ref `ncgbvbpkinrvrzxyttfz`). No hay Docker ni Supabase local. La app puede correr en una computadora para desarrollo, pero se conecta a la base alojada.
 
 ```bash
-supabase start
-supabase status
-supabase db reset
-
-# Provisionar las cuentas de prueba sin cambiar contraseñas existentes
-SUPABASE_SERVICE_ROLE_KEY="$(supabase status --output env | sed -n 's/^SERVICE_ROLE_KEY=//p' | tr -d '"')" node scripts/provision-local-users.mjs
+npm install
+npm run dev
+npm run build
 ```
 
-`db reset` recrea la base local y vuelve a cargar catálogos, pero no recrea automáticamente las cuentas de Auth. Si se reinicia la base desde cero, hay que volver a crear las cuentas de prueba y vincularlas a `employees`.
+Configura `VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY` en un archivo `.env` local. El `.env` no se sube a GitHub. Usa sólo la clave pública de Supabase en el frontend; nunca una clave `service_role`.
 
-URLs locales:
+## Cambios de base de datos
 
-- API: http://127.0.0.1:54321
-- Studio: http://127.0.0.1:54323
-- Mailpit: http://127.0.0.1:54324
+Las migraciones están en `supabase/migrations/`. El proyecto está vinculado con Supabase CLI. Antes de aplicar cambios, comprueba el proyecto y las migraciones pendientes:
 
-## Alcance de esta base
+```bash
+supabase projects list
+supabase db push --dry-run --linked
+```
 
-La interfaz local está en `http://127.0.0.1:5175/` mientras el proceso Vite siga activo. Se verificó login de ambas cuentas, captura 100%, rechazo de porcentajes incorrectos, limpieza al marcar ausencia, aislamiento RLS y reporte administrativo con filtro/CSV.
+Para aplicar una migración revisada: `supabase db push --linked`. Después, repite el dry run para confirmar que la base remota quedó al día. No uses `supabase start`, `supabase status` ni `supabase db reset`: esos comandos corresponden al antiguo entorno local que ya no existe.
 
-## Despliegue (Vercel + Supabase alojado)
-
-El backend alojado es `https://ncgbvbpkinrvrzxyttfz.supabase.co` (migraciones y catálogos ya aplicados).
-
-En Vercel definir estas variables (ver `.env.example`):
-
-- `VITE_SUPABASE_URL` = `https://ncgbvbpkinrvrzxyttfz.supabase.co`
-- `VITE_SUPABASE_ANON_KEY` = `sb_publishable_mG6DsF6355IRpy9TJ2ziBw_DSoVyQqE`
-
-Usar solo la clave pública/publishable en el frontend; la service role key nunca debe ir a Vercel ni al repo. Los usuarios de Auth del proyecto alojado se provisionan por separado (repetir el flujo de `scripts/provision-local-users.mjs` contra el proyecto alojado con su service role key).
+Las reglas de seguridad y acceso a datos se mantienen en las políticas RLS de Supabase. Consulta [AGENTS.md](AGENTS.md) para las instrucciones operativas de agentes.
