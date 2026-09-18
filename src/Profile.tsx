@@ -29,7 +29,7 @@ const hoursIn = (sheet: Sheet) => {
   return Math.max(0, (endHour * 60 + endMinute - startHour * 60 - startMinute) / 60);
 };
 
-export function Profile({ session, employeeId, viewerEmployeeId, onBack, onEvaluations }: { session: Session; employeeId: string; viewerEmployeeId: string; onBack?: () => void; onEvaluations: () => void }) {
+export function Profile({ session, employeeId, viewerEmployeeId, onBack, backLabel = 'Volver a perfiles', onEvaluations }: { session: Session; employeeId: string; viewerEmployeeId: string; onBack?: () => void; backLabel?: string; onEvaluations: () => void }) {
   const [employee, setEmployee] = useState<Employee | null>(null);
   const [sheets, setSheets] = useState<Sheet[]>([]);
   const [reports, setReports] = useState<Report[]>([]);
@@ -133,7 +133,7 @@ export function Profile({ session, employeeId, viewerEmployeeId, onBack, onEvalu
   const initials = employee?.full_name.split(/\s+/).slice(0, 2).map((part) => part[0]).join('').toUpperCase() || '?';
 
   return <div className="profile-page">
-    <div className="profile-heading">{onBack && <button className="back-link" type="button" onClick={onBack}><ArrowLeft size={17} /> Volver a mi perfil</button>}<p className="eyebrow">{isOwn ? 'MI ESPACIO' : 'EQUIPO'}</p><h1>{isOwn ? 'Mi perfil' : 'Perfil del colaborador'}</h1><p>{isOwn ? 'Tu información laboral y un resumen de actividad.' : 'Datos laborales y actividad registrada en el sistema.'}</p></div>
+    <div className="profile-heading">{onBack && <button className="back-link" type="button" onClick={onBack}><ArrowLeft size={17} /> {backLabel}</button>}<p className="eyebrow">{isOwn ? 'MI ESPACIO' : 'EQUIPO'}</p><h1>{isOwn ? 'Mi perfil' : 'Perfil del colaborador'}</h1><p>{isOwn ? 'Tu información laboral y un resumen de actividad.' : 'Datos laborales y actividad registrada en el sistema.'}</p></div>
     {error && <p className="error" role="alert">{error}</p>}
     {message && <p className="success" role="status">{message}</p>}
     {busy && !employee ? <div className="evaluation-loading"><LoaderCircle className="spin" size={20} /> Cargando perfil…</div> : employee && <>
