@@ -1,7 +1,7 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import type { Area } from 'react-easy-crop';
-import { ArrowLeft, Camera, Check, ClipboardCheck, Clock3, LoaderCircle, Mail, Pencil, UserRound, X } from 'lucide-react';
+import { ArrowLeft, Camera, Check, ClipboardCheck, Clock3, KeyRound, LoaderCircle, Mail, Pencil, UserRound, X } from 'lucide-react';
 import { sb } from './lib/supabase';
 import { cropProfilePhoto, PhotoCropper } from './profile/PhotoCropper';
 
@@ -42,6 +42,11 @@ export function Profile({ session, employeeId, viewerEmployeeId, isAdmin = false
   const [editing, setEditing] = useState(false);
   const [savingProfile, setSavingProfile] = useState(false);
   const [profileForm, setProfileForm] = useState({ full_name: '', email: '', position: '', department: '', status: 'Activo', hire_date: '' });
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [savingPassword, setSavingPassword] = useState(false);
+  const [passwordError, setPasswordError] = useState('');
+  const [passwordMessage, setPasswordMessage] = useState('');
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
@@ -107,6 +112,17 @@ export function Profile({ session, employeeId, viewerEmployeeId, isAdmin = false
     } finally {
       setSavingProfile(false);
     }
+  };
+
+  const changePassword = async (event: FormEvent) => {
+    event.preventDefault();
+    setPasswordError(''); setPasswordMessage('');
+    if (newPassword !== confirmPassword) { setPasswordError('Las contraseñas no coinciden.'); return; }
+    setSavingPassword(true);
+    const { error: authError } = await sb.auth.updateUser({ password: newPassword });
+    if (authError) setPasswordError(authError.message);
+    else { setNewPassword(''); setConfirmPassword(''); setPasswordMessage('Contraseña actualizada.'); }
+    setSavingPassword(false);
   };
 
   const preparePhoto = async (file?: File) => {
@@ -187,6 +203,7 @@ export function Profile({ session, employeeId, viewerEmployeeId, isAdmin = false
         <section className="profile-card"><div className="profile-card-title"><Clock3 size={19} /><h2>Horas y asistencia</h2></div><p className="profile-period">{monthLabel.format(today)}</p><div className="profile-stat"><strong>{totalHours.toLocaleString('es-MX', { maximumFractionDigits: 1 })} h</strong><span>registradas según horario de entrada y salida</span></div><div className="profile-mini-stats"><div><strong>{worked.length}</strong><span>días trabajados</span></div><div><strong>{sheets.filter((sheet) => sheet.attendance === 'vacation').length}</strong><span>vacaciones</span></div><div><strong>{sheets.filter((sheet) => sheet.attendance === 'absence').length}</strong><span>faltas</span></div></div></section>
       </div>
       <section className="profile-card profile-evaluations"><div className="profile-card-title"><ClipboardCheck size={19} /><h2>Evaluaciones</h2></div>{reports.length ? <div className="profile-report-list">{reports.map((report) => <div className="profile-report" key={report.id}><div><strong>Resultado final</strong><span>{dateLabel.format(new Date(report.created_at))}</span></div><strong className="profile-report-score">{score(report.final_score)}</strong><small>Autoevaluación {score(report.self_score)} · Equipo {score(report.collective_score)}</small></div>)}</div> : <p className="profile-empty">Aún no hay resultados finales de evaluaciones.</p>}<button className="secondary" type="button" onClick={onEvaluations}>{isOwn ? 'Ir a evaluaciones' : 'Ir al panel de evaluaciones'}</button></section>
+      {isOwn && <section className="profile-card profile-account-card"><div className="profile-card-title"><KeyRound size={19} /><h2>Cuenta y acceso</h2></div><p className="profile-account-email">Tu cuenta está vinculada a <strong>{session.user.email}</strong>.</p><form className="profile-password-form" onSubmit={(event) => void changePassword(event)}><label>Nueva contraseña<input required minLength={6} type="password" autoComplete="new-password" value={newPassword} onChange={(event) => setNewPassword(event.target.value)} placeholder="Mínimo 6 caracteres" /></label><label>Confirmar contraseña<input required minLength={6} type="password" autoComplete="new-password" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} placeholder="Repite tu contraseña" /></label><div className="profile-password-actions">{passwordError && <p className="error" role="alert">{passwordError}</p>}{passwordMessage && <p className="success" role="status">{passwordMessage}</p>}<button type="submit" disabled={savingPassword}>{savingPassword ? 'Guardando…' : 'Actualizar contraseña'}</button></div></form></section>}
     </>}
     {selectedPhoto && <PhotoCropper imageUrl={selectedPhoto} busy={uploading} error={error} onCancel={() => setSelectedPhoto(null)} onSave={(area) => void uploadPhoto(area)} />}
   </div>;

@@ -324,67 +324,6 @@ function AuthScreen({
     </main>
   );
 }
-function ChangePassword({ onDone }: { onDone: () => void }) {
-  const [password, setPassword] = useState("");
-  const [confirm, setConfirm] = useState("");
-  const [error, setError] = useState("");
-  const [message, setMessage] = useState("");
-  const [saving, setSaving] = useState(false);
-  const submit = async (e: FormEvent) => {
-    e.preventDefault();
-    setError("");
-    setMessage("");
-    if (password !== confirm) return setError("Las contraseñas no coinciden.");
-    setSaving(true);
-    const { error: authError } = await sb.auth.updateUser({ password });
-    setSaving(false);
-    if (authError) setError(authError.message);
-    else {
-      setPassword("");
-      setConfirm("");
-      setMessage("Contraseña actualizada.");
-    }
-  };
-  return (
-    <form className="account-panel" onSubmit={submit}>
-      <strong>Cambiar contraseña</strong>
-      <input
-        aria-label="Nueva contraseña"
-        required
-        minLength={6}
-        type="password"
-        placeholder="Nueva contraseña"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-      />
-      <input
-        aria-label="Confirmar contraseña"
-        required
-        minLength={6}
-        type="password"
-        placeholder="Confirmar contraseña"
-        value={confirm}
-        onChange={(e) => setConfirm(e.target.value)}
-      />
-      {error && (
-        <p role="alert" className="error">
-          {error}
-        </p>
-      )}
-      {message && (
-        <p role="status" className="success">
-          {message}
-        </p>
-      )}
-      <div>
-        <button disabled={saving}>{saving ? "Guardando…" : "Guardar"}</button>
-        <button type="button" className="secondary" onClick={onDone}>
-          Cerrar
-        </button>
-      </div>
-    </form>
-  );
-}
 function Picker({
   options,
   value,
@@ -520,8 +459,7 @@ function Workspace({ session }: { session: Session }) {
     [error, setError] = useState(""),
     [message, setMessage] = useState(""),
     [reports, setReports] = useState(false),
-    [activeModule, setActiveModule] = useState<"timesheets" | "evaluaciones" | "perfil" | "perfiles">("timesheets"),
-    [accountOpen, setAccountOpen] = useState(false);
+    [activeModule, setActiveModule] = useState<"timesheets" | "evaluaciones" | "perfil" | "perfiles">("timesheets");
   const draft = sheetSnapshot({attendance,mode,entry,exit,permissionEntry,permissionExit,rows});
   const dirty = baseline !== null && draft !== baseline;
   const canLeave = () => !dirty || window.confirm('Tienes cambios sin guardar. ¿Quieres continuar sin guardarlos?');
@@ -752,12 +690,11 @@ function Workspace({ session }: { session: Session }) {
         <div className="sidebar-footer">
           <div className="sidebar-user"><div>{admin && <span className="admin-badge">Admin</span>}</div><strong>{session.user.email}</strong></div>
           <div className="sidebar-user-actions">
-            <button title="Cuenta" className="sidebar-account" onClick={() => setAccountOpen((open) => !open)}>Cuenta</button>
+            <button title="Abrir cuenta y perfil" className="sidebar-account" onClick={() => { if (canLeave()) { setActiveModule("perfil"); setReports(false); } }}>Cuenta</button>
             <button title="Salir" className="sidebar-logout" onClick={() => { if (canLeave()) sb.auth.signOut(); }}><LogOut size={17} /></button>
           </div>
         </div>
       </aside>
-      {accountOpen && <ChangePassword onDone={() => setAccountOpen(false)} />}
       <section className={`content ${reports ? "admin-content" : activeModule === "evaluaciones" ? "evaluation-content" : activeModule === "perfil" ? "profile-content" : activeModule === "perfiles" ? "profiles-content" : ""}`}>
         {activeModule === "perfiles" && admin ? (
           <ProfilesDirectory session={session} viewerEmployeeId={employee} isAdmin={admin} onEvaluations={() => setActiveModule("evaluaciones")} />
