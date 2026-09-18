@@ -75,7 +75,7 @@ export function ReportDetails({ sheets, selection, onClose, db }: { sheets: any[
     })();
     return () => {live=false;};
   },[showHistory,sheets,selection,db]);
-  const summary = (snapshot: any) => snapshot ? `${snapshot.day.attendance === 'worked' ? 'Trabajado' : snapshot.day.attendance === 'vacation' ? 'Vacaciones' : 'Falta'} · ${snapshot.day.entry_time || '—'} a ${snapshot.day.exit_time || '—'}${snapshot.day.permission_entry_time ? ` · Permiso ${snapshot.day.permission_entry_time} a ${snapshot.day.permission_exit_time}` : ''}` : 'Sin captura anterior';
+  const summary = (snapshot: any) => snapshot ? `${snapshot.day.attendance === 'worked' ? 'Trabajado' : snapshot.day.attendance === 'vacation' ? 'Vacaciones' : snapshot.day.attendance === 'holiday' ? 'Feriado' : 'Falta'} · ${snapshot.day.entry_time || '—'} a ${snapshot.day.exit_time || '—'}${snapshot.day.permission_entry_time ? ` · Permiso ${snapshot.day.permission_entry_time} a ${snapshot.day.permission_exit_time}` : ''}` : 'Sin captura anterior';
   const entryLabel = (entry: any) => {
     const ref = sheets.flatMap(s=>s.timesheet_entries || []).find((e: any)=>e.client?.id===entry.client_id && e.activity?.id===entry.activity_id);
     return `${entry.client_name || ref?.client?.name || entry.client_id} · ${entry.activity_name || ref?.activity?.name || entry.activity_id}: ${entry.percentage}%`;

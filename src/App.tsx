@@ -69,6 +69,7 @@ const sheetSnapshot = (value: {
   })),
 });
 const HIDDEN_CLIENTS = new Set(["Tiempo interno", "Cliente de prueba"]);
+const attendanceLabel = (attendance: string) => attendance === "worked" ? "Trabajado" : attendance === "vacation" ? "Vacaciones" : attendance === "holiday" ? "Feriado" : "Falta";
 const day = () => {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
@@ -777,6 +778,7 @@ function Workspace({ session }: { session: Session }) {
                       >
                         <option value="vacation">Vacaciones</option>
                         <option value="absence">Falta</option>
+                        <option value="holiday">Feriado</option>
                       </select>
                     )}
                   </fieldset>
@@ -1070,7 +1072,8 @@ function AdminDashboard({ onBack }: { onBack: () => void }) {
 
   const worked = sheets.filter((s) => s.attendance === "worked"),
     vacations = sheets.filter((s) => s.attendance === "vacation"),
-    absences = sheets.filter((s) => s.attendance === "absence");
+    absences = sheets.filter((s) => s.attendance === "absence"),
+    holidays = sheets.filter((s) => s.attendance === "holiday");
   const peopleWithCapture = new Set(sheets.map((s) => s.employee_id));
   const coverage = employees.length
     ? Math.round((peopleWithCapture.size / employees.length) * 100)
@@ -1095,6 +1098,7 @@ function AdminDashboard({ onBack }: { onBack: () => void }) {
         worked: ownWorked.length,
         vacation: own.filter((s) => s.attendance === "vacation").length,
         absence: own.filter((s) => s.attendance === "absence").length,
+        holiday: own.filter((s) => s.attendance === "holiday").length,
         hours: ownWorked.reduce(
           (sum, s) => sum + workedHours(s.entry_time, s.exit_time),
           0,
@@ -1265,6 +1269,7 @@ function AdminDashboard({ onBack }: { onBack: () => void }) {
         "Días trabajados",
         "Vacaciones",
         "Faltas",
+        "Feriados",
         "Horas",
       ];
       data = personRows.map((r) => [
@@ -1274,6 +1279,7 @@ function AdminDashboard({ onBack }: { onBack: () => void }) {
         r.worked,
         r.vacation,
         r.absence,
+        r.holiday,
         r.hours.toFixed(1),
       ]);
     } else if (tab === "clients") {
@@ -1295,7 +1301,7 @@ function AdminDashboard({ onBack }: { onBack: () => void }) {
         r.work_date,
         r.employee?.full_name || "",
         r.employee?.position || "",
-        r.attendance === "vacation" ? "Vacaciones" : "Falta",
+        attendanceLabel(r.attendance),
       ]);
     } else {
       heading = ["Indicador", "Valor"];
@@ -1306,6 +1312,7 @@ function AdminDashboard({ onBack }: { onBack: () => void }) {
         ["Días trabajados", worked.length],
         ["Vacaciones", vacations.length],
         ["Faltas", absences.length],
+        ["Feriados", holidays.length],
         ["Horas registradas", hours.toFixed(1)],
       ];
     }
@@ -1498,6 +1505,10 @@ function AdminDashboard({ onBack }: { onBack: () => void }) {
                     <span className="status-dot absence" />
                     Faltas<strong>{absences.length}</strong>
                   </div>
+                  <div>
+                    <span className="status-dot holiday" />
+                    Feriados<strong>{holidays.length}</strong>
+                  </div>
                 </div>
               </section>
               <section className="admin-card">
@@ -1537,6 +1548,7 @@ function AdminDashboard({ onBack }: { onBack: () => void }) {
                 "Trabajados",
                 "Vacaciones",
                 "Faltas",
+                "Feriados",
                 "Horas",
               ]}
               rows={personRows.map((r) => [
@@ -1546,6 +1558,7 @@ function AdminDashboard({ onBack }: { onBack: () => void }) {
                 r.worked,
                 r.vacation,
                 r.absence,
+                r.holiday,
                 r.hours.toFixed(1),
               ])}
               empty="No hay colaboradores que coincidan."
@@ -1581,10 +1594,10 @@ function AdminDashboard({ onBack }: { onBack: () => void }) {
                 r.employee?.full_name || "—",
                 r.employee?.position || "—",
                 <span className={`status-pill ${r.attendance}`}>
-                  {r.attendance === "vacation" ? "Vacaciones" : "Falta"}
+                  {attendanceLabel(r.attendance)}
                 </span>,
               ])}
-              empty="No hay vacaciones ni faltas en este período."
+              empty="No hay vacaciones, faltas ni feriados en este período."
             />
           )}
         </>
@@ -1817,11 +1830,7 @@ function PersonDetail({
                   </td>
                   <td>
                     <span className={`status-pill ${sheet.attendance}`}>
-                      {sheet.attendance === "worked"
-                        ? "Trabajado"
-                        : sheet.attendance === "vacation"
-                          ? "Vacaciones"
-                          : "Falta"}
+                      {attendanceLabel(sheet.attendance)}
                     </span>
                   </td>
                   <td>
