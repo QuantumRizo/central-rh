@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import type { Area } from 'react-easy-crop';
-import { ArrowLeft, Camera, ClipboardCheck, Clock3, LoaderCircle, Mail, UserRound } from 'lucide-react';
+import { ArrowLeft, Camera, Check, ClipboardCheck, Clock3, LoaderCircle, Mail, Pencil, UserRound, X } from 'lucide-react';
 import { sb } from './lib/supabase';
 import { cropProfilePhoto, PhotoCropper } from './profile/PhotoCropper';
 
@@ -12,6 +12,7 @@ type Employee = {
   department: string | null;
   email: string | null;
   status: string;
+  hire_date: string | null;
   created_at: string;
   avatar_path: string | null;
 };
@@ -29,7 +30,7 @@ const hoursIn = (sheet: Sheet) => {
   return Math.max(0, (endHour * 60 + endMinute - startHour * 60 - startMinute) / 60);
 };
 
-export function Profile({ session, employeeId, viewerEmployeeId, onBack, backLabel = 'Volver a perfiles', onEvaluations }: { session: Session; employeeId: string; viewerEmployeeId: string; onBack?: () => void; backLabel?: string; onEvaluations: () => void }) {
+export function Profile({ session, employeeId, viewerEmployeeId, isAdmin = false, onBack, backLabel = 'Volver a perfiles', onEvaluations }: { session: Session; employeeId: string; viewerEmployeeId: string; isAdmin?: boolean; onBack?: () => void; backLabel?: string; onEvaluations: () => void }) {
   const [employee, setEmployee] = useState<Employee | null>(null);
   const [sheets, setSheets] = useState<Sheet[]>([]);
   const [reports, setReports] = useState<Report[]>([]);
@@ -38,6 +39,9 @@ export function Profile({ session, employeeId, viewerEmployeeId, onBack, backLab
   const [preparing, setPreparing] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
+  const [editing, setEditing] = useState(false);
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [profileForm, setProfileForm] = useState({ full_name: '', email: '', position: '', department: '', status: 'Activo', hire_date: '' });
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
@@ -50,7 +54,7 @@ export function Profile({ session, employeeId, viewerEmployeeId, onBack, backLab
     const from = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-01`;
     try {
       const [employeeResult, sheetsResult, reportsResult] = await Promise.all([
-        sb.from('employees').select('id,full_name,position,department,email,status,created_at,avatar_path').eq('id', employeeId).single(),
+        sb.from('employees').select('id,full_name,position,department,email,status,hire_date,created_at,avatar_path').eq('id', employeeId).single(),
         sb.from('timesheets').select('work_date,attendance,entry_time,exit_time').eq('employee_id', employeeId).gte('work_date', from).lte('work_date', localDate(today)).order('work_date', { ascending: false }),
         sb.from('evaluation_final_reports').select('id,created_at,final_score,self_score,collective_score').eq('employee_id', employeeId).order('created_at', { ascending: false }).limit(3),
       ]);
@@ -74,6 +78,36 @@ export function Profile({ session, employeeId, viewerEmployeeId, onBack, backLab
 
   useEffect(() => { void load(); }, [load]);
   useEffect(() => () => { if (selectedPhoto) URL.revokeObjectURL(selectedPhoto); }, [selectedPhoto]);
+
+  const beginEdit = () => {
+    if (!employee) return;
+    setProfileForm({ full_name: employee.full_name, email: employee.email || '', position: employee.position || '', department: employee.department || '', status: employee.status, hire_date: employee.hire_date || '' });
+    setError('');
+    setEditing(true);
+  };
+
+  const saveProfile = async () => {
+    if (!employee || !isAdmin || !profileForm.full_name.trim()) return;
+    setSavingProfile(true); setError(''); setMessage('');
+    try {
+      const { data, error: saveError } = await sb.from('employees').update({
+        full_name: profileForm.full_name.trim(),
+        email: profileForm.email.trim() || null,
+        position: profileForm.position.trim() || 'Por asignar',
+        department: profileForm.department.trim() || null,
+        status: profileForm.status,
+        hire_date: profileForm.hire_date || null,
+      }).eq('id', employee.id).select('id,full_name,position,department,email,status,hire_date,created_at,avatar_path').single();
+      if (saveError) throw saveError;
+      setEmployee(data as Employee);
+      setEditing(false);
+      setMessage('Perfil actualizado.');
+    } catch (saveError) {
+      setError((saveError as Error).message);
+    } finally {
+      setSavingProfile(false);
+    }
+  };
 
   const preparePhoto = async (file?: File) => {
     if (!file) return;
@@ -131,6 +165,7 @@ export function Profile({ session, employeeId, viewerEmployeeId, onBack, backLab
   const worked = sheets.filter((sheet) => sheet.attendance === 'worked');
   const totalHours = worked.reduce((sum, sheet) => sum + hoursIn(sheet), 0);
   const initials = employee?.full_name.split(/\s+/).slice(0, 2).map((part) => part[0]).join('').toUpperCase() || '?';
+  const hireDate = employee?.hire_date ? dateLabel.format(new Date(`${employee.hire_date}T12:00:00`)) : 'Sin registrar';
 
   return <div className="profile-page">
     <div className="profile-heading">{onBack && <button className="back-link" type="button" onClick={onBack}><ArrowLeft size={17} /> {backLabel}</button>}<p className="eyebrow">{isOwn ? 'MI ESPACIO' : 'EQUIPO'}</p><h1>{isOwn ? 'Mi perfil' : 'Perfil del colaborador'}</h1><p>{isOwn ? 'Tu información laboral y un resumen de actividad.' : 'Datos laborales y actividad registrada en el sistema.'}</p></div>
@@ -142,10 +177,13 @@ export function Profile({ session, employeeId, viewerEmployeeId, onBack, backLab
           {photoUrl ? <img src={photoUrl} alt="" /> : <span>{initials}</span>}
         </div>
         <div className="profile-identity"><span className="profile-status">{employee.status}</span><h2>{employee.full_name}</h2><p>{employee.position || 'Puesto por asignar'}{employee.department ? ` · ${employee.department}` : ''}</p></div>
-        {isOwn && <div className="profile-photo-action"><input ref={inputRef} type="file" accept="image/*,.heic,.heif" aria-label="Seleccionar foto de perfil" onChange={(event) => void preparePhoto(event.target.files?.[0])} hidden /><button className="secondary" type="button" disabled={preparing || uploading} onClick={() => inputRef.current?.click()}><Camera size={17} /> {preparing ? 'Preparando…' : photoUrl ? 'Cambiar foto' : 'Agregar foto'}</button><small>Elige una foto, recórtala y la comprimimos automáticamente.</small></div>}
+        <div className="profile-hero-actions">
+          {isOwn && <div className="profile-photo-action"><input ref={inputRef} type="file" accept="image/*,.heic,.heif" aria-label="Seleccionar foto de perfil" onChange={(event) => void preparePhoto(event.target.files?.[0])} hidden /><button className="secondary" type="button" disabled={preparing || uploading} onClick={() => inputRef.current?.click()}><Camera size={17} /> {preparing ? 'Preparando…' : photoUrl ? 'Cambiar foto' : 'Agregar foto'}</button><small>Elige una foto, recórtala y la comprimimos automáticamente.</small></div>}
+          {isAdmin && <button className="secondary profile-edit-button" type="button" onClick={beginEdit}><Pencil size={16} /> Editar perfil</button>}
+        </div>
       </section>
       <div className="profile-grid">
-        <section className="profile-card"><div className="profile-card-title"><UserRound size={19} /><h2>Datos del sistema</h2></div><dl className="profile-details"><div><dt>Nombre</dt><dd>{employee.full_name}</dd></div><div><dt>Correo</dt><dd><Mail size={14} /> {employee.email || (isOwn ? session.user.email : null) || 'Sin registrar'}</dd></div><div><dt>Puesto</dt><dd>{employee.position || 'Por asignar'}</dd></div><div><dt>Área</dt><dd>{employee.department || 'Por asignar'}</dd></div><div><dt>Estado</dt><dd>{employee.status}</dd></div><div><dt>En la plataforma desde</dt><dd>{dateLabel.format(new Date(employee.created_at))}</dd></div></dl></section>
+        <section className="profile-card"><div className="profile-card-title"><UserRound size={19} /><h2>Datos del sistema</h2></div>{editing ? <div className="profile-edit-form"><label>Nombre completo<input value={profileForm.full_name} onChange={(event) => setProfileForm((current) => ({ ...current, full_name: event.target.value }))} /></label><label>Correo<input type="email" value={profileForm.email} onChange={(event) => setProfileForm((current) => ({ ...current, email: event.target.value }))} /></label><label>Puesto<input value={profileForm.position} onChange={(event) => setProfileForm((current) => ({ ...current, position: event.target.value }))} /></label><label>Área<input value={profileForm.department} onChange={(event) => setProfileForm((current) => ({ ...current, department: event.target.value }))} /></label><label>Estado<select value={profileForm.status} onChange={(event) => setProfileForm((current) => ({ ...current, status: event.target.value }))}><option value="Activo">Activo</option><option value="Baja">Baja</option></select></label><label>Ingreso<input type="date" value={profileForm.hire_date} onChange={(event) => setProfileForm((current) => ({ ...current, hire_date: event.target.value }))} /></label><div className="profile-edit-actions"><button type="button" className="secondary" disabled={savingProfile} onClick={() => setEditing(false)}><X size={16} /> Cancelar</button><button type="button" disabled={savingProfile || !profileForm.full_name.trim()} onClick={() => void saveProfile()}>{savingProfile ? <><LoaderCircle className="spin" size={16} /> Guardando…</> : <><Check size={16} /> Guardar cambios</>}</button></div></div> : <dl className="profile-details"><div><dt>Nombre</dt><dd>{employee.full_name}</dd></div><div><dt>Correo</dt><dd><Mail size={14} /> {employee.email || (isOwn ? session.user.email : null) || 'Sin registrar'}</dd></div><div><dt>Puesto</dt><dd>{employee.position || 'Por asignar'}</dd></div><div><dt>Área</dt><dd>{employee.department || 'Por asignar'}</dd></div><div><dt>Estado</dt><dd>{employee.status}</dd></div><div><dt>Ingreso</dt><dd>{hireDate}</dd></div></dl>}</section>
         <section className="profile-card"><div className="profile-card-title"><Clock3 size={19} /><h2>Horas y asistencia</h2></div><p className="profile-period">{monthLabel.format(today)}</p><div className="profile-stat"><strong>{totalHours.toLocaleString('es-MX', { maximumFractionDigits: 1 })} h</strong><span>registradas según horario de entrada y salida</span></div><div className="profile-mini-stats"><div><strong>{worked.length}</strong><span>días trabajados</span></div><div><strong>{sheets.filter((sheet) => sheet.attendance === 'vacation').length}</strong><span>vacaciones</span></div><div><strong>{sheets.filter((sheet) => sheet.attendance === 'absence').length}</strong><span>faltas</span></div></div></section>
       </div>
       <section className="profile-card profile-evaluations"><div className="profile-card-title"><ClipboardCheck size={19} /><h2>Evaluaciones</h2></div>{reports.length ? <div className="profile-report-list">{reports.map((report) => <div className="profile-report" key={report.id}><div><strong>Resultado final</strong><span>{dateLabel.format(new Date(report.created_at))}</span></div><strong className="profile-report-score">{score(report.final_score)}</strong><small>Autoevaluación {score(report.self_score)} · Equipo {score(report.collective_score)}</small></div>)}</div> : <p className="profile-empty">Aún no hay resultados finales de evaluaciones.</p>}<button className="secondary" type="button" onClick={onEvaluations}>{isOwn ? 'Ir a evaluaciones' : 'Ir al panel de evaluaciones'}</button></section>

@@ -760,9 +760,9 @@ function Workspace({ session }: { session: Session }) {
       {accountOpen && <ChangePassword onDone={() => setAccountOpen(false)} />}
       <section className={`content ${reports ? "admin-content" : activeModule === "evaluaciones" ? "evaluation-content" : activeModule === "perfil" ? "profile-content" : activeModule === "perfiles" ? "profiles-content" : ""}`}>
         {activeModule === "perfiles" && admin ? (
-          <ProfilesDirectory session={session} viewerEmployeeId={employee} onEvaluations={() => setActiveModule("evaluaciones")} />
+          <ProfilesDirectory session={session} viewerEmployeeId={employee} isAdmin={admin} onEvaluations={() => setActiveModule("evaluaciones")} />
         ) : activeModule === "perfil" ? (
-          <Profile session={session} employeeId={employee} viewerEmployeeId={employee} onEvaluations={() => setActiveModule("evaluaciones")} />
+          <Profile session={session} employeeId={employee} viewerEmployeeId={employee} isAdmin={admin} onEvaluations={() => setActiveModule("evaluaciones")} />
         ) : activeModule === "evaluaciones" ? (
           <EvaluacionesModule employeeId={employee} isAdmin={admin} />
         ) : reports ? (

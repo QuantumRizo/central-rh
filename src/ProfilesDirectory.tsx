@@ -15,17 +15,21 @@ type Order = 'surname' | 'position' | 'name';
 
 const compare = (a: string, b: string) => a.localeCompare(b, 'es-MX', { sensitivity: 'base' });
 const normalize = (value: string) => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('es-MX');
-// En nombres con dos apellidos, el primer apellido suele ser el penúltimo elemento:
-// "Félix David Rizo Serrano" → "Rizo". Para nombres más cortos usamos el último.
+// Los nombres se guardan como "Nombre(s) Primer apellido Segundo apellido".
+// Conservamos una excepción para apellidos compuestos frecuentes.
 const firstSurname = (name: string) => {
   const parts = name.trim().split(/\s+/).filter(Boolean);
-  return parts.length >= 3 ? parts.at(-2) || parts.at(-1) || name : parts.at(-1) || name;
+  if (parts.length < 3) return parts.at(-1) || name;
+  const surname = parts.at(-2) || parts.at(-1) || name;
+  const prefix = parts.at(-3)?.toLocaleLowerCase('es-MX');
+  return prefix === 'de' || prefix === 'del' ? `${parts.at(-3)} ${surname}` : surname;
 };
 const initials = (name: string) => name.trim().split(/\s+/).slice(0, 2).map((part) => part[0]).join('').toUpperCase();
 
-export function ProfilesDirectory({ session, viewerEmployeeId, onEvaluations }: {
+export function ProfilesDirectory({ session, viewerEmployeeId, isAdmin, onEvaluations }: {
   session: Session;
   viewerEmployeeId: string;
+  isAdmin: boolean;
   onEvaluations: () => void;
 }) {
   const [people, setPeople] = useState<Person[]>([]);
@@ -72,7 +76,7 @@ export function ProfilesDirectory({ session, viewerEmployeeId, onEvaluations }: 
     return { count: filtered.length, sections: [...grouped.entries()] };
   }, [people, query, position, department, status, order]);
 
-  if (selectedId) return <Profile key={selectedId} session={session} employeeId={selectedId} viewerEmployeeId={viewerEmployeeId} onBack={() => setSelectedId(null)} onEvaluations={onEvaluations} />;
+  if (selectedId) return <Profile key={selectedId} session={session} employeeId={selectedId} viewerEmployeeId={viewerEmployeeId} isAdmin={isAdmin} onBack={() => setSelectedId(null)} onEvaluations={onEvaluations} />;
 
   return <div className="profiles-directory">
     <div className="profiles-heading"><div><p className="eyebrow">ADMINISTRACIÓN</p><h1>Perfiles</h1><p>Consulta la información de los colaboradores y abre su perfil.</p></div><span className="profiles-total"><Users size={18} /> {people.length} colaboradores</span></div>
