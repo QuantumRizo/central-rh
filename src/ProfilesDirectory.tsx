@@ -10,8 +10,12 @@ type Person = {
   position: string;
   department: string | null;
   status: string;
+  avatar_path: string | null;
 };
 type Order = 'surname' | 'position' | 'name';
+
+const avatarUrlCache = new Map<string, { url: string; expiresAt: number }>();
+const avatarUrlLifetime = 55 * 60 * 1000;
 
 const compare = (a: string, b: string) => a.localeCompare(b, 'es-MX', { sensitivity: 'base' });
 const normalize = (value: string) => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('es-MX');
@@ -42,15 +46,38 @@ export function ProfilesDirectory({ session, viewerEmployeeId, isAdmin, onEvalua
   const [order, setOrder] = useState<Order>('surname');
   const [busy, setBusy] = useState(true);
   const [error, setError] = useState('');
+  const [avatarUrls, setAvatarUrls] = useState<Record<string, string>>({});
+  const [failedAvatars, setFailedAvatars] = useState<Set<string>>(() => new Set());
 
   useEffect(() => {
     let live = true;
-    sb.from('employees').select('id,full_name,position,department,status').order('full_name').then(({ data, error: loadError }) => {
+    void (async () => {
+      const { data, error: loadError } = await sb.from('employees').select('id,full_name,position,department,status,avatar_path').order('full_name');
       if (!live) return;
-      if (loadError) setError(loadError.message);
-      else setPeople((data ?? []) as Person[]);
+      if (loadError) { setError(loadError.message); setBusy(false); return; }
+      const loadedPeople = (data ?? []) as Person[];
+      setPeople(loadedPeople);
       setBusy(false);
-    });
+      const paths = [...new Set(loadedPeople.map((person) => person.avatar_path).filter((path): path is string => Boolean(path)))];
+      const now = Date.now();
+      const urls: Record<string, string> = {};
+      const missingPaths = paths.filter((path) => {
+        const cached = avatarUrlCache.get(path);
+        if (cached && cached.expiresAt > now) { urls[path] = cached.url; return false; }
+        return true;
+      });
+      if (missingPaths.length) {
+        const { data: signedUrls, error: signingError } = await sb.storage.from('profile-photos').createSignedUrls(missingPaths, 60 * 60);
+        if (!live) return;
+        if (!signingError) for (const signed of signedUrls ?? []) {
+          if (signed.path && signed.signedUrl) {
+            urls[signed.path] = signed.signedUrl;
+            avatarUrlCache.set(signed.path, { url: signed.signedUrl, expiresAt: now + avatarUrlLifetime });
+          }
+        }
+      }
+      if (live) setAvatarUrls(urls);
+    })();
     return () => { live = false; };
   }, []);
 
@@ -91,6 +118,6 @@ export function ProfilesDirectory({ session, viewerEmployeeId, isAdmin, onEvalua
     </section>
     <div className="profiles-results"><p>{busy ? 'Cargando perfiles…' : `${groups.count} ${groups.count === 1 ? 'perfil' : 'perfiles'} ${query || position || department || status ? 'encontrados' : 'disponibles'}`}</p>{(query || position || department || status) && <button type="button" className="profiles-clear" onClick={() => { setQuery(''); setPosition(''); setDepartment(''); setStatus(''); }}>Limpiar filtros</button>}</div>
     {!busy && !error && !groups.count && <div className="profiles-empty">No hay perfiles que coincidan con los filtros.</div>}
-    {groups.sections.map(([heading, members]) => <section className="profiles-group" key={heading}><h2>{heading} <span>{members.length}</span></h2><div className="profiles-grid">{members.map((person) => <button key={person.id} type="button" className="profiles-person" onClick={() => setSelectedId(person.id)}><span className="profiles-avatar">{initials(person.full_name)}</span><span className="profiles-person-copy"><strong>{person.full_name}</strong><small>{person.position || 'Por asignar'}</small><small>{person.department || 'Sin área'}</small></span><span className={`profiles-status ${person.status === 'Activo' ? 'active' : ''}`}>{person.status}</span><ChevronRight size={18} className="profiles-arrow" /></button>)}</div></section>)}
+    {groups.sections.map(([heading, members]) => <section className="profiles-group" key={heading}><h2>{heading} <span>{members.length}</span></h2><div className="profiles-grid">{members.map((person) => { const avatarUrl = person.avatar_path ? avatarUrls[person.avatar_path] : null; const showPhoto = Boolean(avatarUrl && person.avatar_path && !failedAvatars.has(person.avatar_path)); return <button key={person.id} type="button" className="profiles-person" onClick={() => setSelectedId(person.id)}><span className="profiles-avatar">{showPhoto ? <img src={avatarUrl || ''} alt="" loading="lazy" decoding="async" onError={() => { if (person.avatar_path) setFailedAvatars((current) => new Set(current).add(person.avatar_path!)); }} /> : initials(person.full_name)}</span><span className="profiles-person-copy"><strong>{person.full_name}</strong><small>{person.position || 'Por asignar'}</small><small>{person.department || 'Sin área'}</small></span><span className={`profiles-status ${person.status === 'Activo' ? 'active' : ''}`}>{person.status}</span><ChevronRight size={18} className="profiles-arrow" /></button>; })}</div></section>)}
   </div>;
 }
