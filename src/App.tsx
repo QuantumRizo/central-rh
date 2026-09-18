@@ -8,6 +8,7 @@ import {
 import { type Session } from "@supabase/supabase-js";
 import { PendingDays, ReportDetails } from './ReportDetails';
 import { EvaluacionesModule } from './evaluaciones/EvaluacionesModule';
+import { Profile } from './Profile';
 import { sb } from './lib/supabase';
 import {
   ArrowLeft,
@@ -24,6 +25,7 @@ import {
   Search,
   Trash2,
   UserCheck,
+  UserRound,
   Users,
   X,
 } from "lucide-react";
@@ -517,7 +519,7 @@ function Workspace({ session }: { session: Session }) {
     [error, setError] = useState(""),
     [message, setMessage] = useState(""),
     [reports, setReports] = useState(false),
-    [activeModule, setActiveModule] = useState<"timesheets" | "evaluaciones">("timesheets"),
+    [activeModule, setActiveModule] = useState<"timesheets" | "evaluaciones" | "perfil">("timesheets"),
     [accountOpen, setAccountOpen] = useState(false);
   const draft = sheetSnapshot({attendance,mode,entry,exit,permissionEntry,permissionExit,rows});
   const dirty = baseline !== null && draft !== baseline;
@@ -733,6 +735,12 @@ function Workspace({ session }: { session: Session }) {
           >
             <ClipboardCheck size={18} /> <span>Evaluaciones</span>
           </button>
+          <button
+            className={activeModule === "perfil" ? "active" : ""}
+            onClick={() => { if (canLeave()) { setActiveModule("perfil"); setReports(false); } }}
+          >
+            <UserRound size={18} /> <span>Mi perfil</span>
+          </button>
         </nav>
         <div className="sidebar-footer">
           <div className="sidebar-user"><div>{admin && <span className="admin-badge">Admin</span>}</div><strong>{session.user.email}</strong></div>
@@ -743,8 +751,10 @@ function Workspace({ session }: { session: Session }) {
         </div>
       </aside>
       {accountOpen && <ChangePassword onDone={() => setAccountOpen(false)} />}
-      <section className={`content ${reports ? "admin-content" : activeModule === "evaluaciones" ? "evaluation-content" : ""}`}>
-        {activeModule === "evaluaciones" ? (
+      <section className={`content ${reports ? "admin-content" : activeModule === "evaluaciones" ? "evaluation-content" : activeModule === "perfil" ? "profile-content" : ""}`}>
+        {activeModule === "perfil" ? (
+          <Profile session={session} employeeId={employee} onEvaluations={() => setActiveModule("evaluaciones")} />
+        ) : activeModule === "evaluaciones" ? (
           <EvaluacionesModule employeeId={employee} isAdmin={admin} />
         ) : reports ? (
           <AdminDashboard onBack={() => setReports(false)} />
