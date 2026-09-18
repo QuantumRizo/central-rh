@@ -520,6 +520,11 @@ function Workspace({ session }: { session: Session }) {
     [message, setMessage] = useState(""),
     [reports, setReports] = useState(false),
     [activeModule, setActiveModule] = useState<"timesheets" | "evaluaciones" | "perfil">("timesheets"),
+    [profileEmployeeId, setProfileEmployeeId] = useState<string | null>(null),
+    [team, setTeam] = useState<Array<{ id: string; full_name: string; position: string; status: string }>>([]),
+    [teamQuery, setTeamQuery] = useState(""),
+    [teamError, setTeamError] = useState(""),
+    [teamOpen, setTeamOpen] = useState(() => window.matchMedia('(min-width: 851px)').matches),
     [accountOpen, setAccountOpen] = useState(false);
   const draft = sheetSnapshot({attendance,mode,entry,exit,permissionEntry,permissionExit,rows});
   const dirty = baseline !== null && draft !== baseline;
@@ -530,6 +535,16 @@ function Workspace({ session }: { session: Session }) {
     window.addEventListener('beforeunload', warn);
     return () => window.removeEventListener('beforeunload', warn);
   }, [dirty]);
+  useEffect(() => {
+    if (!admin) return;
+    let live = true;
+    sb.from('employees').select('id,full_name,position,status').order('full_name').then(({ data, error }) => {
+      if (!live) return;
+      if (error) setTeamError(error.message);
+      else setTeam(data || []);
+    });
+    return () => { live = false; };
+  }, [admin]);
   useEffect(() => {
     (async () => {
       try {
@@ -736,12 +751,24 @@ function Workspace({ session }: { session: Session }) {
             <ClipboardCheck size={18} /> <span>Evaluaciones</span>
           </button>
           <button
-            className={activeModule === "perfil" ? "active" : ""}
-            onClick={() => { if (canLeave()) { setActiveModule("perfil"); setReports(false); } }}
+            className={activeModule === "perfil" && !profileEmployeeId ? "active" : ""}
+            onClick={() => { if (canLeave()) { setProfileEmployeeId(null); setActiveModule("perfil"); setReports(false); } }}
           >
             <UserRound size={18} /> <span>Mi perfil</span>
           </button>
         </nav>
+        {admin && <details className="sidebar-team" open={teamOpen} onToggle={(event) => setTeamOpen(event.currentTarget.open)}>
+          <summary><Users size={17} /> <span>Perfiles del equipo</span><span className="sidebar-team-count">{team.length}</span><ChevronDown size={15} className="sidebar-team-chevron" /></summary>
+          <div className="sidebar-team-content">
+            <label className="sidebar-team-search"><Search size={15} /><input aria-label="Buscar colaborador" placeholder="Buscar persona…" value={teamQuery} onChange={(event) => setTeamQuery(event.target.value)} /></label>
+            {teamError && <p role="alert" className="sidebar-team-empty">{teamError}</p>}
+            <nav className="sidebar-team-list" aria-label="Perfiles de colaboradores">
+              {team.filter((person) => `${person.full_name} ${person.position}`.toLocaleLowerCase('es-MX').includes(teamQuery.toLocaleLowerCase('es-MX'))).map((person) => <button key={person.id} className={profileEmployeeId === person.id && activeModule === 'perfil' ? 'active' : ''} onClick={() => { if (canLeave()) { setProfileEmployeeId(person.id); setActiveModule('perfil'); setReports(false); } }}><span className="sidebar-team-initials">{person.full_name.split(/\s+/).slice(0, 2).map((part) => part[0]).join('').toUpperCase()}</span><span><strong>{person.full_name}</strong><small>{person.position}{person.status === 'Baja' ? ' · Baja' : ''}</small></span></button>)}
+              {!teamError && !team.length && <p className="sidebar-team-empty">Cargando colaboradores…</p>}
+              {!teamError && team.length > 0 && !team.some((person) => `${person.full_name} ${person.position}`.toLocaleLowerCase('es-MX').includes(teamQuery.toLocaleLowerCase('es-MX'))) && <p className="sidebar-team-empty">Sin resultados.</p>}
+            </nav>
+          </div>
+        </details>}
         <div className="sidebar-footer">
           <div className="sidebar-user"><div>{admin && <span className="admin-badge">Admin</span>}</div><strong>{session.user.email}</strong></div>
           <div className="sidebar-user-actions">
@@ -753,7 +780,7 @@ function Workspace({ session }: { session: Session }) {
       {accountOpen && <ChangePassword onDone={() => setAccountOpen(false)} />}
       <section className={`content ${reports ? "admin-content" : activeModule === "evaluaciones" ? "evaluation-content" : activeModule === "perfil" ? "profile-content" : ""}`}>
         {activeModule === "perfil" ? (
-          <Profile session={session} employeeId={employee} onEvaluations={() => setActiveModule("evaluaciones")} />
+          <Profile key={profileEmployeeId || employee} session={session} employeeId={profileEmployeeId || employee} viewerEmployeeId={employee} onBack={profileEmployeeId ? () => setProfileEmployeeId(null) : undefined} onEvaluations={() => setActiveModule("evaluaciones")} />
         ) : activeModule === "evaluaciones" ? (
           <EvaluacionesModule employeeId={employee} isAdmin={admin} />
         ) : reports ? (
