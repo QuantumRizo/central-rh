@@ -439,3 +439,8 @@ button,input,select,textarea{touch-action:manipulation}
 @media(max-width:650px){.profile-mini-stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .evaluation-final-cell{color:#176b4d!important;font-weight:800}
 .evaluation-table{min-width:1040px}
+@media(min-width:851px){
+  .app>.content{width:min(100%,1180px)}
+  .app>.admin-content{width:min(100%,1360px);max-width:1360px}
+  .app>.evaluation-content{width:min(100%,1440px);max-width:1440px}
+}
