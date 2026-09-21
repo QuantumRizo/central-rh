@@ -437,3 +437,5 @@ button,input,select,textarea{touch-action:manipulation}
 .admin-content .status-dot.holiday{background:#7a60c8}
 .profile-mini-stats{grid-template-columns:repeat(4,minmax(0,1fr))}
 @media(max-width:650px){.profile-mini-stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.evaluation-final-cell{color:#176b4d!important;font-weight:800}
+.evaluation-table{min-width:1040px}
