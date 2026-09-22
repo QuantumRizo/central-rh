@@ -16,6 +16,7 @@ type Preview = {
   monthSummary: Array<{ month: string; workedDays: number; productiveHours: number; allocations: Array<{ client: string; activity: string; hours: number; percentage: number }> }>;
   days: Array<{ date: string; attendance: string; mode: string | null; entry: string | null; exit: string | null; entries: Array<{ client: string; activity: string; percentage: number }> }>;
 };
+type ActivityOption = { id: string; name: string };
 
 const initialInput: FormInput = {
   periodStart: "2026-01-01", periodEnd: "2026-08-31", entry: "09:00", exit: "18:00", mealHours: 1,
@@ -46,7 +47,7 @@ function SpecialDays({ title, hint, rows, schedule, onChange }: { title: string;
   </div>)}<button type="button" className="ai-add" onClick={() => onChange([...rows, { date: "", entry: schedule.entry, exit: schedule.exit }])}><Plus size={14} /> Agregar día</button></div>;
 }
 
-export function AiTimesheetGenerator({ isAdmin, onImported }: { isAdmin: boolean; onImported: () => void }) {
+export function AiTimesheetGenerator({ isAdmin, activities, onImported }: { isAdmin: boolean; activities: ActivityOption[]; onImported: (message: string) => void }) {
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState<FormInput>(initialInput);
   const [preview, setPreview] = useState<Preview | null>(null);
@@ -91,8 +92,11 @@ export function AiTimesheetGenerator({ isAdmin, onImported }: { isAdmin: boolean
     setBusy(true); setError(""); setMessage("");
     try {
       const result = await request("commit");
-      setMessage(`Carga completada: ${result.result?.created || 0} nuevos, ${result.result?.updated || 0} actualizados y ${result.result?.skipped || 0} existentes conservados.`);
-      onImported();
+      const completionMessage = `Carga completada: ${result.result?.created || 0} nuevos, ${result.result?.updated || 0} actualizados y ${result.result?.skipped || 0} existentes conservados.`;
+      setOpen(false);
+      setPreview(null);
+      setMessage("");
+      onImported(completionMessage);
     } catch (reason) { setError((reason as Error).message); }
     finally { setBusy(false); }
   };
@@ -121,7 +125,7 @@ export function AiTimesheetGenerator({ isAdmin, onImported }: { isAdmin: boolean
             <SpecialDays title="Fines de semana trabajados" hint="Sólo se generarán los que agregues." rows={input.workedWeekends} schedule={input} onChange={(value) => change("workedWeekends", value)} />
           </div></section>
           <section className="ai-step"><div className="ai-step-title"><span>3</span><div><h3>Distribución por cliente</h3><p>Puedes escribir porcentajes por mes, rangos de meses u horas fijas.</p></div></div>
-            <div className="ai-distribution"><span>Describe tu distribución</span><p className="ai-distribution-help">Indica el porcentaje de tu tiempo productivo por cliente y actividad. Puedes usar un mes o un rango de meses; cada mes debe sumar 100%. Usa los nombres del sistema y no escribas la comida: Central RH la agrega automáticamente.</p><textarea rows={7} value={input.distributionText} onChange={(event) => change("distributionText", event.target.value)} placeholder="Ejemplo: Enero a agosto: Sika 50% Diseño, Sansui 30% Diseño y Central de Negocios 20% Tiempo Empresarial." aria-describedby="ai-distribution-example" /><div className="ai-distribution-example" id="ai-distribution-example"><div><strong>Ejemplo de formato</strong><pre>{distributionExample}</pre></div><button type="button" className="ai-example-button" onClick={() => change("distributionText", distributionExample)}>Usar este ejemplo</button></div></div>
+            <div className="ai-distribution"><span>Describe tu distribución</span><p className="ai-distribution-help">Indica el porcentaje de tu tiempo productivo por cliente y actividad. Puedes usar un mes o un rango de meses; cada mes debe sumar 100%. Usa los nombres del sistema y no escribas la comida: Central RH la agrega automáticamente.</p><textarea rows={7} value={input.distributionText} onChange={(event) => change("distributionText", event.target.value)} placeholder="Ejemplo: Enero a agosto: Sika 50% Diseño, Sansui 30% Diseño y Central de Negocios 20% Tiempo Empresarial." aria-describedby="ai-distribution-example" /><div className="ai-distribution-example" id="ai-distribution-example"><div><strong>Ejemplo de formato</strong><pre>{distributionExample}</pre></div><button type="button" className="ai-example-button" onClick={() => change("distributionText", distributionExample)}>Usar este ejemplo</button></div><p className="ai-activities"><strong>Actividades disponibles:</strong> {activities.length ? activities.map((activity) => activity.name).join(" · ") : "Cargando actividades…"}</p><p className="ai-activities-note">La comida se agrega automáticamente; no necesitas escribirla en la distribución.</p></div>
             <p className="ai-privacy">La IA interpreta únicamente esta distribución y Central RH calcula y carga tus horas automáticamente.</p>
           </section>
           {preview && <section className="ai-preview"><div className="ai-preview-heading"><div><CheckCircle2 size={20} /><div><h3>Vista previa lista</h3><p>Revisa el resumen antes de confirmar.</p></div></div><span>{preview.summary.total} días</span></div>

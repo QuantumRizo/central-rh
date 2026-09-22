@@ -461,6 +461,7 @@ function Workspace({ session }: { session: Session }) {
     [saving, setSaving] = useState(false),
     [error, setError] = useState(""),
     [message, setMessage] = useState(""),
+    [aiCompletionMessage, setAiCompletionMessage] = useState(""),
     [importRevision, setImportRevision] = useState(0),
     [reports, setReports] = useState(false),
     [activeModule, setActiveModule] = useState<"timesheets" | "evaluaciones" | "perfil" | "perfiles" | "cambiar-contrasena">("timesheets");
@@ -720,7 +721,15 @@ function Workspace({ session }: { session: Session }) {
                 </button>
               )}
             </div>
-            <AiTimesheetGenerator isAdmin={admin} onImported={() => setImportRevision((value) => value + 1)} />
+            <AiTimesheetGenerator
+              isAdmin={admin}
+              activities={activities}
+              onImported={(completionMessage) => {
+                setImportRevision((value) => value + 1);
+                setAiCompletionMessage(completionMessage);
+              }}
+            />
+            {aiCompletionMessage && <p role="status" className="success ai-completion-message">{aiCompletionMessage}</p>}
             <div className="panel">
               <div className="date-header-row">
                 <label className="date-input-label">
