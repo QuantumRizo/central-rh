@@ -31,4 +31,6 @@ Las reglas de seguridad y acceso a datos se mantienen en las políticas RLS de S
 
 La experiencia principal es el modal **Subir horas con IA**. El colaborador captura periodo, jornada, modalidad, vacaciones, incapacidades o permisos, festivos trabajados, fines de semana trabajados y una descripción compacta de su distribución mensual. Gemini convierte únicamente la distribución en un plan estructurado; `api/generate-timesheets.ts` calcula los días y porcentajes, valida catálogos y muestra una vista previa. La confirmación reutiliza ese plan, sin una segunda llamada a Gemini, y escribe directamente mediante la función batch protegida por RLS.
 
+La generación automática está limitada al 31 de agosto de 2026. Septiembre se captura manualmente para mantener completo el periodo reciente.
+
 En Vercel deben existir `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` y `GEMINI_API_KEY`. La clave de Gemini es exclusivamente server-side y nunca debe usar el prefijo `VITE_`. `GEMINI_MODEL` es opcional; el servidor usa modelos Flash-Lite estables y cambia automáticamente a otro modelo compatible si existe saturación temporal.

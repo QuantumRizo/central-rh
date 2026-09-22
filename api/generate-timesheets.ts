@@ -9,6 +9,7 @@ const HOLIDAYS_2026 = new Map([
   ["2026-11-16", "Revolución Mexicana"],
   ["2026-12-25", "Navidad"],
 ]);
+const MAX_GENERATION_DATE = "2026-08-31";
 
 type CatalogRow = { id: string; name: string };
 type Allocation = { client: string; activity: string; value: number; unit: "percent" | "hours" };
@@ -34,11 +35,6 @@ type FormInput = {
 const normalize = (value: string) => value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().toLowerCase();
 const round2 = (value: number) => Math.round((value + Number.EPSILON) * 100) / 100;
 const json = (res: any, status: number, body: unknown) => res.status(status).json(body);
-const todayMexico = () => {
-  const parts = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Mexico_City", year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(new Date());
-  const values = Object.fromEntries(parts.map((part) => [part.type, part.value]));
-  return `${values.year}-${values.month}-${values.day}`;
-};
 
 const parseDate = (value: unknown, label = "Fecha") => {
   const date = String(value || "").trim();
@@ -173,7 +169,7 @@ function validateForm(value: unknown): FormInput {
   input.periodStart = parseDate(input.periodStart, "Fecha inicial");
   input.periodEnd = parseDate(input.periodEnd, "Fecha final");
   if (input.periodEnd < input.periodStart) throw Error("El periodo es inválido");
-  if (input.periodEnd > todayMexico()) throw Error("El periodo no puede incluir fechas futuras");
+  if (input.periodEnd > MAX_GENERATION_DATE) throw Error("La generación automática llega únicamente hasta el 31 de agosto de 2026; septiembre debe capturarse manualmente");
   if (dateRange(input.periodStart, input.periodEnd).length > 366) throw Error("El periodo no puede superar un año");
   input.entry = parseTime(input.entry, "Hora de entrada");
   input.exit = parseTime(input.exit, "Hora de salida");
