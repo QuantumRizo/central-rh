@@ -11,6 +11,8 @@ import { EvaluacionesModule } from './evaluaciones/EvaluacionesModule';
 import { Profile } from './Profile';
 import { ProfilesDirectory } from './ProfilesDirectory';
 import { ChangePassword } from './ChangePassword';
+import { AiTimesheetGenerator } from './AiTimesheetGenerator';
+import { TimesheetImport } from './TimesheetImport';
 import { sb } from './lib/supabase';
 import {
   ArrowLeft,
@@ -460,6 +462,7 @@ function Workspace({ session }: { session: Session }) {
     [saving, setSaving] = useState(false),
     [error, setError] = useState(""),
     [message, setMessage] = useState(""),
+    [importRevision, setImportRevision] = useState(0),
     [reports, setReports] = useState(false),
     [activeModule, setActiveModule] = useState<"timesheets" | "evaluaciones" | "perfil" | "perfiles" | "cambiar-contrasena">("timesheets");
   const draft = sheetSnapshot({attendance,mode,entry,exit,permissionEntry,permissionExit,rows});
@@ -557,7 +560,7 @@ function Workspace({ session }: { session: Session }) {
     return () => {
       live = false;
     };
-  }, [employee, date]);
+  }, [employee, date, importRevision]);
   const workdayHours = workedHours(entry, exit);
   const totalHours = rows.reduce((sum, row) => sum + (Number(row.hours) || 0), 0);
   const total = workdayHours ? (totalHours / workdayHours) * 100 : 0;
@@ -718,6 +721,11 @@ function Workspace({ session }: { session: Session }) {
                 </button>
               )}
             </div>
+            <AiTimesheetGenerator isAdmin={admin} onImported={() => setImportRevision((value) => value + 1)} />
+            {admin && <details className="csv-admin-import">
+              <summary>Importación avanzada desde CSV</summary>
+              <TimesheetImport isAdmin={admin} onImported={() => setImportRevision((value) => value + 1)} />
+            </details>}
             <div className="panel">
               <div className="date-header-row">
                 <label className="date-input-label">
