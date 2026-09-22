@@ -22,6 +22,10 @@ const initialInput: FormInput = {
   modality: "office", homeOfficeDays: [], vacations: [], absences: [], workedHolidays: [], workedWeekends: [], distributionText: "",
 };
 const MAX_GENERATION_DATE = "2026-08-31";
+const distributionExample = `Enero a agosto:
+Sika: 50% Diseño
+Sansui: 30% Diseño
+Central de Negocios: 20% Tiempo Empresarial`;
 const weekdays = [{ value: 1, label: "L" }, { value: 2, label: "M" }, { value: 3, label: "M" }, { value: 4, label: "J" }, { value: 5, label: "V" }];
 const attendanceLabel: Record<string, string> = { worked: "Trabajado", vacation: "Vacaciones", absence: "Ausencia", holiday: "Festivo" };
 
@@ -117,8 +121,8 @@ export function AiTimesheetGenerator({ isAdmin, onImported }: { isAdmin: boolean
             <SpecialDays title="Fines de semana trabajados" hint="Sólo se generarán los que agregues." rows={input.workedWeekends} schedule={input} onChange={(value) => change("workedWeekends", value)} />
           </div></section>
           <section className="ai-step"><div className="ai-step-title"><span>3</span><div><h3>Distribución por cliente</h3><p>Puedes escribir porcentajes por mes, rangos de meses u horas fijas.</p></div></div>
-            <label className="ai-distribution">Describe tu distribución<textarea rows={8} value={input.distributionText} onChange={(event) => change("distributionText", event.target.value)} placeholder={"Enero a marzo: Sika 60% Diseño, Sansui 40% Diseño.\nAbril a agosto: Sika 40% Diseño, Dongfeng 35% Diseño y Senosiain 25% Monitoreo y seguimiento de campañas.\nLa comida es de 1 hora diaria y ya se agrega automáticamente."} /></label>
-            <p className="ai-privacy">La IA recibe únicamente esta distribución y los nombres válidos del catálogo. Los cálculos diarios y la escritura en Supabase se realizan en Central RH.</p>
+            <div className="ai-distribution"><span>Describe tu distribución</span><p className="ai-distribution-help">Indica el porcentaje de tu tiempo productivo por cliente y actividad. Puedes usar un mes o un rango de meses; cada mes debe sumar 100%. Usa los nombres del sistema y no escribas la comida: Central RH la agrega automáticamente.</p><textarea rows={7} value={input.distributionText} onChange={(event) => change("distributionText", event.target.value)} placeholder="Ejemplo: Enero a agosto: Sika 50% Diseño, Sansui 30% Diseño y Central de Negocios 20% Tiempo Empresarial." aria-describedby="ai-distribution-example" /><div className="ai-distribution-example" id="ai-distribution-example"><div><strong>Ejemplo de formato</strong><pre>{distributionExample}</pre></div><button type="button" className="ai-example-button" onClick={() => change("distributionText", distributionExample)}>Usar este ejemplo</button></div></div>
+            <p className="ai-privacy">La IA interpreta únicamente esta distribución y Central RH calcula y carga tus horas automáticamente.</p>
           </section>
           {preview && <section className="ai-preview"><div className="ai-preview-heading"><div><CheckCircle2 size={20} /><div><h3>Vista previa lista</h3><p>Revisa el resumen antes de confirmar.</p></div></div><span>{preview.summary.total} días</span></div>
             <div className="ai-preview-metrics"><div><strong>{preview.summary.worked}</strong><span>Trabajados</span></div><div><strong>{preview.summary.vacations}</strong><span>Vacaciones</span></div><div><strong>{preview.summary.absences}</strong><span>Ausencias</span></div><div><strong>{preview.summary.holidays}</strong><span>Festivos</span></div></div>
