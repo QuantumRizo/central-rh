@@ -304,7 +304,14 @@ export default async function handler(req: any, res: any) {
   const token = String(req.headers.authorization || "").replace(/^Bearer\s+/i, "");
   const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
   const supabaseKey = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
-  if (!token || !supabaseUrl || !supabaseKey) return json(res, 500, { error: "Configuración del servidor incompleta" });
+  if (!token) return json(res, 401, { error: "No se encontró tu sesión. Cierra sesión, vuelve a entrar e inténtalo nuevamente." });
+  if (!supabaseUrl || !supabaseKey) {
+    console.error("Missing server-side Supabase configuration", {
+      hasSupabaseUrl: Boolean(supabaseUrl),
+      hasSupabaseKey: Boolean(supabaseKey),
+    });
+    return json(res, 500, { error: "La configuración de Supabase en el servidor está incompleta. Contacta al administrador." });
+  }
   const sb = createClient(supabaseUrl, supabaseKey, { global: { headers: { Authorization: `Bearer ${token}` } } });
   try {
     const input = validateForm(req.body?.input);

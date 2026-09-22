@@ -64,7 +64,15 @@ export function AiTimesheetGenerator({ isAdmin, onImported }: { isAdmin: boolean
       method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${data.session.access_token}` },
       body: JSON.stringify({ action, input, plan: action === "commit" ? preview?.plan : undefined, overwrite }),
     });
-    const body = await response.json();
+    const raw = await response.text();
+    let body: any = {};
+    if (raw.trim()) {
+      try {
+        body = JSON.parse(raw);
+      } catch {
+        throw Error("El servidor devolvió una respuesta inválida. Si estás en localhost, inicia la app con Vercel Dev para probar la IA.");
+      }
+    }
     if (!response.ok) throw Error(body.error || "No se pudieron generar las horas");
     return body;
   };
