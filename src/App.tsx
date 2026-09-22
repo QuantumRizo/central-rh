@@ -12,7 +12,6 @@ import { Profile } from './Profile';
 import { ProfilesDirectory } from './ProfilesDirectory';
 import { ChangePassword } from './ChangePassword';
 import { AiTimesheetGenerator } from './AiTimesheetGenerator';
-import { TimesheetImport } from './TimesheetImport';
 import { sb } from './lib/supabase';
 import {
   ArrowLeft,
@@ -722,16 +721,13 @@ function Workspace({ session }: { session: Session }) {
               )}
             </div>
             <AiTimesheetGenerator isAdmin={admin} onImported={() => setImportRevision((value) => value + 1)} />
-            {admin && <details className="csv-admin-import">
-              <summary>Importación avanzada desde CSV</summary>
-              <TimesheetImport isAdmin={admin} onImported={() => setImportRevision((value) => value + 1)} />
-            </details>}
             <div className="panel">
               <div className="date-header-row">
                 <label className="date-input-label">
                   Fecha
                   <input
                     type="date"
+                    max={day()}
                     value={date}
                     disabled={saving || deleting}
                     onChange={(e) => {
@@ -1365,6 +1361,7 @@ function AdminDashboard({ onBack }: { onBack: () => void }) {
             Desde
             <input
               type="date"
+              max={day()}
               value={from}
               onChange={(e) => e.target.value && setFrom(e.target.value)}
             />
@@ -1374,6 +1371,7 @@ function AdminDashboard({ onBack }: { onBack: () => void }) {
             Hasta
             <input
               type="date"
+              max={day()}
               value={to}
               onChange={(e) => e.target.value && setTo(e.target.value)}
             />

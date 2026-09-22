@@ -23,18 +23,22 @@ const initialInput: FormInput = {
 };
 const weekdays = [{ value: 1, label: "L" }, { value: 2, label: "M" }, { value: 3, label: "M" }, { value: 4, label: "J" }, { value: 5, label: "V" }];
 const attendanceLabel: Record<string, string> = { worked: "Trabajado", vacation: "Vacaciones", absence: "Ausencia", holiday: "Festivo" };
+const today = () => {
+  const date = new Date();
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+};
 
 function RangeList({ title, hint, rows, onChange }: { title: string; hint: string; rows: DateRange[]; onChange: (rows: DateRange[]) => void }) {
   return <div className="ai-field-card"><strong>{title}</strong><small>{hint}</small>{rows.map((row, index) => <div className="ai-range-row" key={index}>
-    <input aria-label={`${title}, inicio`} type="date" value={row.start} onChange={(event) => onChange(rows.map((item, i) => i === index ? { ...item, start: event.target.value } : item))} />
-    <span>a</span><input aria-label={`${title}, fin`} type="date" value={row.end} onChange={(event) => onChange(rows.map((item, i) => i === index ? { ...item, end: event.target.value } : item))} />
+    <input aria-label={`${title}, inicio`} type="date" max={today()} value={row.start} onChange={(event) => onChange(rows.map((item, i) => i === index ? { ...item, start: event.target.value } : item))} />
+    <span>a</span><input aria-label={`${title}, fin`} type="date" max={today()} value={row.end} onChange={(event) => onChange(rows.map((item, i) => i === index ? { ...item, end: event.target.value } : item))} />
     <button type="button" className="icon" aria-label={`Eliminar ${title}`} onClick={() => onChange(rows.filter((_, i) => i !== index))}><Trash2 size={15} /></button>
   </div>)}<button type="button" className="ai-add" onClick={() => onChange([...rows, { start: "", end: "" }])}><Plus size={14} /> Agregar periodo</button></div>;
 }
 
 function SpecialDays({ title, hint, rows, schedule, onChange }: { title: string; hint: string; rows: SpecialDay[]; schedule: { entry: string; exit: string }; onChange: (rows: SpecialDay[]) => void }) {
   return <div className="ai-field-card"><strong>{title}</strong><small>{hint}</small>{rows.map((row, index) => <div className="ai-special-row" key={index}>
-    <input aria-label={`${title}, fecha`} type="date" value={row.date} onChange={(event) => onChange(rows.map((item, i) => i === index ? { ...item, date: event.target.value } : item))} />
+    <input aria-label={`${title}, fecha`} type="date" max={today()} value={row.date} onChange={(event) => onChange(rows.map((item, i) => i === index ? { ...item, date: event.target.value } : item))} />
     <input aria-label={`${title}, entrada`} type="time" value={row.entry} onChange={(event) => onChange(rows.map((item, i) => i === index ? { ...item, entry: event.target.value } : item))} />
     <input aria-label={`${title}, salida`} type="time" value={row.exit} onChange={(event) => onChange(rows.map((item, i) => i === index ? { ...item, exit: event.target.value } : item))} />
     <button type="button" className="icon" aria-label={`Eliminar ${title}`} onClick={() => onChange(rows.filter((_, i) => i !== index))}><Trash2 size={15} /></button>
@@ -85,16 +89,16 @@ export function AiTimesheetGenerator({ isAdmin, onImported }: { isAdmin: boolean
   };
   return <>
     <section className="panel ai-generator-card">
-      <div className="ai-generator-icon"><Sparkles size={24} /></div><div><p className="eyebrow">CARGA ASISTIDA</p><h2>Subir horas con IA</h2><p>Responde unas preguntas, revisa la propuesta y carga todo el periodo sin preparar un CSV.</p></div>
+      <div className="ai-generator-icon"><Sparkles size={24} /></div><div><h2>Subir horas con IA</h2><p>Responde unas preguntas, revisa la propuesta y carga todo el periodo sin preparar un CSV.</p></div>
       <button type="button" onClick={() => setOpen(true)}><Sparkles size={17} /> Generar horas</button>
     </section>
     {open && <div className="ai-modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget && !busy) setOpen(false); }}>
       <section className="ai-modal" role="dialog" aria-modal="true" aria-labelledby="ai-modal-title">
-        <header><div><p className="eyebrow">CARGA ASISTIDA CON GEMINI</p><h2 id="ai-modal-title">Generar mis horas</h2><p>Gemini interpreta la distribución; Central RH calcula y valida cada día.</p></div><button type="button" className="icon" aria-label="Cerrar" disabled={busy} onClick={() => setOpen(false)}><X size={20} /></button></header>
+        <header><div><h2 id="ai-modal-title">Generar mis horas</h2><p>La IA interpreta la distribución; Central RH calcula y valida cada día.</p></div><button type="button" className="icon" aria-label="Cerrar" disabled={busy} onClick={() => setOpen(false)}><X size={20} /></button></header>
         <div className="ai-modal-body">
           <section className="ai-step"><div className="ai-step-title"><span>1</span><div><h3>Periodo y jornada</h3><p>Define qué fechas y horario deben generarse.</p></div></div><div className="ai-form-grid four">
-            <label>Desde<input type="date" value={input.periodStart} onChange={(event) => change("periodStart", event.target.value)} /></label>
-            <label>Hasta<input type="date" value={input.periodEnd} onChange={(event) => change("periodEnd", event.target.value)} /></label>
+            <label>Desde<input type="date" max={today()} value={input.periodStart} onChange={(event) => change("periodStart", event.target.value)} /></label>
+            <label>Hasta<input type="date" max={today()} value={input.periodEnd} onChange={(event) => change("periodEnd", event.target.value)} /></label>
             <label>Entrada<input type="time" value={input.entry} onChange={(event) => change("entry", event.target.value)} /></label>
             <label>Salida<input type="time" value={input.exit} onChange={(event) => change("exit", event.target.value)} /></label>
             <label>Horas de comida<input type="number" min="0" max="4" step="0.25" value={input.mealHours} onChange={(event) => change("mealHours", Number(event.target.value))} /></label>
