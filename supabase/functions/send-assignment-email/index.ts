@@ -46,8 +46,10 @@ Deno.serve(async (request) => {
       .maybeSingle();
     if (role?.role !== 'admin') return json({ success: false, message: 'Admin access required' }, 403);
 
-    const { cycle_id: cycleId } = await request.json();
+    const { cycle_id: cycleId, evaluator_ids: requestedEvaluatorIds } = await request.json();
     if (!cycleId) return json({ success: false, message: 'Missing cycle_id' }, 400);
+    if (requestedEvaluatorIds !== undefined && (!Array.isArray(requestedEvaluatorIds) || requestedEvaluatorIds.some((id) => typeof id !== 'string')))
+      return json({ success: false, message: 'Invalid evaluator_ids' }, 400);
 
     const [{ data: cycle }, { data: assignments }, { data: questions }] = await Promise.all([
       adminClient.from('evaluation_cycles').select('*').eq('id', cycleId).single(),
@@ -57,7 +59,10 @@ Deno.serve(async (request) => {
     if (!cycle) return json({ success: false, message: 'Cycle not found' }, 404);
     if (cycle.status !== 'active') return json({ success: false, message: 'Only active cycles can send reminders' }, 400);
 
-    const evaluatorIds = [...new Set((assignments ?? []).map((assignment) => assignment.evaluator_id))];
+    const assignedIds = [...new Set((assignments ?? []).map((assignment) => assignment.evaluator_id))];
+    const evaluatorIds = requestedEvaluatorIds === undefined
+      ? assignedIds
+      : [...new Set(requestedEvaluatorIds as string[])].filter((id) => assignedIds.includes(id));
     if (!evaluatorIds.length) return json({ success: false, message: 'No assignments found for this cycle' }, 400);
     const evaluatedId = cycle.evaluated_employee_id;
     if (!evaluatedId) return json({ success: false, message: 'The cycle has no evaluated employee' }, 400);
@@ -83,7 +88,8 @@ Deno.serve(async (request) => {
     if (!resendKey) return json({ success: false, message: 'Email service not configured' }, 500);
     const from = Deno.env.get('RESEND_FROM_EMAIL');
     if (!from) return json({ success: false, message: 'RESEND_FROM_EMAIL is not configured' }, 500);
-    const appUrl = Deno.env.get('APP_URL') ?? 'http://127.0.0.1:5175/';
+    const appUrl = Deno.env.get('APP_URL');
+    if (!appUrl) return json({ success: false, message: 'APP_URL is not configured' }, 500);
     const deadline = cycle.end_date
       ? new Date(cycle.end_date).toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' })
       : 'pronto';
