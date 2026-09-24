@@ -1,0 +1,546 @@
+/* Shared components used across modules: cards, headings, stats, badges, tabs, bars, picker, skeletons, modal. */
+
+/* ---------- Card (surface) ----------
+ * One surface style for the whole app. Module classes below only opt in.
+ */
+
+.panel,
+.admin-card,
+.admin-toolbar,
+.metric,
+.evaluation-loading,
+.evaluation-progress-card,
+.evaluation-task-card,
+.evaluation-form-card,
+.evaluation-report-card,
+.evaluation-report-summary > div,
+.evaluation-admin-metrics > div,
+.evaluation-report-comments article,
+.profile-hero,
+.profile-card,
+.profiles-filters,
+.profiles-empty,
+.recruitment-card {
+  min-width: 0;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xs);
+}
+
+.panel,
+.admin-card,
+.evaluation-form-card,
+.evaluation-report-card,
+.evaluation-report-comments article,
+.profile-hero,
+.profile-card,
+.recruitment-card {
+  padding: var(--card-padding);
+}
+
+/* Cards whose content is a flush table or list. */
+.table-card,
+.person-log-card,
+.evaluation-task-card {
+  padding: 0;
+  overflow: hidden;
+}
+
+/* ---------- Card heading ---------- */
+
+.card-heading,
+.evaluation-card-heading,
+.recruitment-section-title,
+.section-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.card-heading h2,
+.evaluation-card-heading h2,
+.recruitment-section-title h2,
+.section-head h2,
+.profile-card-title h2 {
+  margin: 0;
+  font-size: var(--text-lg);
+}
+
+.card-heading p,
+.evaluation-card-heading p,
+.section-help {
+  margin: var(--space-1) 0 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-md);
+  font-weight: var(--weight-regular);
+}
+
+.card-heading > div,
+.section-head > div {
+  min-width: 0;
+}
+
+/* ---------- Stats ---------- */
+
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+
+.metric {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-5);
+}
+
+.metric > div {
+  min-width: 0;
+}
+
+.metric-icon {
+  flex: none;
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-md);
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+
+.metric-icon svg {
+  width: 18px;
+}
+
+.metric p {
+  margin: 0 0 2px;
+  color: var(--color-text-muted);
+  font-size: var(--text-md);
+}
+
+.metric strong,
+.evaluation-admin-metrics strong,
+.evaluation-report-summary strong,
+.profile-stat strong {
+  display: block;
+  font-size: var(--text-3xl);
+  font-weight: var(--weight-semibold);
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  color: var(--color-text);
+}
+
+.metric small {
+  display: block;
+  margin-top: var(--space-1);
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+/* ---------- Badges ---------- */
+
+.admin-badge,
+.count-warn,
+.count-ok,
+.count-weekend,
+.status-pill,
+.evaluation-task-status,
+.evaluation-cycle-status,
+.evaluation-admin-note,
+.profile-status,
+.profiles-status,
+.profiles-total,
+.profiles-group h2 span,
+.admin-tabs button span,
+.ai-preview-heading > span,
+.recruitment-skills span {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  width: fit-content;
+  min-height: 22px;
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-full);
+  background: var(--color-surface-muted);
+  color: var(--color-text-secondary);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  line-height: 1.3;
+  white-space: nowrap;
+}
+
+.admin-badge,
+.count-weekend {
+  text-transform: none;
+}
+
+/* Tone modifiers */
+.count-ok,
+.evaluation-task-status.done,
+.evaluation-cycle-status.active,
+.profile-status,
+.profiles-status.active,
+.ai-preview-heading > span {
+  background: var(--color-success-soft);
+  color: var(--color-success);
+}
+
+.count-warn,
+.count-weekend,
+.status-pill.vacation,
+.evaluation-task-status,
+.evaluation-cycle-status.draft {
+  background: var(--color-warning-soft);
+  color: var(--color-warning);
+}
+
+.status-pill.absence {
+  background: var(--color-danger-soft);
+  color: var(--color-danger);
+}
+
+.status-pill.holiday {
+  background: var(--color-holiday-soft);
+  color: var(--color-holiday);
+}
+
+.status-pill.personal_day {
+  background: var(--color-personal-soft);
+  color: var(--color-personal);
+}
+
+.status-pill.sick_leave {
+  background: var(--color-sick-soft);
+  color: var(--color-sick);
+}
+
+.admin-badge,
+.profiles-total,
+.profiles-group h2 span,
+.admin-tabs button span,
+.recruitment-skills span,
+.evaluation-admin-note {
+  background: var(--color-primary-soft);
+  color: var(--color-primary-strong);
+}
+
+/* ---------- Tabs ---------- */
+
+.admin-tabs {
+  display: flex;
+  gap: var(--space-1);
+  max-width: 100%;
+  overflow-x: auto;
+  border-bottom: 1px solid var(--color-border);
+  scrollbar-width: none;
+}
+
+.admin-tabs button {
+  flex: 0 0 auto;
+  min-height: 40px;
+  margin-bottom: -1px;
+  padding: 0 var(--space-3);
+  border: 0;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  background: transparent;
+  color: var(--color-text-muted);
+  font-weight: var(--weight-medium);
+}
+
+.admin-tabs button:hover:not(:disabled) {
+  background: transparent;
+  color: var(--color-text);
+}
+
+.admin-tabs button.active {
+  color: var(--color-primary);
+  border-bottom-color: var(--color-primary);
+}
+
+/* ---------- Bars ---------- */
+
+.progress,
+.rank-bar,
+.activity-summary-bar,
+.evaluation-progress-track {
+  height: 6px;
+  overflow: hidden;
+  border-radius: var(--radius-full);
+  background: var(--color-divider);
+}
+
+.progress span,
+.rank-bar span,
+.activity-summary-bar span,
+.evaluation-progress-track span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--color-primary);
+  transition: width 0.25s ease;
+}
+
+/* ---------- Status dots ---------- */
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-primary);
+}
+
+.status-dot.vacation {
+  background: var(--color-vacation);
+}
+
+.status-dot.absence {
+  background: var(--color-danger);
+}
+
+.status-dot.holiday {
+  background: var(--color-holiday);
+}
+
+.status-dot.personal_day {
+  background: var(--color-personal);
+}
+
+.status-dot.sick_leave {
+  background: var(--color-sick);
+}
+
+/* ---------- Searchable picker ---------- */
+
+.picker {
+  position: relative;
+  min-width: 0;
+}
+
+.picker-trigger {
+  width: 100%;
+  justify-content: space-between;
+  padding: 0 var(--space-3);
+  border-color: var(--color-border-strong);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-weight: var(--weight-regular);
+  text-align: left;
+}
+
+.picker-trigger:hover:not(:disabled) {
+  background: var(--color-surface);
+  border-color: var(--color-text-subtle);
+}
+
+.picker-trigger[aria-expanded="true"] {
+  border-color: var(--color-primary);
+  box-shadow: var(--focus-ring);
+}
+
+.picker-trigger > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.picker-trigger > svg {
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+}
+
+.picker-menu {
+  position: absolute;
+  bottom: calc(100% + var(--space-2));
+  left: 0;
+  z-index: 20;
+  width: 100%;
+  min-width: min(320px, 75vw);
+  max-width: calc(100vw - 48px);
+  padding: var(--space-2);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-overlay);
+}
+
+.picker-menu input {
+  width: 100%;
+  margin-bottom: 6px;
+}
+
+.picker-options {
+  max-height: 260px;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+.picker-options button {
+  width: 100%;
+  justify-content: space-between;
+  padding: var(--space-2) 10px;
+  background: transparent;
+  color: var(--color-text);
+  font-weight: var(--weight-regular);
+  text-align: left;
+}
+
+.picker-options button:hover:not(:disabled),
+.picker-options button:focus-visible,
+.picker-options button.selected {
+  background: var(--color-primary-soft);
+  color: var(--color-primary-strong);
+}
+
+.picker-options strong {
+  display: block;
+  font-size: var(--text-md);
+  font-weight: var(--weight-medium);
+}
+
+.picker-options small {
+  display: block;
+  margin-top: 2px;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  line-height: 1.45;
+  white-space: normal;
+}
+
+.picker-options svg {
+  flex-shrink: 0;
+}
+
+/* ---------- Skeletons ---------- */
+
+.skeleton {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  border-radius: var(--radius-md);
+  background: var(--color-divider);
+}
+
+.skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.7), transparent);
+  animation: shimmer 1.35s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.loading-card,
+.sheet-skeleton,
+.admin-skeleton {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.skeleton-logo { width: 180px; height: 32px; margin: 0 auto var(--space-2); }
+.skeleton-title { width: 62%; height: 36px; }
+.skeleton-subtitle { width: 70%; height: 18px; }
+.skeleton-field,
+.skeleton-row,
+.skeleton-button { width: 100%; height: var(--control-height); }
+.skeleton-button { margin-top: var(--space-2); }
+.skeleton-button.small { width: 170px; }
+.skeleton-section-title { width: 31%; height: 20px; }
+.skeleton-section-title.short { width: 42%; }
+.skeleton-divider { width: 100%; height: 1px; margin: var(--space-2) 0; }
+.skeleton-metric { height: 92px; }
+.skeleton-admin-card { height: 230px; }
+.skeleton-table { height: 280px; }
+.button-skeleton { width: 72px; height: 16px; background: rgba(255, 255, 255, 0.4); }
+
+.skeleton-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-4);
+}
+
+.skeleton-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-4);
+}
+
+.skeleton-admin-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+}
+
+/* ---------- Modal ---------- */
+
+.ai-modal-backdrop,
+.photo-editor-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: var(--space-6);
+  background: rgba(15, 23, 42, 0.5);
+}
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 1024px) {
+  .metrics,
+  .skeleton-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 860px) {
+  .skeleton-admin-grid,
+  .skeleton-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .metrics {
+    gap: var(--space-2);
+  }
+
+  .metric {
+    gap: 10px;
+    padding: var(--space-4);
+  }
+
+  .metric strong {
+    font-size: var(--text-2xl);
+  }
+
+  .picker-menu {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 400px) {
+  .metrics {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton::after {
+    animation: none;
+  }
+}

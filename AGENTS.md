@@ -13,4 +13,5 @@
 - Frontend: React, TypeScript y Vite; código en `src/`.
 - Backend y permisos: Supabase alojado; migraciones y políticas RLS en `supabase/migrations/`.
 - Verificación mínima de cambios de frontend: `npm run build` y `git diff --check`.
+- Estilos: sigue `docs/design-system.md`. Usa los tokens de `src/styles/tokens.css` (nada de colores, tamaños ni sombras a mano), el encabezado `.page-header` y el ancho único de `.content`. Cada módulo tiene su archivo en `src/styles/`.
 - El `README.md` describe la configuración vigente. Los documentos de planes históricos pueden mencionar el antiguo entorno local; no son instrucciones operativas actuales.

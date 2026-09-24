@@ -1,0 +1,104 @@
+/*
+ * Design tokens — the single source of truth for color, type, spacing and shape.
+ * Never hard-code these values in component styles; add a token here instead.
+ * See docs/design-system.md for usage rules.
+ */
+:root {
+  /* Brand */
+  --color-primary: #0b5eb7;
+  --color-primary-hover: #094e99;
+  --color-primary-strong: #083f7a;
+  --color-primary-soft: #eaf2fb;
+  --color-primary-border: #b9d3ef;
+
+  /* Neutrals */
+  --color-bg: #f5f7fa;
+  --color-surface: #ffffff;
+  --color-surface-muted: #f8fafc;
+  --color-border: #e2e8f0;
+  --color-border-strong: #cbd5e1;
+  --color-divider: #eef2f6;
+  --color-text: #1e293b;
+  --color-text-secondary: #475569;
+  --color-text-muted: #64748b;
+  --color-text-subtle: #94a3b8;
+
+  /* Status */
+  --color-success: #147a45;
+  --color-success-soft: #ecfdf3;
+  --color-success-border: #abefc6;
+  --color-warning: #a15c07;
+  --color-warning-soft: #fffaeb;
+  --color-warning-border: #fedf89;
+  --color-danger: #b42318;
+  --color-danger-soft: #fef3f2;
+  --color-danger-border: #fecdca;
+  --color-holiday: #6941c6;
+  --color-holiday-soft: #f4f3ff;
+  --color-vacation: #7ea6dc;
+  --color-personal: #0e7c72;
+  --color-personal-soft: #effaf8;
+  --color-sick: #b93815;
+  --color-sick-soft: #fff4ed;
+
+  /* Navigation rail */
+  --sidebar-width: 240px;
+  --sidebar-bg: #11233a;
+  --sidebar-text: #a8bacd;
+  --sidebar-text-strong: #ffffff;
+  --sidebar-hover: rgba(255, 255, 255, 0.06);
+  --sidebar-active: rgba(255, 255, 255, 0.11);
+  --sidebar-border: rgba(255, 255, 255, 0.08);
+
+  /* Typography */
+  --font-sans: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+  --text-xs: 11px;
+  --text-sm: 12px;
+  --text-md: 13px;
+  --text-base: 14px;
+  --text-lg: 16px;
+  --text-xl: 18px;
+  --text-2xl: 20px;
+  --text-3xl: 24px;
+  --text-4xl: 28px;
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+
+  /* Spacing (4px grid) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+
+  /* Shape */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-full: 999px;
+
+  /* Elevation */
+  --shadow-xs: 0 1px 2px rgba(16, 24, 40, 0.04);
+  --shadow-overlay: 0 16px 40px rgba(16, 24, 40, 0.16);
+  --focus-ring: 0 0 0 3px rgba(11, 94, 183, 0.18);
+
+  /* Layout */
+  --page-width: 1200px;
+  --page-padding: var(--space-8);
+  --card-padding: var(--space-6);
+  --control-height: 40px;
+}
+
+@media (max-width: 640px) {
+  :root {
+    --page-padding: var(--space-4);
+    --card-padding: var(--space-4);
+  }
+}

@@ -107,7 +107,7 @@ export function ProfilesDirectory({ session, viewerEmployeeId, isAdmin, onEvalua
   if (selectedId) return <Profile key={selectedId} session={session} employeeId={selectedId} viewerEmployeeId={viewerEmployeeId} isAdmin={isAdmin} onBack={() => setSelectedId(null)} onEvaluations={onEvaluations} onChangePassword={onChangePassword} />;
 
   return <div className="profiles-directory">
-    <div className="profiles-heading"><div><p className="eyebrow">ADMINISTRACIÓN</p><h1>Perfiles</h1><p>Consulta la información de los colaboradores y abre su perfil.</p></div><span className="profiles-total"><Users size={18} /> {people.length} colaboradores</span></div>
+    <div className="page-header"><div><p className="eyebrow">ADMINISTRACIÓN</p><h1>Perfiles</h1><p>Consulta la información de los colaboradores y abre su perfil.</p></div><span className="profiles-total"><Users size={18} /> {people.length} colaboradores</span></div>
     {error && <p className="error" role="alert">{error}</p>}
     <section className="profiles-filters" aria-label="Buscar y ordenar perfiles">
       <label className="profiles-search"><span>Buscar</span><span><Search size={17} /><input type="search" placeholder="Nombre, puesto o área" value={query} onChange={(event) => setQuery(event.target.value)} /></span></label>

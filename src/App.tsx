@@ -7,17 +7,21 @@ import {
 } from "react";
 import { type Session } from "@supabase/supabase-js";
 import { PendingDays, ReportDetails } from './ReportDetails';
+import { ABSENCE_OPTIONS, attendanceLabel } from './timesheets/attendance';
+import { MissingDays } from './timesheets/MissingDays';
 import { EvaluacionesModule } from './evaluaciones/EvaluacionesModule';
 import { Profile } from './Profile';
 import { ProfilesDirectory } from './ProfilesDirectory';
 import { ChangePassword } from './ChangePassword';
 import { AiTimesheetGenerator } from './AiTimesheetGenerator';
+import { RecruitmentModule } from './recruitment/RecruitmentModule';
 import { sb } from './lib/supabase';
 import {
   ArrowLeft,
   CalendarDays,
   Check,
   ClipboardCheck,
+  BriefcaseBusiness,
   ChevronDown,
   Clock3,
   Download,
@@ -70,7 +74,6 @@ const sheetSnapshot = (value: {
   })),
 });
 const HIDDEN_CLIENTS = new Set(["Tiempo interno", "Cliente de prueba"]);
-const attendanceLabel = (attendance: string) => attendance === "worked" ? "Trabajado" : attendance === "vacation" ? "Vacaciones" : attendance === "holiday" ? "Feriado" : "Falta";
 const day = () => {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
@@ -446,7 +449,7 @@ function Workspace({ session }: { session: Session }) {
   const [baseline, setBaseline] = useState<string | null>(null);
   const [savedSheetDate, setSavedSheetDate] = useState<string | null>(null);
   const [employee, setEmployee] = useState<string>(""),
-    [admin, setAdmin] = useState(false),
+    [role, setRole] = useState("collaborator"),
     [clients, setClients] = useState<Option[]>([]),
     [activities, setActivities] = useState<Option[]>([]),
     [date, setDate] = useState(day()),
@@ -463,8 +466,12 @@ function Workspace({ session }: { session: Session }) {
     [message, setMessage] = useState(""),
     [aiCompletionMessage, setAiCompletionMessage] = useState(""),
     [importRevision, setImportRevision] = useState(0),
+    [sheetRevision, setSheetRevision] = useState(0),
     [reports, setReports] = useState(false),
-    [activeModule, setActiveModule] = useState<"timesheets" | "evaluaciones" | "perfil" | "perfiles" | "cambiar-contrasena">("timesheets");
+    [activeModule, setActiveModule] = useState<"timesheets" | "evaluaciones" | "perfil" | "perfiles" | "reclutamiento" | "cambiar-contrasena">("timesheets");
+  // "admin" = superadmin (todo); "timesheet_admin" = sólo panel de timesheets.
+  const admin = role === "admin";
+  const canViewTimesheetReports = admin || role === "timesheet_admin";
   const draft = sheetSnapshot({attendance,mode,entry,exit,permissionEntry,permissionExit,rows});
   const dirty = baseline !== null && draft !== baseline;
   const canLeave = () => !dirty || window.confirm('Tienes cambios sin guardar. ¿Quieres continuar sin guardarlos?');
@@ -493,7 +500,7 @@ function Workspace({ session }: { session: Session }) {
         ]);
         for (const r of results) if (r.error) throw r.error;
         setEmployee(results[0].data || "");
-        setAdmin(results[1].data?.role === "admin");
+        setRole(results[1].data?.role || "collaborator");
         setClients(
           (results[2].data || []).filter(
             (client) => !HIDDEN_CLIENTS.has(client.name),
@@ -600,6 +607,7 @@ function Workspace({ session }: { session: Session }) {
       setSavedSheetDate(null);
       setBaseline(sheetSnapshot({ attendance: 'worked', mode: 'office', entry: '09:00', exit: '18:00', permissionEntry: '09:00', permissionExit: '18:00', rows: [] }));
       setMessage('Registro eliminado correctamente.');
+      setSheetRevision((value) => value + 1);
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -641,6 +649,7 @@ function Workspace({ session }: { session: Session }) {
       });
       if (error) throw error;
       setSavedSheetDate(date);
+      setSheetRevision((value) => value + 1);
       const savedRows = mergedRows.map((row, index) => ({
         ...row,
         percentage: saveRows[index].percentage,
@@ -691,31 +700,39 @@ function Workspace({ session }: { session: Session }) {
           >
             <Users size={18} /> <span>Perfiles</span>
           </button>}
+          {admin && <button
+            className={activeModule === "reclutamiento" ? "active" : ""}
+            onClick={() => { if (canLeave()) { setActiveModule("reclutamiento"); setReports(false); } }}
+          >
+            <BriefcaseBusiness size={18} /> <span>Reclutamiento</span>
+          </button>}
         </nav>
         <div className="sidebar-footer">
-          <div className="sidebar-user"><div>{admin && <span className="admin-badge">Admin</span>}</div><strong>{session.user.email}</strong></div>
+          <div className="sidebar-user"><div>{canViewTimesheetReports && <span className="admin-badge">{admin ? "Superadmin" : "Admin timesheets"}</span>}</div><strong>{session.user.email}</strong></div>
           <div className="sidebar-user-actions"><button title="Salir" className="sidebar-logout" onClick={() => { if (canLeave()) sb.auth.signOut(); }}><LogOut size={17} /></button></div>
         </div>
       </aside>
-      <section className={`content ${reports ? "admin-content" : activeModule === "evaluaciones" ? "evaluation-content" : activeModule === "perfil" || activeModule === "cambiar-contrasena" ? "profile-content" : activeModule === "perfiles" ? "profiles-content" : ""}`}>
+      <section className="content">
         {activeModule === "perfiles" && admin ? (
           <ProfilesDirectory session={session} viewerEmployeeId={employee} isAdmin={admin} onEvaluations={() => setActiveModule("evaluaciones")} onChangePassword={() => setActiveModule("cambiar-contrasena")} />
+        ) : activeModule === "reclutamiento" && admin ? (
+          <RecruitmentModule />
         ) : activeModule === "cambiar-contrasena" ? (
           <ChangePassword session={session} onBack={() => setActiveModule("perfil")} />
         ) : activeModule === "perfil" ? (
           <Profile session={session} employeeId={employee} viewerEmployeeId={employee} isAdmin={admin} onEvaluations={() => setActiveModule("evaluaciones")} onChangePassword={() => setActiveModule("cambiar-contrasena")} />
         ) : activeModule === "evaluaciones" ? (
           <EvaluacionesModule employeeId={employee} isAdmin={admin} />
-        ) : reports ? (
-          <AdminDashboard onBack={() => setReports(false)} />
+        ) : reports && canViewTimesheetReports ? (
+          <AdminDashboard canEdit={admin} onBack={() => setReports(false)} />
         ) : (
           <>
-            <div className="title">
+            <div className="page-header">
               <div>
                 <p className="eyebrow">MI HOJA DE TIEMPO</p>
                 <h1>Captura diaria</h1>
               </div>
-              {admin && (
+              {canViewTimesheetReports && (
                 <button className="secondary" onClick={() => { if (canLeave()) setReports(true); }}>
                   <LayoutDashboard size={18} /> Panel admin
                 </button>
@@ -730,6 +747,12 @@ function Workspace({ session }: { session: Session }) {
               }}
             />
             {aiCompletionMessage && <p role="status" className="success ai-completion-message">{aiCompletionMessage}</p>}
+            <MissingDays
+              employeeId={employee}
+              selectedDate={date}
+              refreshKey={sheetRevision + importRevision}
+              onPick={(value) => { if (value !== date && canLeave()) setDate(value); }}
+            />
             <div className="panel">
               <div className="date-header-row">
                 <label className="date-input-label">
@@ -789,9 +812,9 @@ function Workspace({ session }: { session: Session }) {
                         value={attendance}
                         onChange={(e) => setAttendance(e.target.value)}
                       >
-                        <option value="vacation">Vacaciones</option>
-                        <option value="absence">Falta</option>
-                        <option value="holiday">Feriado</option>
+                        {ABSENCE_OPTIONS.map((option) => (
+                          <option key={option.value} value={option.value}>{option.label}</option>
+                        ))}
                       </select>
                     )}
                   </fieldset>
@@ -962,7 +985,7 @@ function Workspace({ session }: { session: Session }) {
                     </>
                   ) : (
                     <p className="notice">
-                      Las actividades se deshabilitan para vacaciones, falta o feriado.
+                      No se registran actividades en días no trabajados.
                     </p>
                   )}
                 </>
@@ -1021,7 +1044,7 @@ const csvCell = (value: unknown) => {
   return `"${text.replaceAll('"', '""')}"`;
 };
 
-function AdminDashboard({ onBack }: { onBack: () => void }) {
+function AdminDashboard({ canEdit, onBack }: { canEdit: boolean; onBack: () => void }) {
   const [selection, setSelection] = useState<{type:'person'|'client';name:string}|null>(null);
   const [revision, setRevision] = useState(0);
   const [from, setFrom] = useState(monthStart()),
@@ -1084,9 +1107,10 @@ function AdminDashboard({ onBack }: { onBack: () => void }) {
   }, [from, to, revision]);
 
   const worked = sheets.filter((s) => s.attendance === "worked"),
-    vacations = sheets.filter((s) => s.attendance === "vacation"),
-    absences = sheets.filter((s) => s.attendance === "absence"),
-    holidays = sheets.filter((s) => s.attendance === "holiday");
+    absenceCounts = ABSENCE_OPTIONS.map((option) => ({
+      ...option,
+      count: sheets.filter((s) => s.attendance === option.value).length,
+    }));
   const peopleWithCapture = new Set(sheets.map((s) => s.employee_id));
   const coverage = employees.length
     ? Math.round((peopleWithCapture.size / employees.length) * 100)
@@ -1109,9 +1133,9 @@ function AdminDashboard({ onBack }: { onBack: () => void }) {
         position: e.position,
         captures: own.length,
         worked: ownWorked.length,
-        vacation: own.filter((s) => s.attendance === "vacation").length,
-        absence: own.filter((s) => s.attendance === "absence").length,
-        holiday: own.filter((s) => s.attendance === "holiday").length,
+        absences: ABSENCE_OPTIONS.map(
+          (option) => own.filter((s) => s.attendance === option.value).length,
+        ),
         hours: ownWorked.reduce(
           (sum, s) => sum + workedHours(s.entry_time, s.exit_time),
           0,
@@ -1280,9 +1304,7 @@ function AdminDashboard({ onBack }: { onBack: () => void }) {
         "Puesto",
         "Capturas",
         "Días trabajados",
-        "Vacaciones",
-        "Faltas",
-        "Feriados",
+        ...ABSENCE_OPTIONS.map((option) => option.plural),
         "Horas",
       ];
       data = personRows.map((r) => [
@@ -1290,9 +1312,7 @@ function AdminDashboard({ onBack }: { onBack: () => void }) {
         r.position,
         r.captures,
         r.worked,
-        r.vacation,
-        r.absence,
-        r.holiday,
+        ...r.absences,
         r.hours.toFixed(1),
       ]);
     } else if (tab === "clients") {
@@ -1323,9 +1343,7 @@ function AdminDashboard({ onBack }: { onBack: () => void }) {
         ["Personas con captura", peopleWithCapture.size],
         ["Registros", sheets.length],
         ["Días trabajados", worked.length],
-        ["Vacaciones", vacations.length],
-        ["Faltas", absences.length],
-        ["Feriados", holidays.length],
+        ...absenceCounts.map((item) => [item.plural, item.count]),
         ["Horas registradas", hours.toFixed(1)],
       ];
     }
@@ -1347,7 +1365,7 @@ function AdminDashboard({ onBack }: { onBack: () => void }) {
 
   return (
     <div className="admin-dashboard">
-      <div className="admin-title">
+      <div className="page-header">
         <div>
           <button className="back-link" onClick={onBack}>
             <ArrowLeft size={17} /> Volver a captura
@@ -1512,18 +1530,12 @@ function AdminDashboard({ onBack }: { onBack: () => void }) {
                     <span className="status-dot worked" />
                     Trabajados<strong>{worked.length}</strong>
                   </div>
-                  <div>
-                    <span className="status-dot vacation" />
-                    Vacaciones<strong>{vacations.length}</strong>
-                  </div>
-                  <div>
-                    <span className="status-dot absence" />
-                    Faltas<strong>{absences.length}</strong>
-                  </div>
-                  <div>
-                    <span className="status-dot holiday" />
-                    Feriados<strong>{holidays.length}</strong>
-                  </div>
+                  {absenceCounts.map((item) => (
+                    <div key={item.value}>
+                      <span className={`status-dot ${item.value}`} />
+                      {item.plural}<strong>{item.count}</strong>
+                    </div>
+                  ))}
                 </div>
               </section>
               <section className="admin-card">
@@ -1561,9 +1573,7 @@ function AdminDashboard({ onBack }: { onBack: () => void }) {
                 "Puesto",
                 "Capturas",
                 "Trabajados",
-                "Vacaciones",
-                "Faltas",
-                "Feriados",
+                ...ABSENCE_OPTIONS.map((option) => option.plural),
                 "Horas",
               ]}
               rows={personRows.map((r) => [
@@ -1571,9 +1581,7 @@ function AdminDashboard({ onBack }: { onBack: () => void }) {
                 r.position,
                 r.captures,
                 r.worked,
-                r.vacation,
-                r.absence,
-                r.holiday,
+                ...r.absences,
                 r.hours.toFixed(1),
               ])}
               empty="No hay colaboradores que coincidan."
@@ -1600,7 +1608,7 @@ function AdminDashboard({ onBack }: { onBack: () => void }) {
             </>
           )}
           {selection && (tab === 'people' || tab === 'clients') && <ReportDetails key={selection.type+selection.name+from+to} sheets={sheets} selection={selection} onClose={()=>setSelection(null)} db={sb} />}
-          {tab === 'people' && <PendingDays employees={employees} sheets={sheets} from={from} to={to} today={day()} db={sb} onRefresh={()=>setRevision(r=>r+1)} />}
+          {tab === 'people' && <PendingDays employees={employees} sheets={sheets} from={from} to={to} today={day()} db={sb} canEdit={canEdit} onRefresh={()=>setRevision(r=>r+1)} />}
           {tab === "absences" && (
             <AdminTable
               headings={["Fecha", "Colaborador", "Puesto", "Tipo"]}
@@ -1612,7 +1620,7 @@ function AdminDashboard({ onBack }: { onBack: () => void }) {
                   {attendanceLabel(r.attendance)}
                 </span>,
               ])}
-              empty="No hay vacaciones, faltas ni feriados en este período."
+              empty="No hay ausencias en este período."
             />
           )}
         </>

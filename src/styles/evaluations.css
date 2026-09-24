@@ -1,0 +1,685 @@
+/* Evaluaciones: my tasks, questionnaire, cycle setup, admin table and report. */
+
+.evaluation-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: 180px;
+  color: var(--color-text-muted);
+}
+
+.evaluation-kicker {
+  margin: 0 0 var(--space-1);
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* ---------- Progress ---------- */
+
+.evaluation-progress-card {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: var(--space-3) var(--space-8);
+  padding: var(--card-padding);
+}
+
+.evaluation-progress-card > div:first-child > strong {
+  font-size: var(--text-4xl);
+  font-weight: var(--weight-semibold);
+  letter-spacing: -0.02em;
+}
+
+.evaluation-progress-card > div:first-child > p:last-child {
+  margin: 2px 0 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-md);
+}
+
+.evaluation-progress-stats {
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+}
+
+.evaluation-progress-stats span {
+  display: grid;
+  gap: 2px;
+  text-align: center;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.evaluation-progress-stats strong {
+  color: var(--color-text);
+  font-size: var(--text-2xl);
+}
+
+.evaluation-progress-track {
+  grid-column: 1 / -1;
+}
+
+/* ---------- Task list ---------- */
+
+.evaluation-card-heading {
+  align-items: center;
+  padding: var(--space-4) var(--card-padding);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.evaluation-card-heading > span {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.evaluation-task-row {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--card-padding);
+  border-bottom: 1px solid var(--color-divider);
+}
+
+.evaluation-task-row:last-child {
+  border-bottom: 0;
+}
+
+.evaluation-task-icon {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-md);
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+
+.evaluation-task-icon.done {
+  background: var(--color-success-soft);
+  color: var(--color-success);
+}
+
+.evaluation-task-copy {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.evaluation-task-copy strong {
+  font-size: var(--text-base);
+  overflow-wrap: anywhere;
+}
+
+.evaluation-task-copy span {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  overflow-wrap: anywhere;
+}
+
+.evaluation-task-row button,
+.evaluation-table-actions button {
+  min-height: 32px;
+  padding: 0 var(--space-3);
+  font-size: var(--text-md);
+  white-space: nowrap;
+}
+
+.evaluation-empty {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-2);
+  padding: var(--space-12) var(--space-5);
+  text-align: center;
+  color: var(--color-text-muted);
+}
+
+.evaluation-empty svg {
+  color: var(--color-text-subtle);
+}
+
+.evaluation-empty strong {
+  color: var(--color-text);
+  font-size: var(--text-lg);
+}
+
+.evaluation-empty p {
+  margin: 0;
+  font-size: var(--text-md);
+}
+
+/* ---------- Questionnaire ---------- */
+
+.evaluation-form-note {
+  margin: 0 0 var(--space-5);
+  color: var(--color-text-muted);
+  font-size: var(--text-md);
+}
+
+.evaluation-category {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+  padding: var(--space-5) 0 0;
+  border-top: 1px solid var(--color-divider);
+}
+
+.evaluation-category + .evaluation-category {
+  margin-top: var(--space-5);
+}
+
+.evaluation-category legend {
+  float: none;
+  margin: 0;
+  padding: 0;
+  font-size: var(--text-lg);
+}
+
+.evaluation-question {
+  display: grid;
+  gap: 10px;
+  padding: var(--space-3) 0;
+}
+
+.evaluation-question p {
+  margin: 0;
+  color: var(--color-text);
+  font-size: var(--text-base);
+  line-height: 1.55;
+}
+
+.evaluation-options {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+
+.evaluation-options label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--control-height);
+  margin: 0;
+  padding: 6px var(--space-2);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  font-size: var(--text-md);
+  font-weight: var(--weight-medium);
+  line-height: 1.25;
+  text-align: center;
+  cursor: pointer;
+}
+
+.evaluation-options label:hover {
+  background: var(--color-surface-muted);
+}
+
+.evaluation-options label.selected {
+  border-color: var(--color-primary);
+  background: var(--color-primary-soft);
+  color: var(--color-primary-strong);
+}
+
+.evaluation-options input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.evaluation-comments {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+  margin-top: var(--space-5);
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--color-divider);
+}
+
+.evaluation-comments label,
+.evaluation-cycle-form label {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: var(--text-md);
+  font-weight: var(--weight-medium);
+}
+
+.evaluation-form-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-3);
+}
+
+.evaluation-form-actions p {
+  margin: 0 auto 0 0;
+  color: var(--color-warning);
+  font-size: var(--text-md);
+}
+
+/* ---------- Admin panel ---------- */
+
+.evaluation-admin-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.evaluation-admin-metrics,
+.evaluation-report-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+
+.evaluation-admin-metrics > div,
+.evaluation-report-summary > div {
+  display: grid;
+  gap: var(--space-1);
+  padding: var(--space-5);
+}
+
+.evaluation-admin-metrics span,
+.evaluation-report-summary span {
+  color: var(--color-text-muted);
+  font-size: var(--text-md);
+}
+
+.evaluation-table-wrap {
+  overflow-x: auto;
+}
+
+.evaluation-table {
+  min-width: 1040px;
+}
+
+.evaluation-table td {
+  padding: var(--space-4);
+  color: var(--color-text-secondary);
+  vertical-align: middle;
+}
+
+.evaluation-table td:first-child {
+  min-width: 250px;
+}
+
+.evaluation-table td strong {
+  display: block;
+  color: var(--color-text);
+  font-size: var(--text-base);
+}
+
+.evaluation-table td small {
+  display: block;
+  margin-top: 2px;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.evaluation-final-cell {
+  color: var(--color-text) !important;
+  font-weight: var(--weight-semibold);
+}
+
+.evaluation-table-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+/* ---------- Cycle setup ---------- */
+
+.evaluation-setup-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+  align-items: start;
+  gap: var(--space-4);
+}
+
+.evaluation-cycle-form {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.evaluation-cycle-form h2 {
+  margin: 0;
+  font-size: var(--text-lg);
+}
+
+.evaluation-cycle-form input,
+.evaluation-cycle-form select,
+.evaluation-cycle-form textarea {
+  width: 100%;
+}
+
+.evaluation-cycle-form .evaluation-form-note {
+  margin: var(--space-1) 0 0;
+}
+
+.evaluation-cycle-form .evaluation-form-actions {
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-divider);
+}
+
+.evaluation-cycle-dates {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+}
+
+.evaluation-evaluatee {
+  display: grid;
+  gap: 2px;
+  padding: var(--space-3);
+  border: 1px solid var(--color-primary-border);
+  border-radius: var(--radius-md);
+  background: var(--color-primary-soft);
+}
+
+.evaluation-evaluatee strong {
+  font-size: var(--text-base);
+}
+
+.evaluation-evaluatee span,
+.evaluation-evaluatee small {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.evaluation-evaluator-list {
+  display: grid;
+  gap: 6px;
+  max-height: 390px;
+  padding: 2px;
+  overflow: auto;
+}
+
+.evaluation-cycle-form label.evaluation-evaluator {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 10px var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  cursor: pointer;
+}
+
+.evaluation-cycle-form label.evaluation-evaluator.selected {
+  border-color: var(--color-primary-border);
+  background: var(--color-primary-soft);
+}
+
+.evaluation-cycle-form .evaluation-evaluator input,
+.evaluation-cycle-form .evaluation-email-choice input {
+  flex: none;
+  width: auto;
+}
+
+.evaluation-evaluator span {
+  display: grid;
+  gap: 2px;
+}
+
+.evaluation-evaluator strong {
+  color: var(--color-text);
+  font-size: var(--text-md);
+}
+
+.evaluation-evaluator small {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-regular);
+}
+
+.evaluation-cycle-form label.evaluation-email-choice {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* ---------- Report ---------- */
+
+.evaluation-report-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: var(--space-1) 0 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-base);
+}
+
+.evaluation-report-meta i {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--color-text-subtle);
+}
+
+.evaluation-report-summary small {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.evaluation-report-summary > div.is-pending {
+  border-color: var(--color-warning-border);
+  background: var(--color-warning-soft);
+}
+
+.evaluation-report-summary > div.is-pending strong {
+  color: var(--color-warning);
+}
+
+.evaluation-report-view h2 {
+  margin: 0;
+  font-size: var(--text-xl);
+}
+
+.evaluation-report-view h3 {
+  margin: 0;
+  font-size: var(--text-lg);
+}
+
+.evaluation-report-card-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding-bottom: var(--space-4);
+  border-bottom: 1px solid var(--color-divider);
+}
+
+.evaluation-report-card-heading > span {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.evaluation-category-results,
+.evaluation-report-comments {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.evaluation-category-result {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-4) 0;
+  border-bottom: 1px solid var(--color-divider);
+}
+
+.evaluation-category-result:last-child {
+  border-bottom: 0;
+}
+
+.evaluation-category-title {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.evaluation-category-title strong {
+  font-size: var(--text-base);
+}
+
+.evaluation-category-title span {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.evaluation-category-scores {
+  display: flex;
+  gap: var(--space-4);
+}
+
+.evaluation-category-scores div {
+  display: grid;
+  gap: 2px;
+}
+
+.evaluation-category-scores span {
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+}
+
+.evaluation-category-scores strong {
+  font-size: var(--text-base);
+}
+
+.evaluation-report-comments {
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+}
+
+.evaluation-comment-heading {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.evaluation-comment-heading h2 {
+  font-size: var(--text-lg);
+}
+
+.evaluation-comment-heading .evaluation-kicker {
+  margin-bottom: 2px;
+}
+
+.evaluation-comment-icon {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-md);
+}
+
+.evaluation-comment-icon.positive {
+  background: var(--color-success-soft);
+  color: var(--color-success);
+}
+
+.evaluation-comment-icon.opportunity {
+  background: var(--color-warning-soft);
+  color: var(--color-warning);
+  font-size: var(--text-xl);
+  font-weight: var(--weight-semibold);
+}
+
+.evaluation-report-text {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: var(--text-base);
+  line-height: 1.7;
+  white-space: pre-wrap;
+}
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 860px) {
+  .evaluation-admin-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .evaluation-setup-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .evaluation-progress-card {
+    grid-template-columns: 1fr;
+  }
+
+  .evaluation-progress-stats {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  .evaluation-progress-stats span {
+    padding: var(--space-2);
+    border: 1px solid var(--color-divider);
+    border-radius: var(--radius-md);
+  }
+
+  .evaluation-task-row {
+    grid-template-columns: 36px minmax(0, 1fr);
+    align-items: start;
+    gap: 10px;
+  }
+
+  .evaluation-task-status,
+  .evaluation-task-row button {
+    grid-column: 2;
+    justify-self: start;
+  }
+
+  .evaluation-options {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .evaluation-comments,
+  .evaluation-report-comments,
+  .evaluation-report-summary,
+  .evaluation-cycle-dates {
+    grid-template-columns: 1fr;
+  }
+
+  .evaluation-form-actions {
+    display: grid;
+    justify-content: stretch;
+  }
+
+  .evaluation-form-actions p {
+    margin: 0;
+  }
+
+  .evaluation-form-actions button {
+    width: 100%;
+  }
+
+  .evaluation-report-card-heading {
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  .evaluation-category-result {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .evaluation-category-scores {
+    flex-wrap: wrap;
+    gap: var(--space-3) var(--space-5);
+  }
+}

@@ -33,4 +33,22 @@ La experiencia principal es el modal **Subir horas con IA**. El colaborador capt
 
 La generación automática está limitada al 31 de agosto de 2026. Septiembre se captura manualmente para mantener completo el periodo reciente.
 
+## Reclutamiento desde Outlook
+
+El módulo **Reclutamiento** está en desarrollo y todavía no está activo en producción. El prototipo local es exclusivo de administradores y contempla vacantes, lectura de CV adjuntos en PDF o DOCX desde `rh@centrales.com.mx`, resúmenes y comparaciones orientativas. Antes de aplicar su migración se revisará el modelo de perfiles, plazas y requisiciones descrito en [el alcance de reclutamiento](docs/reclutamiento-alcance.md). Las puntuaciones deberán revisarse con el CV original.
+
+El servidor consulta Microsoft Graph con permiso de sólo lectura. TI debe registrar una aplicación en Microsoft Entra y limitar su acceso al buzón `rh@centrales.com.mx` mediante Exchange Online Application RBAC. No se necesitan ni deben compartirse la contraseña del correo ni credenciales en este repositorio. Configurar en Vercel como secretos de servidor:
+
+- `MS_TENANT_ID`: identificador del tenant de Microsoft 365.
+- `MS_CLIENT_ID`: identificador de la aplicación registrada.
+- `MS_CLIENT_SECRET`: secreto de la aplicación. TI debe entregarlo por un canal seguro y definir su rotación.
+- `MS_RECRUITMENT_MAILBOX=rh@centrales.com.mx`.
+- `SUPABASE_SERVICE_ROLE_KEY`: clave de servidor del proyecto Central RH, sólo en Vercel.
+- `CRON_SECRET`: secreto aleatorio para proteger la sincronización programada.
+- `GEMINI_API_KEY`: puede ser la misma clave usada por lead bot, configurada como secreto de Vercel. Nunca usar el prefijo `VITE_`.
+
+La sincronización automática está programada diariamente a las 14:00 UTC. Un admin puede pulsar **Revisar buzón** para adelantarla. El correo permanece sin cambios y los mensajes ya importados se omiten por `Message-ID`. Los CV se guardan en un bucket privado de Supabase. Los nuevos perfiles de puesto se comparan con candidatos existentes de forma gradual al sincronizar.
+
+Antes de activar la integración, aplicar `202609220002_recruitment.sql` con el flujo de migraciones descrito arriba y desplegar la app con las variables configuradas. Sin los permisos de TI, la interfaz puede administrar vacantes pero no leer el buzón.
+
 En Vercel deben existir `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` y `GEMINI_API_KEY`. La clave de Gemini es exclusivamente server-side y nunca debe usar el prefijo `VITE_`. `GEMINI_MODEL` es opcional; el servidor usa modelos Flash-Lite estables y cambia automáticamente a otro modelo compatible si existe saturación temporal.

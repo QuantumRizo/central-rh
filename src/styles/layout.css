@@ -1,0 +1,311 @@
+/* App shell: navigation rail, content column and page header. */
+
+.app {
+  min-height: 100dvh;
+  padding-left: var(--sidebar-width);
+  background: var(--color-bg);
+}
+
+/* ---------- Navigation rail ---------- */
+
+.app-sidebar {
+  position: fixed;
+  inset: 0 auto 0 0;
+  z-index: 100;
+  width: var(--sidebar-width);
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-5) var(--space-3);
+  background: var(--sidebar-bg);
+  color: var(--sidebar-text);
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
+}
+
+.sidebar-brand,
+.sidebar-section-label,
+.app-sidebar .module-nav,
+.sidebar-footer {
+  flex-shrink: 0;
+}
+
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-1) var(--space-3) var(--space-5);
+  border-bottom: 1px solid var(--sidebar-border);
+}
+
+.cn-header-logo {
+  width: 48px;
+  max-height: 40px;
+  height: auto;
+  object-fit: contain;
+  filter: brightness(0) invert(1);
+  opacity: 0.94;
+}
+
+.sidebar-brand strong {
+  font-size: var(--text-base);
+  color: var(--sidebar-text-strong);
+}
+
+.sidebar-section-label {
+  margin: var(--space-6) var(--space-3) var(--space-2);
+  color: var(--sidebar-text);
+  opacity: 0.7;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.app-sidebar .module-nav {
+  display: grid;
+  gap: 2px;
+}
+
+.app-sidebar .module-nav button {
+  width: 100%;
+  justify-content: flex-start;
+  gap: var(--space-3);
+  min-height: 38px;
+  padding: 0 var(--space-3);
+  background: transparent;
+  color: var(--sidebar-text);
+  font-size: var(--text-md);
+  font-weight: var(--weight-medium);
+  text-align: left;
+}
+
+.app-sidebar .module-nav button svg {
+  flex: none;
+}
+
+.app-sidebar .module-nav button:hover:not(:disabled) {
+  background: var(--sidebar-hover);
+  color: var(--sidebar-text-strong);
+}
+
+.app-sidebar .module-nav button.active {
+  background: var(--sidebar-active);
+  color: var(--sidebar-text-strong);
+}
+
+.sidebar-footer {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin-top: auto;
+  padding: var(--space-4) var(--space-3) 0;
+  border-top: 1px solid var(--sidebar-border);
+}
+
+.sidebar-user {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.sidebar-user strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-regular);
+  color: var(--sidebar-text);
+}
+
+.app-sidebar .admin-badge {
+  background: var(--sidebar-active);
+  color: var(--sidebar-text-strong);
+}
+
+.sidebar-logout {
+  flex: none;
+  width: 36px;
+  min-height: 36px;
+  padding: 0;
+  background: transparent;
+  border-color: var(--sidebar-border);
+  color: var(--sidebar-text);
+}
+
+.sidebar-logout:hover:not(:disabled) {
+  background: var(--sidebar-hover);
+  color: var(--sidebar-text-strong);
+}
+
+/* ---------- Content column ----------
+ * Every module renders inside .content, so every page shares one width.
+ */
+
+.content {
+  display: grid;
+  align-content: start;
+  gap: var(--space-6);
+  width: 100%;
+  max-width: calc(var(--page-width) + var(--page-padding) * 2);
+  min-width: 0;
+  margin: 0 auto;
+  padding: var(--space-8) var(--page-padding) var(--space-12);
+}
+
+/* Module wrappers stack their sections with the same rhythm as .content. */
+.admin-dashboard,
+.evaluation-module,
+.profile-page,
+.profiles-directory,
+.recruitment-module,
+.detail-view {
+  display: grid;
+  align-content: start;
+  gap: var(--space-6);
+  min-width: 0;
+}
+
+/* ---------- Page header ----------
+ * <header class="page-header"><div>eyebrow · h1 · description</div>actions</header>
+ */
+
+.page-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-4) var(--space-6);
+}
+
+.page-header > div:first-child {
+  display: grid;
+  min-width: 0;
+}
+
+.page-header .back-link {
+  margin-bottom: var(--space-3);
+}
+
+.eyebrow {
+  margin: 0 0 var(--space-1);
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.page-header h1 {
+  margin: 0;
+  font-size: var(--text-4xl);
+  letter-spacing: -0.02em;
+}
+
+.page-header h1 ~ p {
+  margin: var(--space-1) 0 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-base);
+}
+
+.page-header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* ---------- Responsive shell ---------- */
+
+@media (max-width: 860px) {
+  .app {
+    padding-left: 0;
+  }
+
+  .app-sidebar {
+    position: sticky;
+    inset: 0 0 auto;
+    width: auto;
+    height: auto;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-2) var(--space-4);
+    overflow: visible;
+  }
+
+  .sidebar-brand {
+    padding: 0;
+    border: 0;
+  }
+
+  .sidebar-brand div,
+  .sidebar-section-label,
+  .sidebar-user {
+    display: none;
+  }
+
+  .cn-header-logo {
+    width: 40px;
+  }
+
+  .app-sidebar .module-nav {
+    display: flex;
+    gap: 2px;
+    min-width: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+    overscroll-behavior-x: contain;
+  }
+
+  .app-sidebar .module-nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .app-sidebar .module-nav button {
+    flex: 0 0 auto;
+    width: auto;
+    gap: 6px;
+    white-space: nowrap;
+  }
+
+  .sidebar-footer {
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  .content {
+    padding-top: var(--space-6);
+  }
+}
+
+@media (max-width: 640px) {
+  .page-header {
+    display: grid;
+    align-items: stretch;
+  }
+
+  .page-header h1 {
+    font-size: var(--text-3xl);
+  }
+
+  .page-header > button,
+  .page-header-actions {
+    width: 100%;
+  }
+
+  .page-header-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .page-header-actions button {
+    min-width: 0;
+  }
+}

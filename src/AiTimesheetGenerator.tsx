@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { CheckCircle2, LoaderCircle, Plus, Sparkles, Trash2, X } from "lucide-react";
 import { sb } from "./lib/supabase";
+import { attendanceLabel } from "./timesheets/attendance";
 
 type DateRange = { start: string; end: string };
 type SpecialDay = { date: string; entry: string; exit: string };
@@ -28,7 +29,6 @@ Sika: 50% Diseño
 Sansui: 30% Diseño
 Central de Negocios: 20% Tiempo Empresarial`;
 const weekdays = [{ value: 1, label: "L" }, { value: 2, label: "M" }, { value: 3, label: "M" }, { value: 4, label: "J" }, { value: 5, label: "V" }];
-const attendanceLabel: Record<string, string> = { worked: "Trabajado", vacation: "Vacaciones", absence: "Ausencia", holiday: "Festivo" };
 
 function RangeList({ title, hint, rows, onChange }: { title: string; hint: string; rows: DateRange[]; onChange: (rows: DateRange[]) => void }) {
   return <div className="ai-field-card"><strong>{title}</strong><small>{hint}</small>{rows.map((row, index) => <div className="ai-range-row" key={index}>
@@ -131,7 +131,7 @@ export function AiTimesheetGenerator({ isAdmin, activities, onImported }: { isAd
           {preview && <section className="ai-preview"><div className="ai-preview-heading"><div><CheckCircle2 size={20} /><div><h3>Vista previa lista</h3><p>Revisa el resumen antes de confirmar.</p></div></div><span>{preview.summary.total} días</span></div>
             <div className="ai-preview-metrics"><div><strong>{preview.summary.worked}</strong><span>Trabajados</span></div><div><strong>{preview.summary.vacations}</strong><span>Vacaciones</span></div><div><strong>{preview.summary.absences}</strong><span>Ausencias</span></div><div><strong>{preview.summary.holidays}</strong><span>Festivos</span></div></div>
             <div className="ai-months">{preview.monthSummary.map((month) => <article key={month.month}><header><strong>{month.month}</strong><span>{month.workedDays} días · {month.productiveHours.toFixed(2)} h productivas</span></header>{month.allocations.map((row, index) => <div key={`${row.client}-${row.activity}-${index}`}><span>{row.client} · {row.activity}</span><strong>{row.hours.toFixed(2)} h · {row.percentage.toFixed(1)}%</strong></div>)}</article>)}</div>
-            <div className="ai-days-table"><table><thead><tr><th>Fecha</th><th>Estado</th><th>Horario</th><th>Actividades</th></tr></thead><tbody>{preview.days.slice(0, 20).map((day) => <tr key={day.date}><td>{day.date}</td><td>{attendanceLabel[day.attendance] || day.attendance}</td><td>{day.entry ? `${day.entry}–${day.exit}` : "—"}</td><td>{day.entries.length ? day.entries.map((entry) => `${entry.client} · ${entry.activity} ${entry.percentage}%`).join("; ") : "—"}</td></tr>)}</tbody></table>{preview.days.length > 20 && <p>Mostrando 20 de {preview.days.length} días. El resumen mensual incluye el periodo completo.</p>}</div>
+            <div className="ai-days-table"><table><thead><tr><th>Fecha</th><th>Estado</th><th>Horario</th><th>Actividades</th></tr></thead><tbody>{preview.days.slice(0, 20).map((day) => <tr key={day.date}><td>{day.date}</td><td>{attendanceLabel(day.attendance) || day.attendance}</td><td>{day.entry ? `${day.entry}–${day.exit}` : "—"}</td><td>{day.entries.length ? day.entries.map((entry) => `${entry.client} · ${entry.activity} ${entry.percentage}%`).join("; ") : "—"}</td></tr>)}</tbody></table>{preview.days.length > 20 && <p>Mostrando 20 de {preview.days.length} días. El resumen mensual incluye el periodo completo.</p>}</div>
             <p className={preview.summary.existing ? "notice" : "success"}>{preview.summary.new} días nuevos · {preview.summary.existing} ya existentes y {preview.summary.overwrite ? "se sobrescribirán" : "se conservarán"}.</p>
           </section>}
           {isAdmin && <label className="ai-overwrite"><input type="checkbox" checked={overwrite} onChange={(event) => { setOverwrite(event.target.checked); setPreview(null); }} /> Sobrescribir días que ya tengan captura</label>}

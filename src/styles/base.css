@@ -1,0 +1,341 @@
+/* Base elements: reset, typography, form controls, buttons, feedback, tables. */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  overflow-x: hidden;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  line-height: 1.5;
+  color: var(--color-text);
+  background: var(--color-bg);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3 {
+  color: var(--color-text);
+  font-weight: var(--weight-semibold);
+  line-height: 1.25;
+}
+
+strong,
+b {
+  font-weight: var(--weight-semibold);
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  touch-action: manipulation;
+}
+
+/* ---------- Form controls ---------- */
+
+:where(input:not([type="radio"]):not([type="checkbox"]):not([type="range"]), select, textarea) {
+  min-height: var(--control-height);
+  padding: 8px 12px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: var(--text-base);
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+:where(textarea) {
+  line-height: 1.5;
+  resize: vertical;
+}
+
+:where(input, select, textarea):focus {
+  outline: 0;
+  border-color: var(--color-primary);
+  box-shadow: var(--focus-ring);
+}
+
+:where(input, select, textarea):disabled {
+  background: var(--color-surface-muted);
+  color: var(--color-text-muted);
+}
+
+:where(input[type="radio"], input[type="checkbox"], input[type="range"]) {
+  accent-color: var(--color-primary);
+}
+
+/* Field label: <label>Text<input/></label> inside panels and cards. */
+.card label,
+.panel label {
+  display: grid;
+  gap: 6px;
+  margin: var(--space-4) 0;
+  font-size: var(--text-md);
+  font-weight: var(--weight-medium);
+  color: var(--color-text-secondary);
+}
+
+fieldset {
+  display: flex;
+  align-items: center;
+  gap: var(--space-5);
+  margin: var(--space-6) 0;
+  padding: 0;
+  border: 0;
+}
+
+legend {
+  float: left;
+  margin-right: var(--space-5);
+  font-size: var(--text-md);
+  font-weight: var(--weight-semibold);
+  color: var(--color-text);
+}
+
+.radio {
+  display: flex !important;
+  align-items: center;
+  gap: var(--space-2) !important;
+  margin: 0 !important;
+  color: var(--color-text) !important;
+}
+
+/* ---------- Buttons ----------
+ * A bare <button> is the primary button. Variants add a class.
+ * Base rules use :where() so any class can override them without !important.
+ */
+
+:where(button) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: var(--control-height);
+  padding: 0 var(--space-4);
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  background: var(--color-primary);
+  color: #fff;
+  font-size: var(--text-base);
+  font-weight: var(--weight-semibold);
+  line-height: 1.2;
+  cursor: pointer;
+  transition: background-color 0.15s, border-color 0.15s, color 0.15s;
+}
+
+:where(button):hover:not(:disabled) {
+  background: var(--color-primary-hover);
+}
+
+:where(button):focus-visible {
+  outline: 0;
+  box-shadow: var(--focus-ring);
+}
+
+:where(button):disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Secondary: neutral outline. */
+.secondary {
+  background: var(--color-surface);
+  color: var(--color-text);
+  border-color: var(--color-border-strong);
+}
+
+.secondary:hover:not(:disabled) {
+  background: var(--color-surface-muted);
+  border-color: var(--color-text-subtle);
+}
+
+/* Ghost: text-only actions (back links, add row, clear filters). */
+.back-link,
+.detail-link,
+.add,
+.ai-add,
+.profiles-clear,
+.auth-links button {
+  min-height: 32px;
+  padding: 0 var(--space-2);
+  background: transparent;
+  color: var(--color-primary);
+  font-weight: var(--weight-semibold);
+}
+
+.back-link:hover:not(:disabled),
+.detail-link:hover:not(:disabled),
+.add:hover:not(:disabled),
+.ai-add:hover:not(:disabled),
+.profiles-clear:hover:not(:disabled),
+.auth-links button:hover:not(:disabled) {
+  background: var(--color-primary-soft);
+  color: var(--color-primary-strong);
+}
+
+.back-link {
+  justify-self: start;
+  margin-left: calc(var(--space-2) * -1);
+  font-size: var(--text-md);
+}
+
+.detail-link {
+  justify-content: flex-start;
+  padding: 0;
+  text-align: left;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* Icon-only button. */
+.icon {
+  width: var(--control-height);
+  padding: 0;
+  background: transparent;
+  color: var(--color-text-muted);
+}
+
+.icon:hover:not(:disabled) {
+  background: var(--color-surface-muted);
+  color: var(--color-text);
+}
+
+.icon svg {
+  width: 18px;
+}
+
+/* ---------- Feedback ---------- */
+
+.error,
+.success,
+.notice,
+.under-warning,
+.over-warning {
+  margin: 0;
+  padding: 10px var(--space-3);
+  border: 1px solid;
+  border-radius: var(--radius-md);
+  font-size: var(--text-md);
+  line-height: 1.5;
+}
+
+.error,
+.over-warning {
+  color: var(--color-danger);
+  background: var(--color-danger-soft);
+  border-color: var(--color-danger-border);
+}
+
+.success {
+  color: var(--color-success);
+  background: var(--color-success-soft);
+  border-color: var(--color-success-border);
+}
+
+.notice,
+.under-warning {
+  color: var(--color-warning);
+  background: var(--color-warning-soft);
+  border-color: var(--color-warning-border);
+}
+
+.empty {
+  margin: 0;
+  padding: var(--space-6);
+  text-align: center;
+  color: var(--color-text-muted);
+  font-size: var(--text-md);
+}
+
+/* ---------- Tables ---------- */
+
+.table-wrap {
+  max-width: 100%;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-md);
+}
+
+th,
+td {
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--color-divider);
+  text-align: left;
+}
+
+th {
+  background: var(--color-surface-muted);
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  white-space: nowrap;
+}
+
+tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+/* ---------- Utilities ---------- */
+
+.spin,
+.import-spinner {
+  animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.modal-open {
+  overflow: hidden;
+}
+
+@media (max-width: 640px) {
+  :where(input:not([type="radio"]):not([type="checkbox"]):not([type="range"]), select, textarea) {
+    font-size: 16px; /* prevents iOS zoom on focus */
+  }
+
+  fieldset {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px var(--space-4);
+    margin: var(--space-5) 0;
+  }
+
+  fieldset legend {
+    grid-column: 1 / -1;
+    float: none;
+    margin: 0;
+  }
+
+  fieldset > select {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spin,
+  .import-spinner {
+    animation: none;
+  }
+}

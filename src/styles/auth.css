@@ -1,0 +1,77 @@
+/* Sign-in and loading screens. */
+
+.login {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: var(--space-4);
+  background: var(--color-bg) url("/centralmx-brand-texture.jpg") center / cover no-repeat;
+}
+
+.card {
+  width: min(400px, 100%);
+  padding: var(--space-8);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-overlay);
+}
+
+.cn-login-logo {
+  display: block;
+  width: min(200px, 70%);
+  height: auto;
+  margin: 0 auto var(--space-5);
+}
+
+.brand {
+  display: flex;
+  justify-content: center;
+  color: var(--color-text-muted);
+  font-size: var(--text-md);
+  font-weight: var(--weight-semibold);
+}
+
+.card h1 {
+  margin: var(--space-6) 0 var(--space-1);
+  font-size: var(--text-3xl);
+}
+
+.card p {
+  margin: 0 0 var(--space-6);
+  color: var(--color-text-muted);
+}
+
+.card p.error,
+.card p.success {
+  margin: var(--space-3) 0 0;
+}
+
+.card button {
+  width: 100%;
+  margin-top: var(--space-3);
+}
+
+.auth-links {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+.card .auth-links button {
+  width: auto;
+  margin: 0;
+  font-size: var(--text-md);
+}
+
+@media (max-width: 640px) {
+  .card {
+    padding: var(--space-6) var(--space-5);
+  }
+
+  .auth-links {
+    justify-content: center;
+  }
+}

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { attendanceLabel } from './timesheets/attendance';
 
 export function downloadReport(headers: string[], rows: unknown[][], filename: string) {
   const cell = (value: unknown) => {
@@ -12,7 +13,7 @@ export function downloadReport(headers: string[], rows: unknown[][], filename: s
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-export function PendingDays({ employees, sheets, from, to, today, db, onRefresh }: any) {
+export function PendingDays({ employees, sheets, from, to, today, db, canEdit = false, onRefresh }: any) {
   const [query, setQuery] = useState('');
   const [error, setError] = useState('');
   const [saving, setSaving] = useState('');
@@ -28,14 +29,14 @@ export function PendingDays({ employees, sheets, from, to, today, db, onRefresh 
     <div className="detail-filters"><input aria-label="Buscar pendientes" placeholder="Buscar persona…" value={query} onChange={e => setQuery(e.target.value)} /><button className="secondary" onClick={() => downloadReport(['Persona','Fecha pendiente','Fecha de ingreso'], rows.flatMap((r: any) => r.days.map((d: string) => [r.full_name,d,r.start_date || 'Sin definir'])), 'pendientes.csv')}>Exportar pendientes</button></div>
     {error && <p role="alert" className="error">{error}</p>}
     <div className="pending-rows">{rows.map((r: any) => <details key={r.id}><summary>{r.full_name} <span>{r.days.length} pendientes</span></summary>
-      <label>Fecha de ingreso <input type="date" aria-label={`Fecha de ingreso de ${r.full_name}`} defaultValue={r.start_date || ''} disabled={saving === r.id} onBlur={async e => {
+      {canEdit ? <label>Fecha de ingreso <input type="date" aria-label={`Fecha de ingreso de ${r.full_name}`} defaultValue={r.start_date || ''} disabled={saving === r.id} onBlur={async e => {
         const value = e.target.value || null;
         if (value === r.start_date) return;
         setSaving(r.id); setError('');
         const { error } = await db.rpc('set_employee_start_date', { employee: r.id, start_date: value });
         if (error) setError(error.message); else onRefresh();
         setSaving('');
-      }} /></label>
+      }} /></label> : <p>Fecha de ingreso: {r.start_date || 'Sin definir'}</p>}
       <p>{r.days.join(' · ') || 'Sin días pendientes en este período.'}</p>
     </details>)}</div>
   </section>;
@@ -75,7 +76,7 @@ export function ReportDetails({ sheets, selection, onClose, db }: { sheets: any[
     })();
     return () => {live=false;};
   },[showHistory,sheets,selection,db]);
-  const summary = (snapshot: any) => snapshot ? `${snapshot.day.attendance === 'worked' ? 'Trabajado' : snapshot.day.attendance === 'vacation' ? 'Vacaciones' : snapshot.day.attendance === 'holiday' ? 'Feriado' : 'Falta'} · ${snapshot.day.entry_time || '—'} a ${snapshot.day.exit_time || '—'}${snapshot.day.permission_entry_time ? ` · Permiso ${snapshot.day.permission_entry_time} a ${snapshot.day.permission_exit_time}` : ''}` : 'Sin captura anterior';
+  const summary = (snapshot: any) => snapshot ? `${attendanceLabel(snapshot.day.attendance)} · ${snapshot.day.entry_time || '—'} a ${snapshot.day.exit_time || '—'}${snapshot.day.permission_entry_time ? ` · Permiso ${snapshot.day.permission_entry_time} a ${snapshot.day.permission_exit_time}` : ''}` : 'Sin captura anterior';
   const entryLabel = (entry: any) => {
     const ref = sheets.flatMap(s=>s.timesheet_entries || []).find((e: any)=>e.client?.id===entry.client_id && e.activity?.id===entry.activity_id);
     return `${entry.client_name || ref?.client?.name || entry.client_id} · ${entry.activity_name || ref?.activity?.name || entry.activity_id}: ${entry.percentage}%`;
