@@ -1,0 +1,243 @@
+/* Floating bug reporter: round button + small chat panel in the bottom-right corner. */
+
+.bug-reporter {
+  position: fixed;
+  right: var(--space-6);
+  bottom: var(--space-6);
+  z-index: var(--z-floating);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--space-3);
+}
+
+.bug-fab {
+  width: var(--fab-size);
+  height: var(--fab-size);
+  padding: 0;
+  border-radius: var(--radius-full);
+  background: var(--color-primary);
+  color: var(--sidebar-text-strong);
+  box-shadow: var(--shadow-overlay);
+  animation: bug-fab-in 0.4s ease-out both, bug-fab-bob 4s ease-in-out 1s infinite;
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.bug-fab:hover:not(:disabled) {
+  background: var(--color-primary-hover);
+  transform: scale(1.06);
+}
+
+.bug-fab:hover svg {
+  animation: bug-wiggle 0.5s ease-in-out;
+}
+
+.bug-reporter.open .bug-fab {
+  animation: none;
+}
+
+.bug-panel {
+  display: flex;
+  flex-direction: column;
+  width: 340px;
+  max-height: min(520px, calc(100vh - var(--fab-size) - var(--space-12)));
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-overlay);
+  transform-origin: bottom right;
+  animation: bug-panel-in 0.22s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+}
+
+.bug-panel-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-3) var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--color-divider);
+}
+
+.bug-panel-header > div {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+}
+
+.bug-panel-header strong {
+  font-size: var(--text-base);
+  font-weight: var(--weight-semibold);
+}
+
+.bug-panel-header small {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.bug-panel-header .icon {
+  width: 32px;
+  min-height: 32px;
+}
+
+.bug-avatar {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  flex: none;
+  border-radius: var(--radius-full);
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+  animation: bug-wiggle 0.6s ease-in-out 0.25s;
+}
+
+.bug-thread {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  overflow-y: auto;
+  background: var(--color-surface-muted);
+}
+
+.bug-bubble {
+  max-width: 88%;
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-lg);
+  font-size: var(--text-md);
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  animation: bug-bubble-in 0.25s ease-out both;
+}
+
+.bug-bubble.bot {
+  align-self: flex-start;
+  border: 1px solid var(--color-border);
+  border-bottom-left-radius: var(--space-1);
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+.bug-bubble.me {
+  align-self: flex-end;
+  border-bottom-right-radius: var(--space-1);
+  background: var(--color-primary);
+  color: var(--sidebar-text-strong);
+}
+
+.bug-bubble.error {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  align-self: stretch;
+  max-width: none;
+  border: 1px solid var(--color-danger-border);
+  background: var(--color-danger-soft);
+  color: var(--color-danger);
+}
+
+.bug-bubble.error svg {
+  flex: none;
+  margin-top: 3px;
+}
+
+.bug-typing {
+  display: flex;
+  gap: var(--space-1);
+  padding: var(--space-3);
+}
+
+.bug-typing span {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-full);
+  background: var(--color-text-subtle);
+  animation: bug-typing 1s ease-in-out infinite;
+}
+
+.bug-typing span:nth-child(2) { animation-delay: 0.15s; }
+.bug-typing span:nth-child(3) { animation-delay: 0.3s; }
+
+.bug-composer {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border-top: 1px solid var(--color-divider);
+}
+
+.bug-composer textarea {
+  flex: 1;
+  min-width: 0;
+  max-height: 160px;
+  resize: none;
+  font-size: var(--text-md);
+}
+
+.bug-composer button[type="submit"] {
+  width: var(--control-height);
+  flex: none;
+  padding: 0;
+}
+
+.bug-composer.done {
+  justify-content: center;
+}
+
+@keyframes bug-fab-in {
+  from { opacity: 0; transform: scale(0.4) rotate(-30deg); }
+  to { opacity: 1; transform: scale(1) rotate(0); }
+}
+
+@keyframes bug-fab-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+@keyframes bug-wiggle {
+  0%, 100% { transform: rotate(0); }
+  20% { transform: rotate(-14deg); }
+  40% { transform: rotate(12deg); }
+  60% { transform: rotate(-8deg); }
+  80% { transform: rotate(5deg); }
+}
+
+@keyframes bug-panel-in {
+  from { opacity: 0; transform: translateY(8px) scale(0.92); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes bug-bubble-in {
+  from { opacity: 0; transform: translateY(6px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes bug-typing {
+  0%, 60%, 100% { opacity: 0.35; transform: translateY(0); }
+  30% { opacity: 1; transform: translateY(-3px); }
+}
+
+@media (max-width: 640px) {
+  .bug-reporter {
+    right: var(--space-4);
+    bottom: var(--space-4);
+  }
+
+  .bug-panel {
+    width: calc(100vw - var(--space-8));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bug-reporter .bug-fab,
+  .bug-reporter .bug-fab:hover svg,
+  .bug-reporter .bug-panel,
+  .bug-reporter .bug-avatar,
+  .bug-reporter .bug-bubble,
+  .bug-reporter .bug-typing span {
+    animation: none;
+    transition: none;
+  }
+}

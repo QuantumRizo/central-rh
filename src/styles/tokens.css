@@ -102,3 +102,9 @@
     --card-padding: var(--space-4);
   }
 }
+
+:root {
+  /* Floating widgets (bug reporter): above the sidebar, below modals */
+  --z-floating: 900;
+  --fab-size: 52px;
+}

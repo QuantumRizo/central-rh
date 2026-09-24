@@ -15,6 +15,7 @@ import { ProfilesDirectory } from './ProfilesDirectory';
 import { ChangePassword } from './ChangePassword';
 import { AiTimesheetGenerator } from './AiTimesheetGenerator';
 import { RecruitmentModule } from './recruitment/RecruitmentModule';
+import { BugReporter } from './BugReporter';
 import { sb } from './lib/supabase';
 import {
   ArrowLeft,
@@ -1023,6 +1024,7 @@ function Workspace({ session }: { session: Session }) {
           </>
         )}
       </section>
+      <BugReporter module={reports && activeModule === "timesheets" ? "timesheets (panel admin)" : activeModule} />
     </main>
   );
 }
