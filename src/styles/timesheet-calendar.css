@@ -151,15 +151,17 @@
 .ts-day.personal_day { background: var(--heat-personal); }
 .ts-day.sick_leave { background: var(--heat-sick); }
 
-.ts-day.off,
-.ts-day.future,
-.ts-day.before {
-  background: var(--color-surface-muted);
+.ts-day.off {
+  background: var(--heat-weekend);
+  border: 1px solid var(--color-border);
+  outline: none;
 }
 
 .ts-day.future,
 .ts-day.before {
+  background: var(--color-surface-muted);
   cursor: default;
+  opacity: 0.5;
 }
 
 .ts-day.selected {
