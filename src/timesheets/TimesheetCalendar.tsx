@@ -37,7 +37,8 @@ export function TimesheetCalendar({
   employeeId: string;
   selectedDate: string;
   refreshKey: number;
-  onPick: (date: string) => void;
+  /** Omit to show the calendar read-only, e.g. on a profile page with no capture form to jump to. */
+  onPick?: (date: string) => void;
 }) {
   const currentYear = new Date().getFullYear();
   const [year, setYear] = useState(currentYear);
@@ -197,8 +198,8 @@ export function TimesheetCalendar({
                     data-date={day.date}
                     className={`ts-day ${day.kind}${day.date === selectedDate ? " selected" : ""}`}
                     aria-label={day.label}
-                    disabled={day.kind === "future" || day.kind === "before"}
-                    onClick={() => onPick(day.date)}
+                    disabled={!onPick || day.kind === "future" || day.kind === "before"}
+                    onClick={() => onPick?.(day.date)}
                     onMouseEnter={(event) => showHover(day, event.currentTarget)}
                     onFocus={(event) => showHover(day, event.currentTarget)}
                     onMouseLeave={() => setHover(null)}
@@ -224,9 +225,11 @@ export function TimesheetCalendar({
           <p className="ts-calendar-status pending">
             <CircleAlert size={15} />
             {stats.missing === 1 ? "1 día pendiente" : `${stats.missing} días pendientes`}
-            <button type="button" className="detail-link" onClick={() => onPick(stats.oldestMissing)}>
-              Capturar el {shortDate.format(new Date(`${stats.oldestMissing}T12:00:00`)).replace(".", "")}
-            </button>
+            {onPick && (
+              <button type="button" className="detail-link" onClick={() => onPick(stats.oldestMissing)}>
+                Capturar el {shortDate.format(new Date(`${stats.oldestMissing}T12:00:00`)).replace(".", "")}
+              </button>
+            )}
           </p>
         ) : (
           <p className="ts-calendar-status done" role="status">
