@@ -9,6 +9,7 @@
 @import "./styles/components.css";
 @import "./styles/auth.css";
 @import "./styles/timesheets.css";
+@import "./styles/timesheet-calendar.css";
 @import "./styles/admin.css";
 @import "./styles/evaluations.css";
 @import "./styles/profile.css";

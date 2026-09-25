@@ -1,0 +1,297 @@
+/* Timesheet calendar: GitHub-style yearly heatmap shown first on the capture screen. */
+
+.ts-calendar {
+  position: relative;
+  display: grid;
+  gap: var(--space-5);
+}
+
+.ts-calendar-head {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.ts-calendar-icon {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-md);
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+
+.ts-calendar-head h2 {
+  margin: 0 0 2px;
+  font-size: var(--text-lg);
+}
+
+.ts-calendar-head p {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-md);
+}
+
+.ts-calendar-year {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.ts-calendar-year strong {
+  min-width: 44px;
+  text-align: center;
+  font-size: var(--text-base);
+  font-weight: var(--weight-semibold);
+}
+
+.ts-calendar-year .icon {
+  width: 32px;
+  min-height: 32px;
+}
+
+/* Grid */
+
+.ts-calendar-scroll {
+  position: relative;
+  overflow-x: auto;
+  padding-bottom: var(--space-1);
+}
+
+.ts-calendar-grid {
+  display: grid;
+  grid-template-columns: 28px repeat(var(--weeks), minmax(var(--heat-cell-min), 1fr));
+  grid-template-rows: auto auto;
+  column-gap: var(--heat-gap);
+  row-gap: var(--space-1);
+  min-width: calc(28px + var(--weeks) * (var(--heat-cell-min) + var(--heat-gap)));
+}
+
+.ts-calendar-months {
+  display: contents;
+}
+
+.ts-calendar-months span {
+  grid-row: 1;
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+  text-transform: capitalize;
+  white-space: nowrap;
+}
+
+.ts-calendar-days,
+.ts-calendar-week {
+  grid-row: 2;
+  display: grid;
+  grid-template-rows: repeat(7, 1fr);
+  gap: var(--heat-gap);
+}
+
+.ts-calendar-days {
+  grid-column: 1;
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: var(--color-surface);
+}
+
+.ts-calendar-days span {
+  display: flex;
+  align-items: center;
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+  line-height: 1;
+}
+
+.ts-day {
+  display: block;
+  width: 100%;
+  min-height: 0;
+  aspect-ratio: 1;
+  padding: 0;
+  border: 0;
+  border-radius: var(--heat-radius);
+  background: var(--heat-empty);
+  outline: 1px solid var(--heat-outline);
+  outline-offset: -1px;
+  cursor: pointer;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.ts-calendar-week .ts-day {
+  animation: ts-day-in 0.35s ease-out both;
+  animation-delay: calc(var(--w) * 12ms);
+}
+
+.ts-day:hover:not(:disabled),
+.ts-day:focus-visible {
+  transform: scale(1.35);
+  box-shadow: var(--shadow-overlay);
+  z-index: 1;
+  outline: 0;
+}
+
+.ts-day.empty {
+  visibility: hidden;
+}
+
+.ts-day.worked.level-1 { background: var(--heat-1); }
+.ts-day.worked.level-2 { background: var(--heat-2); }
+.ts-day.worked.level-3 { background: var(--heat-3); }
+.ts-day.worked.level-4 { background: var(--heat-4); }
+
+.ts-day.missing {
+  background: var(--color-warning-border);
+  outline: 1px solid var(--color-warning);
+  outline-offset: -1px;
+}
+
+.ts-day.away {
+  background: var(--heat-away);
+}
+
+.ts-day.off,
+.ts-day.future,
+.ts-day.before {
+  background: var(--color-surface-muted);
+}
+
+.ts-day.future,
+.ts-day.before {
+  cursor: default;
+}
+
+.ts-day.selected {
+  box-shadow: 0 0 0 2px var(--color-surface), 0 0 0 4px var(--color-primary);
+}
+
+/* Tooltip */
+
+.ts-calendar-tip {
+  position: absolute;
+  z-index: 2;
+  max-width: 280px;
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  background: var(--sidebar-bg);
+  color: var(--sidebar-text-strong);
+  font-size: var(--text-sm);
+  line-height: 1.4;
+  pointer-events: none;
+  transform: translate(-50%, calc(-100% - 8px));
+  white-space: nowrap;
+  animation: ts-tip-in 0.12s ease-out;
+}
+
+.ts-calendar-tip::first-letter {
+  text-transform: uppercase;
+}
+
+.ts-calendar-tip::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  border: 5px solid transparent;
+  border-top-color: var(--sidebar-bg);
+  transform: translateX(-50%);
+}
+
+/* Footer: status on the left, legend on the right */
+
+.ts-calendar-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3) var(--space-6);
+}
+
+.ts-calendar-status {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  font-size: var(--text-md);
+  font-weight: var(--weight-medium);
+}
+
+.ts-calendar-status.pending {
+  color: var(--color-warning);
+}
+
+.ts-calendar-status.done {
+  color: var(--color-success);
+}
+
+.ts-calendar-status .detail-link {
+  min-height: 28px;
+}
+
+.ts-calendar-legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-4);
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.ts-calendar-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ts-calendar-legend .scale {
+  gap: var(--heat-gap);
+}
+
+.ts-calendar-legend .ts-day {
+  width: var(--heat-cell-min);
+  height: var(--heat-cell-min);
+  cursor: default;
+  animation: none;
+}
+
+.ts-calendar-legend .scale .ts-day:first-of-type {
+  margin-left: var(--space-1);
+}
+
+.ts-calendar-legend .scale .ts-day:last-of-type {
+  margin-right: var(--space-1);
+}
+
+@keyframes ts-day-in {
+  from { opacity: 0; transform: scale(0.3); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes ts-tip-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@media (max-width: 640px) {
+  .ts-calendar-head {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .ts-calendar-year {
+    grid-column: 1 / -1;
+    justify-content: center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ts-calendar .ts-calendar-week .ts-day,
+  .ts-calendar .ts-calendar-tip {
+    animation: none;
+  }
+
+  .ts-calendar .ts-day {
+    transition: none;
+  }
+}

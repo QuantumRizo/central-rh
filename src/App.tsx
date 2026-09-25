@@ -8,7 +8,7 @@ import {
 import { type Session } from "@supabase/supabase-js";
 import { PendingDays, ReportDetails } from './ReportDetails';
 import { ABSENCE_OPTIONS, attendanceLabel } from './timesheets/attendance';
-import { MissingDays } from './timesheets/MissingDays';
+import { TimesheetCalendar } from './timesheets/TimesheetCalendar';
 import { EvaluacionesModule } from './evaluaciones/EvaluacionesModule';
 import { Profile } from './Profile';
 import { ProfilesDirectory } from './ProfilesDirectory';
@@ -739,6 +739,16 @@ function Workspace({ session }: { session: Session }) {
                 </button>
               )}
             </div>
+            <TimesheetCalendar
+              employeeId={employee}
+              selectedDate={date}
+              refreshKey={sheetRevision + importRevision}
+              onPick={(value) => {
+                if (value !== date && !canLeave()) return;
+                setDate(value);
+                document.getElementById("timesheet-capture")?.scrollIntoView({ behavior: "smooth", block: "start" });
+              }}
+            />
             <AiTimesheetGenerator
               isAdmin={admin}
               activities={activities}
@@ -748,13 +758,7 @@ function Workspace({ session }: { session: Session }) {
               }}
             />
             {aiCompletionMessage && <p role="status" className="success ai-completion-message">{aiCompletionMessage}</p>}
-            <MissingDays
-              employeeId={employee}
-              selectedDate={date}
-              refreshKey={sheetRevision + importRevision}
-              onPick={(value) => { if (value !== date && canLeave()) setDate(value); }}
-            />
-            <div className="panel">
+            <div className="panel" id="timesheet-capture">
               <div className="date-header-row">
                 <label className="date-input-label">
                   Fecha

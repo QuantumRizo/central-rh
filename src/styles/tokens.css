@@ -41,6 +41,18 @@
   --color-sick: #b93815;
   --color-sick-soft: #fff4ed;
 
+  /* Activity heatmap (timesheet calendar): Central blues */
+  --heat-empty: #eef2f6;
+  --heat-1: #c9ddf3;
+  --heat-2: #8ab8e6;
+  --heat-3: #3f86d1;
+  --heat-4: #0b5eb7;
+  --heat-away: #cbd5e1;
+  --heat-cell-min: 11px;
+  --heat-gap: 3px;
+  --heat-radius: 3px;
+  --heat-outline: rgba(15, 23, 42, 0.05);
+
   /* Navigation rail */
   --sidebar-width: 240px;
   --sidebar-bg: #11233a;
