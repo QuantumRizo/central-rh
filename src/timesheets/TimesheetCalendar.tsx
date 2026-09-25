@@ -11,7 +11,7 @@ const isoDate = (d: Date) =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 const monthShort = new Intl.DateTimeFormat("es-MX", { month: "short" });
 const longDate = new Intl.DateTimeFormat("es-MX", { weekday: "long", day: "numeric", month: "long" });
-const DAY_LABELS = ["Lun", "", "Mié", "", "Vie", "", ""];
+const DAY_LABELS = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sab", "Dom"];
 
 const minutes = (time: string | null) => {
   if (!time) return null;
