@@ -5,14 +5,13 @@ import { attendanceLabel } from "./attendance";
 
 type Sheet = { work_date: string; attendance: string; entry_time: string | null; exit_time: string | null };
 type Kind = "worked" | "missing" | "absence" | "vacation" | "personal_day" | "sick_leave" | "holiday" | "off" | "future" | "before";
-type Day = { date: string; kind: Kind; level: number; label: string };
+type Day = { date: string; kind: Kind; label: string };
 
 const isoDate = (d: Date) =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 const monthShort = new Intl.DateTimeFormat("es-MX", { month: "short" });
 const longDate = new Intl.DateTimeFormat("es-MX", { weekday: "long", day: "numeric", month: "long" });
 const DAY_LABELS = ["Lun", "", "Mié", "", "Vie", "", ""];
-const ABSENCE_KINDS = new Set<Kind>(["absence", "vacation", "personal_day", "sick_leave", "holiday"]);
 
 const minutes = (time: string | null) => {
   if (!time) return null;
@@ -20,13 +19,10 @@ const minutes = (time: string | null) => {
   return h * 60 + m;
 };
 
-/** GitHub-style intensity from the hours between entry and exit. */
-const workLevel = (sheet: Sheet) => {
+const workedHours = (sheet: Sheet) => {
   const start = minutes(sheet.entry_time);
   const end = minutes(sheet.exit_time);
-  if (start === null || end === null || end <= start) return { level: 2, hours: null };
-  const hours = (end - start) / 60;
-  return { level: hours < 5 ? 1 : hours < 8 ? 2 : hours < 9.5 ? 3 : 4, hours };
+  return start === null || end === null || end <= start ? null : (end - start) / 60;
 };
 
 const formatHours = (hours: number) => `${Number.isInteger(hours) ? hours : hours.toFixed(1)} h`;
@@ -104,23 +100,23 @@ export function TimesheetCalendar({
         const pretty = longDate.format(cursor);
         let day: Day;
         if (sheet?.attendance === "worked") {
-          const { level, hours } = workLevel(sheet);
+          const hours = workedHours(sheet);
           const range = sheet.entry_time && sheet.exit_time ? ` · ${sheet.entry_time.slice(0, 5)}–${sheet.exit_time.slice(0, 5)}` : "";
-          day = { date, kind: "worked", level, label: `${pretty} · Capturado${range}${hours ? ` (${formatHours(hours)})` : ""}` };
+          day = { date, kind: "worked", label: `${pretty} · Capturado${range}${hours ? ` (${formatHours(hours)})` : ""}` };
           stats.worked++;
         } else if (sheet) {
-          day = { date, kind: sheet.attendance as Kind, level: 0, label: `${pretty} · ${attendanceLabel(sheet.attendance)}` };
+          day = { date, kind: sheet.attendance as Kind, label: `${pretty} · ${attendanceLabel(sheet.attendance)}` };
           stats.absences++;
         } else if (date > today) {
-          day = { date, kind: "future", level: 0, label: pretty };
+          day = { date, kind: "future", label: pretty };
         } else if (joined && date < joined) {
-          day = { date, kind: "before", level: 0, label: `${pretty} · Antes de tu ingreso` };
+          day = { date, kind: "before", label: `${pretty} · Antes de tu ingreso` };
         } else if (weekend) {
-          day = { date, kind: "off", level: 0, label: `${pretty} · Fin de semana` };
+          day = { date, kind: "off", label: `${pretty} · Fin de semana` };
         } else if (date === today) {
-          day = { date, kind: "off", level: 0, label: `${pretty} · Hoy, aún sin capturar` };
+          day = { date, kind: "off", label: `${pretty} · Hoy, aún sin capturar` };
         } else {
-          day = { date, kind: "missing", level: 0, label: `${pretty} · Sin capturar` };
+          day = { date, kind: "missing", label: `${pretty} · Sin capturar` };
           stats.missing++;
           if (!stats.oldestMissing) stats.oldestMissing = date;
         }
@@ -199,7 +195,7 @@ export function TimesheetCalendar({
                     type="button"
                     key={day.date}
                     data-date={day.date}
-                    className={`ts-day ${ABSENCE_KINDS.has(day.kind) ? "away" : day.kind} level-${day.level}${day.date === selectedDate ? " selected" : ""}`}
+                    className={`ts-day ${day.kind}${day.date === selectedDate ? " selected" : ""}`}
                     aria-label={day.label}
                     disabled={day.kind === "future" || day.kind === "before"}
                     onClick={() => onPick(day.date)}
@@ -238,13 +234,13 @@ export function TimesheetCalendar({
           </p>
         )}
         <div className="ts-calendar-legend">
+          <span><i className="ts-day worked" /> Trabajado</span>
           <span><i className="ts-day missing" /> Pendiente</span>
-          <span><i className="ts-day away" /> Ausencia</span>
-          <span className="scale">
-            Menos
-            {[1, 2, 3, 4].map((level) => <i key={level} className={`ts-day worked level-${level}`} />)}
-            Más
-          </span>
+          <span><i className="ts-day absence" /> Falta</span>
+          <span><i className="ts-day vacation" /> Vacaciones</span>
+          <span><i className="ts-day holiday" /> Feriado</span>
+          <span><i className="ts-day personal_day" /> Día personal</span>
+          <span><i className="ts-day sick_leave" /> Incapacidad</span>
         </div>
       </div>
     </section>

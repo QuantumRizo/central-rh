@@ -137,10 +137,7 @@
   visibility: hidden;
 }
 
-.ts-day.worked.level-1 { background: var(--heat-1); }
-.ts-day.worked.level-2 { background: var(--heat-2); }
-.ts-day.worked.level-3 { background: var(--heat-3); }
-.ts-day.worked.level-4 { background: var(--heat-4); }
+.ts-day.worked { background: var(--heat-worked); }
 
 .ts-day.missing {
   background: var(--color-warning-border);
@@ -148,9 +145,11 @@
   outline-offset: -1px;
 }
 
-.ts-day.away {
-  background: var(--heat-away);
-}
+.ts-day.absence { background: var(--heat-absence); }
+.ts-day.vacation { background: var(--heat-vacation); }
+.ts-day.holiday { background: var(--heat-holiday); }
+.ts-day.personal_day { background: var(--heat-personal); }
+.ts-day.sick_leave { background: var(--heat-sick); }
 
 .ts-day.off,
 .ts-day.future,
@@ -245,23 +244,12 @@
   gap: 6px;
 }
 
-.ts-calendar-legend .scale {
-  gap: var(--heat-gap);
-}
-
 .ts-calendar-legend .ts-day {
+  flex: none;
   width: var(--heat-cell-min);
   height: var(--heat-cell-min);
   cursor: default;
   animation: none;
-}
-
-.ts-calendar-legend .scale .ts-day:first-of-type {
-  margin-left: var(--space-1);
-}
-
-.ts-calendar-legend .scale .ts-day:last-of-type {
-  margin-right: var(--space-1);
 }
 
 @keyframes ts-day-in {

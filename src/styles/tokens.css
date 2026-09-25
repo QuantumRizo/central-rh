@@ -41,13 +41,14 @@
   --color-sick: #b93815;
   --color-sick-soft: #fff4ed;
 
-  /* Activity heatmap (timesheet calendar): Central blues */
+  /* Activity heatmap (timesheet calendar) */
   --heat-empty: #eef2f6;
-  --heat-1: #c9ddf3;
-  --heat-2: #8ab8e6;
-  --heat-3: #3f86d1;
-  --heat-4: #0b5eb7;
-  --heat-away: #cbd5e1;
+  --heat-worked: #8ab8e6;
+  --heat-absence: #f97066;
+  --heat-vacation: #2ed3b7;
+  --heat-holiday: #9e77ed;
+  --heat-personal: #f670c7;
+  --heat-sick: #fd853a;
   --heat-cell-min: 11px;
   --heat-gap: 3px;
   --heat-radius: 3px;
