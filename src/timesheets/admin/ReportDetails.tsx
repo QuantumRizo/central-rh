@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { attendanceLabel } from './timesheets/attendance';
+import { attendanceLabel } from '../attendance';
 
 export function downloadReport(headers: string[], rows: unknown[][], filename: string) {
   const cell = (value: unknown) => {

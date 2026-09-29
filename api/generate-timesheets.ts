@@ -14,6 +14,8 @@ const MAX_GENERATION_DATE = "2026-08-31";
 type CatalogRow = { id: string; name: string };
 type Allocation = { client: string; activity: string; value: number; unit: "percent" | "hours" };
 type MonthPlan = { month: string; allocations: Allocation[] };
+type ResolvedAllocation = Allocation & { client_id: string; activity_id: string };
+type ResolvedMonthPlan = { month: string; allocations: ResolvedAllocation[] };
 type AiPlan = { months: MonthPlan[] };
 type DateRange = { start: string; end?: string };
 type SpecialDay = { date: string; entry?: string; exit?: string };
@@ -183,7 +185,7 @@ function validateForm(value: unknown): FormInput {
 
 function validatePlan(plan: AiPlan, months: string[], clients: CatalogRow[], activities: CatalogRow[]) {
   if (!plan || !Array.isArray(plan.months)) throw Error("El plan de distribución es inválido");
-  const byMonth = new Map<string, MonthPlan>();
+  const byMonth = new Map<string, ResolvedMonthPlan>();
   for (const month of plan.months) {
     if (!months.includes(month.month) || byMonth.has(month.month) || !Array.isArray(month.allocations) || !month.allocations.length) {
       throw Error(`Distribución mensual inválida: ${month.month || "sin mes"}`);
@@ -213,7 +215,7 @@ function validatePlan(plan: AiPlan, months: string[], clients: CatalogRow[], act
   }
   const missing = months.filter((month) => !byMonth.has(month));
   if (missing.length) throw Error(`Falta distribución para: ${missing.join(", ")}`);
-  return byMonth as Map<string, MonthPlan & { allocations: Array<Allocation & { client_id: string; activity_id: string }> }>;
+  return byMonth;
 }
 
 function generatePayloads(input: FormInput, plan: AiPlan, employeeId: string, clients: CatalogRow[], activities: CatalogRow[]) {
@@ -291,7 +293,7 @@ function generatePayloads(input: FormInput, plan: AiPlan, employeeId: string, cl
     monthSummary.push({ month, workedDays: monthDays.length, productiveHours: productiveTotal, allocations: targets.map((item) => ({ client: item.client, activity: item.activity, hours: item.targetHours, percentage: round2(item.targetHours / productiveTotal * 100) })) });
   }
   payloads.sort((a, b) => a.work_date.localeCompare(b.work_date));
-  const names = new Map([...clients.map((item) => [item.id, item.name]), ...activities.map((item) => [item.id, item.name])]);
+  const names = new Map<string, string>([...clients.map((item): [string, string] => [item.id, item.name]), ...activities.map((item): [string, string] => [item.id, item.name])]);
   const days = payloads.map((item) => ({
     date: item.work_date, attendance: item.attendance, mode: item.mode, entry: item.entry_time, exit: item.exit_time,
     entries: item.entries.map((entry: any) => ({ client: names.get(entry.client_id), activity: names.get(entry.activity_id), percentage: entry.percentage })),

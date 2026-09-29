@@ -14,6 +14,12 @@ npm run build
 
 Configura `VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY` en un archivo `.env` local. El `.env` no se sube a GitHub. Usa sólo la clave pública de Supabase en el frontend; nunca una clave `service_role`.
 
+La organización del frontend se describe en [docs/architecture.md](docs/architecture.md).
+
+## Firmas y convenios de RH
+
+El módulo **Firmas y convenios** es exclusivo de administradores. Guarda los PDFs de Arien y los convenios CC en `employee-documents`, vinculados a cada colaborador. El Excel original se conserva en `rh-private-files` para descarga privada desde el módulo. Sus contraseñas no se importan a las tablas ni se muestran en pantalla. Consulta [la arquitectura](docs/architecture.md) para las tablas, políticas y proceso de carga.
+
 ## Cambios de base de datos
 
 Las migraciones están en `supabase/migrations/`. El proyecto está vinculado con Supabase CLI. Antes de aplicar cambios, comprueba el proyecto y las migraciones pendientes:

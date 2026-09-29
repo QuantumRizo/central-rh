@@ -108,6 +108,8 @@
   --page-padding: var(--space-8);
   --card-padding: var(--space-6);
   --control-height: 40px;
+  --signature-search-width: 320px;
+  --signature-status-width: 120px;
 }
 
 @media (max-width: 640px) {

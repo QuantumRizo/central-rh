@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import { ChevronRight, Search, Users } from 'lucide-react';
-import { sb } from './lib/supabase';
+import { sb } from '../lib/supabase';
 import { Profile } from './Profile';
 
 type Person = {

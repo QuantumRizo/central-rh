@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import { ArrowLeft, KeyRound } from 'lucide-react';
-import { sb } from './lib/supabase';
+import { sb } from '../lib/supabase';
 
 export function ChangePassword({ session, onBack }: { session: Session; onBack: () => void }) {
   const [password, setPassword] = useState('');

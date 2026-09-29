@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { CheckCircle2, LoaderCircle, Plus, Sparkles, Trash2, X } from "lucide-react";
-import { sb } from "./lib/supabase";
-import { attendanceLabel } from "./timesheets/attendance";
+import { sb } from "../lib/supabase";
+import { attendanceLabel } from "./attendance";
 
 type DateRange = { start: string; end: string };
 type SpecialDay = { date: string; entry: string; exit: string };

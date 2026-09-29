@@ -1,0 +1,3 @@
+export type Position = { id: string; title: string; description: string; required_criteria: string; preferred_criteria: string; status: 'open' | 'closed' };
+export type Candidate = { id: string; full_name: string; email: string | null; phone: string | null; summary: string; experience_summary: string; skills: string[]; document_path: string | null; document_name: string | null; processing_status: string; processing_error: string | null; stage: string; admin_notes: string; received_at: string; sender_email: string | null };
+export type Match = { candidate_id: string; position_id: string; score: number; rationale: string; matched_criteria: string[]; missing_criteria: string[] };

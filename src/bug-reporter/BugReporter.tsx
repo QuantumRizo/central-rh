@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Bug, CircleAlert, SendHorizontal, X } from 'lucide-react';
-import { sb } from './lib/supabase';
+import { sb } from '../lib/supabase';
 
 type Props = { module: string };
 type Status = 'idle' | 'sending' | 'sent';
