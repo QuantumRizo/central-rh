@@ -45,7 +45,7 @@ Supabase Cron llama a la función `send-timesheet-reminders` los viernes a las 2
 
 El recordatorio revisa los días laborables de los tres meses anteriores al viernes, incluye el viernes actual, y respeta la fecha de ingreso más reciente entre `start_date` y `hire_date`. Un registro de Time Sheet, incluido uno de ausencia, cubre el día. Sólo se envía a colaboradores con estado `Activo`, correo y días pendientes. El correo distingue semanas sin registros de semanas incompletas. La tabla privada `timesheet_reminder_deliveries` limita cada persona a un intento por viernes y registra los errores; los fallos requieren revisión antes de un reenvío. Resend recibe además una clave de idempotencia para proteger reintentos inmediatos.
 
-Para activar: aplicar `202610090001_timesheet_reminders.sql` y `202610090002_timesheet_reminder_cron.sql` mediante el flujo de migraciones, guardar la clave de servicio en Supabase Vault bajo `timesheet_reminder_service_role` y desplegar `supabase functions deploy send-timesheet-reminders --project-ref ncgbvbpkinrvrzxyttfz`. Revisar el resultado semanal en los logs de la función, en Supabase Cron y en `timesheet_reminder_deliveries`.
+Para activar: aplicar las migraciones `202610090001` a `202610090003` mediante el flujo de migraciones, guardar la clave de servicio en Supabase Vault bajo `timesheet_reminder_service_role` y desplegar `supabase functions deploy send-timesheet-reminders --project-ref ncgbvbpkinrvrzxyttfz`. Revisar el resultado semanal en los logs de la función, en Supabase Cron y en `timesheet_reminder_deliveries`.
 
 ## Reclutamiento desde Outlook
 
