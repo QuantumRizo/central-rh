@@ -39,6 +39,14 @@ La experiencia principal es el modal **Subir horas con IA**. El colaborador capt
 
 La generación automática está limitada al 31 de agosto de 2026. Septiembre se captura manualmente para mantener completo el periodo reciente.
 
+## Recordatorios de Time Sheets
+
+`vercel.json` programa `/api/timesheet-reminders` los viernes a las 21:00 UTC (15:00 de Ciudad de México). El endpoint exige el `CRON_SECRET` de Vercel y llama a la función `send-timesheet-reminders` de Supabase. La función usa los secretos ya configurados en Supabase: `RESEND_API_KEY`, `RESEND_FROM_EMAIL` y `APP_URL`. En Vercel se necesitan `SUPABASE_SERVICE_ROLE_KEY`, `CRON_SECRET` y `SUPABASE_URL` (o `VITE_SUPABASE_URL`).
+
+El recordatorio revisa los días laborables de los tres meses anteriores al viernes, incluye el viernes actual, y respeta la fecha de ingreso más reciente entre `start_date` y `hire_date`. Un registro de Time Sheet, incluido uno de ausencia, cubre el día. Sólo se envía a colaboradores con estado `Activo`, correo y días pendientes. El correo distingue semanas sin registros de semanas incompletas. La tabla privada `timesheet_reminder_deliveries` limita cada persona a un intento por viernes y registra los errores; los fallos requieren revisión antes de un reenvío. Resend recibe además una clave de idempotencia para proteger reintentos inmediatos.
+
+Para activar: aplicar `202610090001_timesheet_reminders.sql` mediante el flujo de migraciones, desplegar `supabase functions deploy send-timesheet-reminders --project-ref ncgbvbpkinrvrzxyttfz` y desplegar la versión de Vercel que incluye el cron. Revisar el resultado semanal en los logs de la función y en `timesheet_reminder_deliveries`. Vercel ejecuta cron en UTC; en su plan Hobby puede iniciarlo en cualquier momento de la hora programada.
+
 ## Reclutamiento desde Outlook
 
 El módulo **Reclutamiento** está en desarrollo y todavía no está activo en producción. El prototipo local es exclusivo de administradores y contempla vacantes, lectura de CV adjuntos en PDF o DOCX desde `rh@centrales.com.mx`, resúmenes y comparaciones orientativas. Antes de aplicar su migración se revisará el modelo de perfiles, plazas y requisiciones descrito en [el alcance de reclutamiento](docs/reclutamiento-alcance.md). Las puntuaciones deberán revisarse con el CV original.

@@ -3,5 +3,8 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }],
-  "crons": [{ "path": "/api/recruitment-sync", "schedule": "0 14 * * *" }]
+  "crons": [
+    { "path": "/api/recruitment-sync", "schedule": "0 14 * * *" },
+    { "path": "/api/timesheet-reminders", "schedule": "0 21 * * 5" }
+  ]
 }
