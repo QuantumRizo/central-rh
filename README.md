@@ -41,11 +41,11 @@ La generación automática está limitada al 31 de agosto de 2026. Septiembre se
 
 ## Recordatorios de Time Sheets
 
-`vercel.json` programa `/api/timesheet-reminders` los viernes a las 21:00 UTC (15:00 de Ciudad de México). El endpoint exige el `CRON_SECRET` de Vercel y llama a la función `send-timesheet-reminders` de Supabase. La función usa los secretos ya configurados en Supabase: `RESEND_API_KEY`, `RESEND_FROM_EMAIL` y `APP_URL`. En Vercel se necesitan `SUPABASE_SERVICE_ROLE_KEY`, `CRON_SECRET` y `SUPABASE_URL` (o `VITE_SUPABASE_URL`).
+Supabase Cron llama a la función `send-timesheet-reminders` los viernes a las 21:00 UTC (15:00 de Ciudad de México). El cron toma la clave de servicio de Supabase Vault con el nombre `timesheet_reminder_service_role`; nunca se guarda en el repositorio. La función usa los secretos de Supabase `RESEND_API_KEY`, `RESEND_FROM_EMAIL` y `APP_URL`.
 
 El recordatorio revisa los días laborables de los tres meses anteriores al viernes, incluye el viernes actual, y respeta la fecha de ingreso más reciente entre `start_date` y `hire_date`. Un registro de Time Sheet, incluido uno de ausencia, cubre el día. Sólo se envía a colaboradores con estado `Activo`, correo y días pendientes. El correo distingue semanas sin registros de semanas incompletas. La tabla privada `timesheet_reminder_deliveries` limita cada persona a un intento por viernes y registra los errores; los fallos requieren revisión antes de un reenvío. Resend recibe además una clave de idempotencia para proteger reintentos inmediatos.
 
-Para activar: aplicar `202610090001_timesheet_reminders.sql` mediante el flujo de migraciones, desplegar `supabase functions deploy send-timesheet-reminders --project-ref ncgbvbpkinrvrzxyttfz` y desplegar la versión de Vercel que incluye el cron. Revisar el resultado semanal en los logs de la función y en `timesheet_reminder_deliveries`. Vercel ejecuta cron en UTC; en su plan Hobby puede iniciarlo en cualquier momento de la hora programada.
+Para activar: aplicar `202610090001_timesheet_reminders.sql` y `202610090002_timesheet_reminder_cron.sql` mediante el flujo de migraciones, guardar la clave de servicio en Supabase Vault bajo `timesheet_reminder_service_role` y desplegar `supabase functions deploy send-timesheet-reminders --project-ref ncgbvbpkinrvrzxyttfz`. Revisar el resultado semanal en los logs de la función, en Supabase Cron y en `timesheet_reminder_deliveries`.
 
 ## Reclutamiento desde Outlook
 
