@@ -43,7 +43,8 @@ Deno.serve(async (request) => {
     const fromDate = threeMonthsBefore(now.date);
     const [employees, sheets] = await Promise.all([
       allRows<Employee>((start, end) => db.from('employees')
-        .select('id,full_name,email,start_date,hire_date').eq('status', 'Activo').order('id').range(start, end)),
+        .select('id,full_name,email,start_date,hire_date').eq('status', 'Activo')
+        .not('auth_user_id', 'is', null).order('id').range(start, end)),
       allRows<Sheet>((start, end) => db.from('timesheets')
         .select('employee_id,work_date').gte('work_date', fromDate).lte('work_date', now.date)
         .order('employee_id').order('work_date').range(start, end)),
