@@ -1,10 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { eligibleStart, mexicoNow, monday, threeMonthsBefore, weekdays } from './logic.ts';
+import { eligibleStart, mexicoNow, monday, previousFriday, threeMonthsBefore, weekdays } from './logic.ts';
 
-test('Friday 15:00 in Mexico City uses the correct local date and hour', () => {
-  assert.deepEqual(mexicoNow(new Date('2026-10-09T20:59:00Z')), { date: '2026-10-09', weekday: 'Fri', hour: 14 });
-  assert.deepEqual(mexicoNow(new Date('2026-10-09T21:00:00Z')), { date: '2026-10-09', weekday: 'Fri', hour: 15 });
+test('Monday 09:30 in Mexico City uses the correct local date and minute', () => {
+  assert.deepEqual(mexicoNow(new Date('2026-10-12T15:29:00Z')), { date: '2026-10-12', weekday: 'Mon', hour: 9, minute: 29 });
+  assert.deepEqual(mexicoNow(new Date('2026-10-12T15:30:00Z')), { date: '2026-10-12', weekday: 'Mon', hour: 9, minute: 30 });
 });
 
 test('three calendar months clamp at the last day of a short month', () => {
@@ -15,6 +15,7 @@ test('three calendar months clamp at the last day of a short month', () => {
 test('weekdays include Friday and group across a year boundary', () => {
   assert.deepEqual(weekdays('2026-10-08', '2026-10-11'), ['2026-10-08', '2026-10-09']);
   assert.equal(monday('2027-01-01'), '2026-12-28');
+  assert.equal(previousFriday('2026-10-12'), '2026-10-09');
 });
 
 test('the latest entry date prevents reminders before hiring', () => {

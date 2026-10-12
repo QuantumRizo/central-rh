@@ -1,8 +1,9 @@
 import { createClient } from 'npm:@supabase/supabase-js@2';
-import { eligibleStart, mexicoNow, monday, threeMonthsBefore, weekdays } from './logic.ts';
+import { eligibleStart, mexicoNow, monday, previousFriday, threeMonthsBefore, weekdays } from './logic.ts';
 
 type Employee = { id: string; full_name: string; email: string | null; start_date: string | null; hire_date: string | null };
 type Sheet = { employee_id: string; work_date: string };
+type Exclusion = { employee_id: string };
 
 const json = (body: Record<string, unknown>, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
@@ -28,8 +29,8 @@ Deno.serve(async (request) => {
     return json({ error: 'Unauthorized' }, 401);
 
   const now = mexicoNow(new Date());
-  if (now.weekday !== 'Fri' || now.hour < 15)
-    return json({ error: 'Available Friday after 15:00 Mexico City time' }, 409);
+  if (now.weekday !== 'Mon' || now.hour < 9 || (now.hour === 9 && now.minute < 30))
+    return json({ error: 'Available Monday after 09:30 Mexico City time' }, 409);
 
   const url = Deno.env.get('SUPABASE_URL');
   const resendKey = Deno.env.get('RESEND_API_KEY');
@@ -40,21 +41,26 @@ Deno.serve(async (request) => {
 
   try {
     const db = createClient(url, serviceKey, { auth: { persistSession: false } });
-    const fromDate = threeMonthsBefore(now.date);
-    const [employees, sheets] = await Promise.all([
+    const cutoff = previousFriday(now.date);
+    const fromDate = threeMonthsBefore(cutoff);
+    const [employees, sheets, exclusions] = await Promise.all([
       allRows<Employee>((start, end) => db.from('employees')
         .select('id,full_name,email,start_date,hire_date').eq('status', 'Activo')
         .not('auth_user_id', 'is', null).order('id').range(start, end)),
       allRows<Sheet>((start, end) => db.from('timesheets')
-        .select('employee_id,work_date').gte('work_date', fromDate).lte('work_date', now.date)
+        .select('employee_id,work_date').gte('work_date', fromDate).lte('work_date', cutoff)
         .order('employee_id').order('work_date').range(start, end)),
+      allRows<Exclusion>((start, end) => db.from('timesheet_reminder_exclusions')
+        .select('employee_id').order('employee_id').range(start, end)),
     ]);
+    const excluded = new Set(exclusions.map((item) => item.employee_id));
     const captured = new Set(sheets.map((sheet) => `${sheet.employee_id}:${sheet.work_date}`));
-    const days = weekdays(fromDate, now.date);
+    const days = weekdays(fromDate, cutoff);
     const appLink = `${appUrl.replace(/\/$/, '')}/`;
     const result = { eligible: 0, sent: 0, alreadyClaimed: 0, noEmail: 0, failed: 0 };
 
     for (const employee of employees) {
+      if (excluded.has(employee.id)) continue;
       // Respect both dates if administrators have filled them separately.
       const joined = eligibleStart(employee.start_date, employee.hire_date, fromDate);
       const expected = days.filter((date) => date >= joined);
@@ -84,7 +90,7 @@ Deno.serve(async (request) => {
         return `<li><strong>Semana del ${start}</strong> (${type}): ${week.missing.length} día${week.missing.length === 1 ? '' : 's'} pendiente${week.missing.length === 1 ? '' : 's'} — ${week.missing.join(', ')}</li>`;
       }).join('');
       const subject = `Tus horas pendientes en Central RH (${missing.length} días)`;
-      const html = `<div style="font-family:Arial,sans-serif;line-height:1.6;color:#24364b"><h2>Recordatorio de Time Sheets</h2><p>Hola ${escapeHtml(employee.full_name.split(' ')[0] || employee.full_name)},</p><p>Tienes ${missing.length} día${missing.length === 1 ? '' : 's'} sin registrar entre ${fromDate} y ${now.date}.</p><ul>${list}</ul><p>Registra tus horas o la ausencia que corresponda.</p><p><a href="${escapeHtml(appLink)}">Abrir Time Sheets en Central RH</a></p></div>`;
+      const html = `<div style="font-family:Arial,sans-serif;line-height:1.6;color:#24364b"><h2>Recordatorio de Time Sheets</h2><p>Hola ${escapeHtml(employee.full_name.split(' ')[0] || employee.full_name)},</p><p>Tienes ${missing.length} día${missing.length === 1 ? '' : 's'} sin registrar entre ${fromDate} y ${cutoff}.</p><ul>${list}</ul><p>Registra tus horas o la ausencia que corresponda.</p><p><a href="${escapeHtml(appLink)}">Abrir Time Sheets en Central RH</a></p></div>`;
 
       try {
         const response = await fetch('https://api.resend.com/emails', {

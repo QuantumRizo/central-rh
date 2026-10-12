@@ -1,10 +1,10 @@
 export function mexicoNow(now: Date) {
   const parts = new Intl.DateTimeFormat('en-US', {
     timeZone: 'America/Mexico_City', year: 'numeric', month: '2-digit', day: '2-digit',
-    weekday: 'short', hour: '2-digit', hourCycle: 'h23',
+    weekday: 'short', hour: '2-digit', minute: '2-digit', hourCycle: 'h23',
   }).formatToParts(now);
   const value = (type: string) => parts.find((part) => part.type === type)?.value || '';
-  return { date: `${value('year')}-${value('month')}-${value('day')}`, weekday: value('weekday'), hour: Number(value('hour')) };
+  return { date: `${value('year')}-${value('month')}-${value('day')}`, weekday: value('weekday'), hour: Number(value('hour')), minute: Number(value('minute')) };
 }
 
 const utcDate = (date: string) => new Date(`${date}T12:00:00Z`);
@@ -30,6 +30,12 @@ export function weekdays(from: string, to: string) {
 export function monday(date: string) {
   const day = utcDate(date);
   day.setUTCDate(day.getUTCDate() - ((day.getUTCDay() + 6) % 7));
+  return isoDate(day);
+}
+
+export function previousFriday(mondayDate: string) {
+  const day = utcDate(mondayDate);
+  day.setUTCDate(day.getUTCDate() - 3);
   return isoDate(day);
 }
 
