@@ -25,7 +25,8 @@ async function allRows<T>(query: (from: number, to: number) => PromiseLike<{ dat
 Deno.serve(async (request) => {
   if (request.method !== 'POST') return json({ error: 'Method not allowed' }, 405);
   const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-  if (!serviceKey || request.headers.get('Authorization') !== `Bearer ${serviceKey}`)
+  const cronSecret = Deno.env.get('TIMESHEET_CRON_SECRET');
+  if (!serviceKey || !cronSecret || request.headers.get('x-cron-secret') !== cronSecret)
     return json({ error: 'Unauthorized' }, 401);
 
   const now = mexicoNow(new Date());
