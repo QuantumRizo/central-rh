@@ -316,6 +316,75 @@
   font-size: var(--text-base);
 }
 
+.evaluation-cycle-link {
+  display: block;
+  height: auto;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-primary);
+  font-size: var(--text-base);
+  font-weight: var(--weight-semibold);
+  text-align: left;
+  cursor: pointer;
+}
+
+.evaluation-cycle-link:hover { text-decoration: underline; }
+.evaluation-cycle-link:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+
+/* ---------- Cycle detail ---------- */
+
+.evaluation-detail-overview-heading,
+.evaluation-detail-progress-heading,
+.evaluation-detail-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.evaluation-cycle-detail h2 { margin: 0; font-size: var(--text-lg); }
+.evaluation-detail-overview-heading p:last-child,
+.evaluation-detail-progress-heading p:last-child {
+  margin: var(--space-1) 0 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-md);
+}
+
+.evaluation-detail-dates {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3) var(--space-8);
+  margin-top: var(--space-5);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-divider);
+  color: var(--color-text-muted);
+  font-size: var(--text-md);
+}
+
+.evaluation-detail-dates strong { color: var(--color-text); font-weight: var(--weight-medium); }
+.evaluation-detail-progress { display: grid; gap: var(--space-4); }
+.evaluation-detail-progress-heading > strong { color: var(--color-primary); font-size: var(--text-3xl); }
+.evaluation-detail-participant {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--card-padding);
+  border-bottom: 1px solid var(--color-divider);
+}
+.evaluation-detail-participant:last-child { border-bottom: 0; }
+.evaluation-detail-response { display: grid; justify-items: end; gap: var(--space-1); }
+.evaluation-detail-response small { color: var(--color-text-muted); font-size: var(--text-sm); }
+.evaluation-detail-footer { color: var(--color-text-muted); font-size: var(--text-md); }
+
+@media (max-width: 640px) {
+  .evaluation-detail-participant { grid-template-columns: 36px minmax(0, 1fr); }
+  .evaluation-detail-response { grid-column: 2; justify-items: start; }
+  .evaluation-detail-footer { align-items: flex-start; flex-direction: column; }
+}
+
 .evaluation-table td small {
   display: block;
   margin-top: 2px;

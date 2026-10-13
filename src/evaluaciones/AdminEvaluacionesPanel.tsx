@@ -16,6 +16,7 @@ import {
 } from './types';
 import { CycleEditor } from "./CycleEditor";
 import { EvaluationReportView } from "./EvaluationReportView";
+import { EvaluationCycleDetail } from "./EvaluationCycleDetail";
 import { averageNumber, formatDate, formatScore } from "./format";
 import { hasAllResponses, hasRequiredComments } from "./taskUtils";
 
@@ -29,6 +30,7 @@ export function AdminEvaluacionesPanel({ onViewMine }: { onViewMine: () => void 
   const [selectedReport, setSelectedReport] = useState<EvaluationFinalReport | null>(null);
   const [showCreate, setShowCreate] = useState(false);
   const [selectedCycle, setSelectedCycle] = useState<EvaluationCycle | null>(null);
+  const [detailCycle, setDetailCycle] = useState<EvaluationCycle | null>(null);
   const [busy, setBusy] = useState(true);
   const [closingCycleId, setClosingCycleId] = useState<string | null>(null);
   const [notifyingCycleId, setNotifyingCycleId] = useState<string | null>(null);
@@ -142,10 +144,23 @@ export function AdminEvaluacionesPanel({ onViewMine }: { onViewMine: () => void 
     }
   };
 
+  if (detailCycle) {
+    const currentCycle = cycles.find((cycle) => cycle.id === detailCycle.id) ?? detailCycle;
+    const report = reports.find((item) => item.cycle_id === currentCycle.id);
+    return <><EvaluationCycleDetail key={currentCycle.id} cycle={currentCycle} report={report}
+      onBack={() => { setDetailCycle(null); setError(''); setMessage(''); void load(); }}
+      onEdit={() => setSelectedCycle(currentCycle)}
+      onReport={() => { if (report) setSelectedReport(report); }}
+      onNotify={() => void notifyCycle(currentCycle)}
+      onClose={() => void closeCycle(currentCycle)}
+      notifying={notifyingCycleId === currentCycle.id} closing={closingCycleId === currentCycle.id}
+    />{error && <p className="error" role="alert">{error}</p>}{message && <p className="success" role="status">{message}</p>}</>;
+  }
+
   return <div className="evaluation-module evaluation-admin-panel">
     <div className="page-header"><div><p className="eyebrow">ADMINISTRACIÓN</p><h1>Panel de evaluaciones</h1><p>Gestiona ciclos y consulta el avance de las evaluaciones.</p></div><div className="page-header-actions"><button className="secondary" onClick={onViewMine}>Mis evaluaciones</button><button onClick={() => { setMessage(''); setShowCreate(true); }}>Nuevo ciclo</button></div></div>
     {error && <p className="error" role="alert">{error}</p>}
     {message && <p className="success" role="status">{message}</p>}
-    {busy ? <div className="evaluation-loading"><LoaderCircle className="spin" size={22} /> Cargando panel…</div> : <><div className="evaluation-admin-metrics"><div><span>Ciclos</span><strong>{cycles.length}</strong></div><div><span>Activos</span><strong>{cycles.filter((cycle) => cycle.status === 'active').length}</strong></div><div><span>Respuestas</span><strong>{responseCount}</strong></div></div><section className="evaluation-task-card evaluation-table-card"><div className="evaluation-card-heading"><div><h2>Evaluaciones</h2><p>Consulta el estado, los resultados y el reporte de cada ciclo.</p></div><span>{cycles.length} registradas</span></div>{cycles.length ? <div className="evaluation-table-wrap"><table className="evaluation-table"><thead><tr><th>Evaluación</th><th>Persona evaluada</th><th>Estado</th><th>Autoevaluación</th><th>Evaluación colectiva</th><th>Resultado final</th><th aria-label="Acciones" /></tr></thead><tbody>{cycles.map((cycle) => { const report = reports.find((item) => item.cycle_id === cycle.id); const evaluatedEmployee = employees.find((employee) => employee.id === cycle.evaluated_employee_id); return <tr key={cycle.id}><td><strong>{cycle.name}</strong><small>{cycle.description || 'Sin descripción'}{cycle.start_date ? ` · ${formatDate(cycle.start_date)}` : ''}</small></td><td>{evaluatedEmployee?.full_name || 'Sin persona asignada'}</td><td><span className={`evaluation-cycle-status ${cycle.status}`}>{cycle.status === 'active' ? 'En evaluación' : cycle.status === 'closed' ? 'Cerrada' : 'Borrador'}</span></td><td>{report ? formatScore(report.self_score) : '—'}</td><td>{report ? formatScore(report.collective_score) : '—'}</td><td className="evaluation-final-cell">{report ? report.final_score === null ? 'Pendiente' : formatScore(report.final_score) : '—'}</td><td><div className="evaluation-table-actions"><button className="secondary" onClick={() => setSelectedCycle(cycle)}>Evaluadores</button>{report && <button className="secondary" onClick={() => setSelectedReport(report)}>Ver reporte</button>}{cycle.status === 'active' && cycle.evaluated_employee_id && <><button className="secondary" onClick={() => notifyCycle(cycle)} disabled={notifyingCycleId !== null}>{notifyingCycleId === cycle.id ? 'Enviando…' : 'Enviar avisos'}</button><button className="secondary" onClick={() => closeCycle(cycle)} disabled={closingCycleId !== null}>{closingCycleId === cycle.id ? 'Cerrando…' : 'Cerrar ciclo'}</button></>}</div></td></tr>; })}</tbody></table></div> : <div className="evaluation-empty"><ClipboardCheck size={30} /><strong>Aún no hay evaluaciones</strong><p>Crea el primer ciclo para comenzar.</p></div>}</section></>}
+    {busy ? <div className="evaluation-loading"><LoaderCircle className="spin" size={22} /> Cargando panel…</div> : <><div className="evaluation-admin-metrics"><div><span>Ciclos</span><strong>{cycles.length}</strong></div><div><span>Activos</span><strong>{cycles.filter((cycle) => cycle.status === 'active').length}</strong></div><div><span>Respuestas</span><strong>{responseCount}</strong></div></div><section className="evaluation-task-card evaluation-table-card"><div className="evaluation-card-heading"><div><h2>Evaluaciones</h2><p>Abre una evaluación para ver el resumen y quién ha respondido.</p></div><span>{cycles.length} registradas</span></div>{cycles.length ? <div className="evaluation-table-wrap"><table className="evaluation-table"><thead><tr><th>Evaluación</th><th>Persona evaluada</th><th>Estado</th><th>Autoevaluación</th><th>Evaluación colectiva</th><th>Resultado final</th><th aria-label="Acciones" /></tr></thead><tbody>{cycles.map((cycle) => { const report = reports.find((item) => item.cycle_id === cycle.id); const evaluatedEmployee = employees.find((employee) => employee.id === cycle.evaluated_employee_id); return <tr key={cycle.id}><td><button type="button" className="evaluation-cycle-link" onClick={() => setDetailCycle(cycle)}>{cycle.name}</button><small>{cycle.description || 'Sin descripción'}{cycle.start_date ? ` · ${formatDate(cycle.start_date)}` : ''}</small></td><td>{evaluatedEmployee?.full_name || 'Sin persona asignada'}</td><td><span className={`evaluation-cycle-status ${cycle.status}`}>{cycle.status === 'active' ? 'En evaluación' : cycle.status === 'closed' ? 'Cerrada' : 'Borrador'}</span></td><td>{report ? formatScore(report.self_score) : '—'}</td><td>{report ? formatScore(report.collective_score) : '—'}</td><td className="evaluation-final-cell">{report ? report.final_score === null ? 'Pendiente' : formatScore(report.final_score) : '—'}</td><td><div className="evaluation-table-actions"><button className="secondary" onClick={() => setDetailCycle(cycle)}>Ver detalle</button></div></td></tr>; })}</tbody></table></div> : <div className="evaluation-empty"><ClipboardCheck size={30} /><strong>Aún no hay evaluaciones</strong><p>Crea el primer ciclo para comenzar.</p></div>}</section></>}
   </div>;
 }
