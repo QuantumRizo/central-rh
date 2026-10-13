@@ -134,7 +134,7 @@ legend {
   transition: background-color 0.15s, border-color 0.15s, color 0.15s;
 }
 
-:where(button):hover:not(:disabled) {
+:where(button:hover:not(:disabled)) {
   background: var(--color-primary-hover);
 }
 
