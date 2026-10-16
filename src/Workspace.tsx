@@ -71,7 +71,7 @@ export function Workspace({ session }: { session: Session }) {
       <aside className="app-sidebar">
         <div className="sidebar-brand">
           <img className="cn-header-logo" src="/Logo_CN_2025_Negro.webp" alt="Central MX" />
-          <div><strong>Plataforma RH</strong></div>
+          <div><strong>Plataforma Central</strong></div>
         </div>
         {SECTIONS.map((section) => {
           const items = visible.filter((module) => module.section === section);

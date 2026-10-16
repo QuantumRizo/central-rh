@@ -103,7 +103,7 @@ export function AuthScreen({
           src="/Logo_CN_2025_Negro.webp"
           alt="Central MX"
         />
-        <div className="brand">Plataforma RH</div>
+        <div className="brand">Plataforma Central</div>
         {view !== "login" && <h1>{title}</h1>}
         {view !== "login" && (
           <p>
