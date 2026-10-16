@@ -1,6 +1,6 @@
 # Tools: cómo agregar un dashboard o herramienta
 
-La plataforma RH es la entrada única de Central MX. La sección **Tools** de la barra lateral reúne herramientas y dashboards que no son de RH. Sólo la ven las cuentas con el permiso `toolmaster` (hoy, Félix).
+La plataforma RH es la entrada única de Central MX. La barra lateral tiene tres secciones: **RH** (los módulos de Recursos Humanos), **Simi** (dashboards de Farmacias Similares) y **CN Tools** (herramientas de Central de Negocios). Simi y CN Tools sólo las ven las cuentas con el permiso `toolmaster` (hoy, Félix).
 
 ## Base de datos compartida
 
@@ -10,6 +10,7 @@ Todo vive en un solo proyecto de Supabase: **Central RH** (ref `ncgbvbpkinrvrzxy
 | --- | --- | --- |
 | `public` | Central RH | Colaboradores, roles, permisos y módulos de RH. Ninguna herramienta escribe aquí. |
 | `street_planner`, `inversion`, `competencia`, `simi_admin` | `~/Projects/street-planner-simi` (Vercel `dashboards-farmacias`) | Dashboards de Farmacias Similares. |
+| `planeador_radio` | `~/Projects/street-planner-simi` | Planeador de radio (herramienta de CN que vive en el sitio de Simi; paleta azul del Flow). |
 | `alcance`, `flow` | `~/Projects/alcance-app` (Vercel `cn-tools`) | Curvas de alcance y Flow comercial. |
 
 Reglas:
@@ -33,7 +34,7 @@ Reglas:
 
 **¿Es otra herramienta?** Puede ir en `cn-tools` (alcance-app) o en un proyecto nuevo de Vercel. En cualquier caso usa el Supabase de Central RH con su propio schema.
 
-**Para que aparezca en la barra lateral:** agrega una entrada en `TOOLS` de `src/tools/catalog.ts` (id, nombre, grupo, descripción, ícono de `lucide-react` y URL). La URL se arma con la base de su sitio (`SITES`); si es un sitio nuevo, agrega su variable `VITE_…_URL` con valor por defecto y documéntala en el README. Con eso aparece en Tools, con su ruta `/tools/<id>` y el botón que lo abre en otra pestaña.
+**Para que aparezca en la barra lateral:** agrega una entrada en `TOOLS` de `src/tools/catalog.ts` (id, nombre, sección `Simi` o `CN Tools`, grupo, descripción, ícono de `lucide-react` y URL). Una sección nueva se agrega en `SECTIONS` de `src/modules.tsx`. La URL se arma con la base de su sitio (`SITES`); si es un sitio nuevo, agrega su variable `VITE_…_URL` con valor por defecto y documéntala en el README. Con eso aparece en Tools, con su ruta `/tools/<id>` y el botón que lo abre en otra pestaña.
 
 ## Agregar un módulo de RH (no un tool)
 

@@ -1,4 +1,4 @@
-import { BarChart3, MapPinned, Target, Tv, Wallet, type LucideIcon } from "lucide-react";
+import { BarChart3, MapPinned, Radio, Target, Tv, Wallet, type LucideIcon } from "lucide-react";
 
 // Sitios de Vercel donde viven hoy las herramientas. Si cambia un dominio, basta con definir
 // la variable correspondiente en Vercel (y en el .env local); las rutas se arman solas.
@@ -13,6 +13,8 @@ const url = (site: keyof typeof SITES, path: string) => `${SITES[site].replace(/
 export type Tool = {
   id: string;
   label: string;
+  /** Sección de la barra lateral. */
+  section: "Simi" | "CN Tools";
   group: string;
   description: string;
   icon: LucideIcon;
@@ -20,19 +22,23 @@ export type Tool = {
 };
 
 export const TOOLS: Tool[] = [
-  { id: "street-planner", label: "Street Planner", group: "Dashboards Simi", icon: MapPinned,
+  { id: "street-planner", label: "Street Planner", section: "Simi", group: "Dashboards Simi", icon: MapPinned,
     description: "Sitios OOH, farmacias e impactos por estado, ciudad y radio.",
     url: url("simi", "/street-planner") },
-  { id: "inversion", label: "Inversión", group: "Dashboards Simi", icon: Wallet,
+  { id: "inversion", label: "Inversión", section: "Simi", group: "Dashboards Simi", icon: Wallet,
     description: "Inversión de Farmacias Similares por área, marca y medio.",
     url: url("simi", "/inversion") },
-  { id: "competencia", label: "Competencia", group: "Dashboards Simi", icon: Tv,
+  { id: "competencia", label: "Competencia", section: "Simi", group: "Dashboards Simi", icon: Tv,
     description: "Inversión y spots de la competencia en TV y radio.",
     url: url("simi", "/competencia") },
-  { id: "alcance", label: "Curvas de alcance", group: "Planeación de medios", icon: Target,
+  { id: "alcance", label: "Curvas de alcance", section: "CN Tools", group: "Planeación de medios", icon: Target,
     description: "Alcance de un plan por inversión y duplicidad de audiencias entre medios.",
     url: url("cnTools", "/alcance") },
-  { id: "flow", label: "Flow comercial", group: "Comercial", icon: BarChart3,
+  { id: "flow", label: "Flow comercial", section: "CN Tools", group: "Comercial", icon: BarChart3,
     description: "Venta, ingreso y márgenes de las campañas por cliente (Flow SIKA).",
     url: url("cnTools", "/flow") },
+  // Vive en el sitio de los dashboards de Simi, pero es una herramienta de Central de Negocios.
+  { id: "planeador-radio", label: "Planeador de radio", section: "CN Tools", group: "Planeación de medios", icon: Radio,
+    description: "Rating por target de las emisoras de cada plaza y peso de las emisoras elegidas (INRA).",
+    url: url("simi", "/planeador-radio") },
 ];

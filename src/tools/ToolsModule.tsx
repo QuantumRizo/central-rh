@@ -5,7 +5,7 @@ export function ToolsModule({ tool }: { tool: Tool }) {
   const Icon = tool.icon;
   return (
     <div className="tools-module">
-      <div className="page-header"><div><p className="eyebrow">TOOLS · {tool.group.toUpperCase()}</p><h1>{tool.label}</h1><p>{tool.description}</p></div></div>
+      <div className="page-header"><div><p className="eyebrow">{tool.section.toUpperCase()} · {tool.group.toUpperCase()}</p><h1>{tool.label}</h1><p>{tool.description}</p></div></div>
       <section className="admin-card">
         <div className="card-heading"><div><h2><Icon size={19} /> {tool.label}</h2>
           <p>La herramienta se abre en su sitio, en otra pestaña.</p>
