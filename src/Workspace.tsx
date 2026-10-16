@@ -90,7 +90,7 @@ export function Workspace({ session }: { session: Session }) {
           <div className="sidebar-user-actions"><button title="Salir" className="sidebar-logout" onClick={() => { if (canLeave()) sb.auth.signOut(); }}><LogOut size={17} /></button></div>
         </div>
       </aside>
-      <section className={active.wide ? "content content-wide" : "content"}>
+      <section className="content">
         {active.render({ ...access, session, employee, clients, activities, draft, navigate: go })}
       </section>
       <BugReporter module={active.name} />

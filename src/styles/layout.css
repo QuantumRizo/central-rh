@@ -309,9 +309,3 @@
     min-width: 0;
   }
 }
-
-/* Dashboards de Tools: todo el ancho a la derecha de la barra lateral; el módulo pone su relleno. */
-.content.content-wide {
-  max-width: none;
-  padding: 0;
-}

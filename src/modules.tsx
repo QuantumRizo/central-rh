@@ -36,8 +36,6 @@ export type AppModule = {
   icon?: LucideIcon;
   /** Opción del menú que se marca activa cuando la pantalla es una subpantalla. */
   parent?: string;
-  /** Ocupa todo el ancho disponible (dashboards), sin el ancho de página de los módulos de RH. */
-  wide?: boolean;
   visible: (access: Access) => boolean;
   render: (ctx: ModuleContext) => ReactNode;
 };
@@ -65,8 +63,7 @@ export const MODULES: AppModule[] = [
     render: () => <SignaturesModule /> },
   ...TOOLS.map((tool): AppModule => ({
     path: `/tools/${tool.id}`, name: `tools: ${tool.id}`, section: "Tools", label: tool.label, icon: tool.icon,
-    visible: (a) => a.toolmaster, wide: Boolean(tool.component),
-    render: () => tool.component ? <tool.component /> : <ToolsModule tool={tool} />,
+    visible: (a) => a.toolmaster, render: () => <ToolsModule tool={tool} />,
   })),
 ];
 

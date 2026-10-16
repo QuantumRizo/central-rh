@@ -73,7 +73,7 @@ En Vercel deben existir `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` y `GEMINI_
 
 La sección **Tools** de la barra lateral reúne los dashboards de Simi (Street Planner, Inversión, Competencia), las Curvas de alcance y el Flow comercial. Sólo la ven usuarios con el permiso `toolmaster` en `public.user_permissions` (hoy, Félix); el permiso se suma al rol y ser admin no lo incluye. Se asigna por migración.
 
-El **Flow comercial** vive dentro de la plataforma (`/tools/flow`): no tiene login propio, usa la sesión de RH y la Edge Function `flow` vuelve a comprobar el permiso `toolmaster`. Sus estilos están en `src/styles/flow.css`, con el aspecto del dashboard original. Las demás herramientas todavía abren su sitio actual. Las URL se arman con la URL base de cada sitio de Vercel; si cambia un dominio, define en Vercel la variable correspondiente y vuelve a desplegar:
+Cada herramienta abre su sitio en otra pestaña; esos sitios no piden login, así que la sección Tools oculta los enlaces pero no protege los datos. Las URL se arman con la URL base de cada sitio de Vercel; si cambia un dominio, define en Vercel la variable correspondiente y vuelve a desplegar:
 
 - `VITE_SIMI_DASHBOARDS_URL` (por defecto `https://dashboards-farmacias.vercel.app`).
 - `VITE_CN_TOOLS_URL` (por defecto `https://cn-tools.vercel.app`).
