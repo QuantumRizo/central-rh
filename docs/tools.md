@@ -1,6 +1,6 @@
 # Tools: cómo agregar un dashboard o herramienta
 
-La plataforma RH es la entrada única de Central MX. La barra lateral tiene tres secciones: **RH** (los módulos de Recursos Humanos), **Simi** (dashboards de Farmacias Similares) y **CN Tools** (herramientas de Central de Negocios). Simi y CN Tools sólo las ven las cuentas con el permiso `toolmaster` (hoy, Félix).
+La plataforma RH es la entrada única de Central MX. La barra lateral tiene tres secciones: **RH** (los módulos de Recursos Humanos), **Simi** (dashboards de Farmacias Similares) y **CN Tools** (herramientas de Central de Negocios). Simi y CN Tools sólo las ven las cuentas con el permiso `toolmaster` (hoy, Félix y Jorge).
 
 ## Base de datos compartida
 

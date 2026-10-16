@@ -71,7 +71,7 @@ En Vercel deben existir `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` y `GEMINI_
 
 ## Tools
 
-La barra lateral se divide en **RH**, **Simi** (Street Planner, Inversión, Competencia) y **CN Tools** (Curvas de alcance, Flow comercial, Planeador de radio). Sólo la ven usuarios con el permiso `toolmaster` en `public.user_permissions` (hoy, Félix); el permiso se suma al rol y ser admin no lo incluye. Se asigna por migración.
+La barra lateral se divide en **RH**, **Simi** (Street Planner, Inversión, Competencia) y **CN Tools** (Curvas de alcance, Flow comercial, Planeador de radio). Sólo la ven usuarios con el permiso `toolmaster` en `public.user_permissions` (hoy, Félix y Jorge); el permiso se suma al rol y ser admin no lo incluye. Se asigna por migración.
 
 Cada herramienta abre su sitio en otra pestaña; esos sitios no piden login, así que la sección Tools oculta los enlaces pero no protege los datos. Las URL se arman con la URL base de cada sitio de Vercel; si cambia un dominio, define en Vercel la variable correspondiente y vuelve a desplegar:
 

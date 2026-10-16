@@ -107,7 +107,7 @@ Deno.serve(async (request) => {
       const subject = self
         ? `Autoevaluación pendiente: ${cycle.name}`
         : `Evaluación pendiente: ${evaluated.full_name}`;
-      const html = `<div style="font-family:Arial,sans-serif;line-height:1.6;color:#24364b"><h2 style="color:#1b6ca8">Evaluación de desempeño</h2><p>Hola <strong>${evaluatorName}</strong>,</p><p>Tienes pendiente ${self ? 'tu autoevaluación' : `la evaluación de ${evaluatedName}`} del ciclo <strong>${escapeHtml(cycle.name)}</strong>.</p><p>Te pedimos completarla antes del <strong>${escapeHtml(deadline)}</strong>.</p><p><a href="${escapeHtml(appUrl)}" style="display:inline-block;background:#1b6ca8;color:#fff;padding:12px 20px;border-radius:8px;text-decoration:none">Ir a Plataforma RH</a></p></div>`;
+      const html = `<div style="font-family:Arial,sans-serif;line-height:1.6;color:#24364b"><h2 style="color:#1b6ca8">Evaluación de desempeño</h2><p>Hola <strong>${evaluatorName}</strong>,</p><p>Tienes pendiente ${self ? 'tu autoevaluación' : `la evaluación de ${evaluatedName}`} del ciclo <strong>${escapeHtml(cycle.name)}</strong>.</p><p>Te pedimos completarla antes del <strong>${escapeHtml(deadline)}</strong>.</p><p><a href="${escapeHtml(appUrl)}" style="display:inline-block;background:#1b6ca8;color:#fff;padding:12px 20px;border-radius:8px;text-decoration:none">Ir a Plataforma Central</a></p></div>`;
       const response = await fetch('https://api.resend.com/emails', {
         method: 'POST',
         headers: { Authorization: `Bearer ${resendKey}`, 'Content-Type': 'application/json' },
