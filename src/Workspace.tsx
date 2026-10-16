@@ -1,35 +1,29 @@
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import type { Session } from "@supabase/supabase-js";
-import { BriefcaseBusiness, ClipboardCheck, Clock3, FileSignature, LogOut, UserRound, Users } from "lucide-react";
-import { AdminDashboard } from "./timesheets/admin/AdminDashboard";
-import { TimesheetsModule } from "./timesheets/TimesheetsModule";
+import { LogOut } from "lucide-react";
 import { useTimesheetDraft } from "./timesheets/useTimesheetDraft";
 import type { Option } from "./components/Picker";
-import { EvaluacionesModule } from "./evaluaciones/EvaluacionesModule";
-import { Profile } from "./profile/Profile";
-import { ProfilesDirectory } from "./profile/ProfilesDirectory";
-import { ChangePassword } from "./profile/ChangePassword";
-import { RecruitmentModule } from "./recruitment/RecruitmentModule";
-import { SignaturesModule } from "./signatures/SignaturesModule";
 import { BugReporter } from "./bug-reporter/BugReporter";
-import { ToolsModule } from "./tools/ToolsModule";
-import { TOOLS } from "./tools/catalog";
 import { sb } from "./lib/supabase";
+import { usePath } from "./lib/router";
+import { DEFAULT_PATH, MODULES, SECTIONS, type Access } from "./modules";
 import { HIDDEN_CLIENTS } from "./timesheets/utils";
 
 export function Workspace({ session }: { session: Session }) {
   const [employee, setEmployee] = useState("");
   const [role, setRole] = useState("collaborator");
+  const [toolmaster, setToolmaster] = useState(false);
+  const [accessReady, setAccessReady] = useState(false);
   const [clients, setClients] = useState<Option[]>([]);
   const [activities, setActivities] = useState<Option[]>([]);
-  const [reports, setReports] = useState(false);
-  const [toolmaster, setToolmaster] = useState(false);
-  const [activeModule, setActiveModule] = useState<"timesheets" | "evaluaciones" | "perfil" | "perfiles" | "reclutamiento" | "firmas" | "cambiar-contrasena" | `tool:${string}`>("timesheets");
-  const activeTool = toolmaster ? TOOLS.find((tool) => activeModule === `tool:${tool.id}`) : undefined;
   const draft = useTimesheetDraft(employee);
   const { canLeave, setError, setBusy } = draft;
+  const { path, navigate, replace } = usePath(canLeave);
   const admin = role === "admin";
-  const canViewTimesheetReports = admin || role === "timesheet_admin";
+  const access: Access = { admin, canViewTimesheetReports: admin || role === "timesheet_admin", toolmaster };
+  const visible = MODULES.filter((module) => module.visible(access));
+  const active = visible.find((module) => module.path === path) ?? visible.find((module) => module.path === DEFAULT_PATH)!;
+  const activeNav = active.parent ?? active.path;
   useEffect(() => {
     (async () => {
       try {
@@ -46,6 +40,7 @@ export function Workspace({ session }: { session: Session }) {
             .select("id,name")
             .eq("active", true)
             .order("name"),
+          sb.rpc("is_toolmaster"),
         ]);
         for (const r of results) if (r.error) throw r.error;
         setEmployee(results[0].data || "");
@@ -56,9 +51,8 @@ export function Workspace({ session }: { session: Session }) {
           ),
         );
         setActivities(results[3].data || []);
-        // Sin el permiso (o antes de aplicar su migración) la sección Tools no aparece.
-        const tools = await sb.rpc("is_toolmaster");
-        setToolmaster(tools.data === true);
+        setToolmaster(results[4].data === true);
+        setAccessReady(true);
         if (!results[0].data)
           throw Error("Tu cuenta no tiene un colaborador vinculado");
       } catch (e) {
@@ -67,6 +61,11 @@ export function Workspace({ session }: { session: Session }) {
       }
     })();
   }, [session.user.id]);
+  // Una ruta desconocida o sin permiso se corrige cuando ya se conocen los permisos.
+  useEffect(() => {
+    if (accessReady && active.path !== path) replace(active.path);
+  }, [accessReady, active.path, path, replace]);
+  const go = (to: string) => { if (to !== path && canLeave()) navigate(to); };
   return (
     <main className="app">
       <aside className="app-sidebar">
@@ -74,84 +73,27 @@ export function Workspace({ session }: { session: Session }) {
           <img className="cn-header-logo" src="/Logo_CN_2025_Negro.webp" alt="Central MX" />
           <div><strong>Plataforma RH</strong></div>
         </div>
-        <p className="sidebar-section-label">Módulos</p>
-        <nav className={`module-nav ${admin ? 'has-profiles' : ''}`} aria-label="Módulos">
-          <button
-            className={activeModule === "timesheets" ? "active" : ""}
-            onClick={() => { if (canLeave()) { setActiveModule("timesheets"); setReports(false); } }}
-          >
-            <Clock3 size={18} /> <span>Timesheets</span>
-          </button>
-          <button
-            className={activeModule === "evaluaciones" ? "active" : ""}
-            onClick={() => { if (canLeave()) { setActiveModule("evaluaciones"); setReports(false); } }}
-          >
-            <ClipboardCheck size={18} /> <span>Evaluaciones</span>
-          </button>
-          <button
-            className={activeModule === "perfil" ? "active" : ""}
-            onClick={() => { if (canLeave()) { setActiveModule("perfil"); setReports(false); } }}
-          >
-            <UserRound size={18} /> <span>Mi perfil</span>
-          </button>
-          {admin && <button
-            className={activeModule === "perfiles" ? "active" : ""}
-            onClick={() => { if (canLeave()) { setActiveModule("perfiles"); setReports(false); } }}
-          >
-            <Users size={18} /> <span>Perfiles</span>
-          </button>}
-          {admin && <button
-            className={activeModule === "reclutamiento" ? "active" : ""}
-            onClick={() => { if (canLeave()) { setActiveModule("reclutamiento"); setReports(false); } }}
-          >
-            <BriefcaseBusiness size={18} /> <span>Reclutamiento</span>
-          </button>}
-          {admin && <button
-            className={activeModule === "firmas" ? "active" : ""}
-            onClick={() => { if (canLeave()) { setActiveModule("firmas"); setReports(false); } }}
-          >
-            <FileSignature size={18} /> <span>Firmas y convenios</span>
-          </button>}
-        </nav>
-        {toolmaster && <>
-          <p className="sidebar-section-label">Tools</p>
-          <nav className="module-nav" aria-label="Tools">
-            {TOOLS.map(({ id, label, icon: Icon }) => <button
-              key={id}
-              className={activeModule === `tool:${id}` ? "active" : ""}
-              onClick={() => { if (canLeave()) { setActiveModule(`tool:${id}`); setReports(false); } }}
-            >
-              <Icon size={18} /> <span>{label}</span>
-            </button>)}
-          </nav>
-        </>}
+        {SECTIONS.map((section) => {
+          const items = visible.filter((module) => module.section === section);
+          if (!items.length) return null;
+          return <Fragment key={section}>
+            <p className="sidebar-section-label">{section}</p>
+            <nav className="module-nav" aria-label={section}>
+              {items.map(({ path: to, label, icon: Icon }) => <button key={to} className={activeNav === to ? "active" : ""} onClick={() => go(to)}>
+                {Icon && <Icon size={18} />} <span>{label}</span>
+              </button>)}
+            </nav>
+          </Fragment>;
+        })}
         <div className="sidebar-footer">
-          <div className="sidebar-user"><div>{canViewTimesheetReports && <span className="admin-badge">{admin ? "Superadmin" : "Admin timesheets"}</span>}</div><strong>{session.user.email}</strong></div>
+          <div className="sidebar-user"><div>{access.canViewTimesheetReports && <span className="admin-badge">{admin ? "Superadmin" : "Admin timesheets"}</span>}</div><strong>{session.user.email}</strong></div>
           <div className="sidebar-user-actions"><button title="Salir" className="sidebar-logout" onClick={() => { if (canLeave()) sb.auth.signOut(); }}><LogOut size={17} /></button></div>
         </div>
       </aside>
       <section className="content">
-        {activeTool ? (
-          <ToolsModule tool={activeTool} />
-        ) : activeModule === "perfiles" && admin ? (
-          <ProfilesDirectory session={session} viewerEmployeeId={employee} isAdmin={admin} onEvaluations={() => setActiveModule("evaluaciones")} onChangePassword={() => setActiveModule("cambiar-contrasena")} />
-        ) : activeModule === "reclutamiento" && admin ? (
-          <RecruitmentModule />
-        ) : activeModule === "firmas" && admin ? (
-          <SignaturesModule />
-        ) : activeModule === "cambiar-contrasena" ? (
-          <ChangePassword session={session} onBack={() => setActiveModule("perfil")} />
-        ) : activeModule === "perfil" ? (
-          <Profile session={session} employeeId={employee} viewerEmployeeId={employee} isAdmin={admin} onEvaluations={() => setActiveModule("evaluaciones")} onChangePassword={() => setActiveModule("cambiar-contrasena")} />
-        ) : activeModule === "evaluaciones" ? (
-          <EvaluacionesModule employeeId={employee} isAdmin={admin} />
-        ) : reports && canViewTimesheetReports ? (
-          <AdminDashboard canEdit={admin} onBack={() => setReports(false)} />
-        ) : (
-          <TimesheetsModule employee={employee} admin={admin} canViewTimesheetReports={canViewTimesheetReports} onReports={() => setReports(true)} clients={clients} activities={activities} draft={draft} />
-        )}
+        {active.render({ ...access, session, employee, clients, activities, draft, navigate: go })}
       </section>
-      <BugReporter module={reports && activeModule === "timesheets" ? "timesheets (panel admin)" : activeModule} />
+      <BugReporter module={active.name} />
     </main>
   );
 }

@@ -1,6 +1,8 @@
 # Arquitectura del frontend
 
-`src/App.tsx` inicia la sesión. `src/Workspace.tsx` carga el colaborador, su rol y los catálogos necesarios para la captura, y decide qué módulo mostrar. Cada módulo conserva sus pantallas y lógica dentro de su propia carpeta.
+`src/App.tsx` inicia la sesión. `src/Workspace.tsx` carga el colaborador, su rol, sus permisos y los catálogos necesarios para la captura, y dibuja la barra lateral. `src/modules.tsx` es el registro de módulos: cada entrada define su ruta (`/evaluaciones`, `/tools/flow`…), su sección de la barra lateral, quién la ve y qué pantalla muestra. `src/lib/router.ts` sincroniza la ruta con el navegador, así que cada módulo tiene un enlace propio y los botones atrás/adelante funcionan. Una ruta desconocida o sin permiso lleva a `/timesheets`.
+
+Para agregar un módulo: crea su carpeta y agrega una entrada en `MODULES`. Las subpantallas sin opción en el menú (como `/timesheets/reportes`) usan `parent` para marcar activa la opción correspondiente.
 
 | Carpeta | Responsabilidad |
 | --- | --- |
