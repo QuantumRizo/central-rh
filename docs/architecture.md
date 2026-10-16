@@ -14,7 +14,7 @@ Para agregar un módulo: crea su carpeta y agrega una entrada en `MODULES`. Las 
 | `recruitment/` | Vacantes y candidatos; `repository.ts` concentra el acceso a datos. |
 | `signatures/` | Control de firmas, PDFs por colaborador y archivo Excel original de RH. |
 | `bug-reporter/` | Envío de reportes de errores. |
-| `tools/` | Sección Tools: catálogo de herramientas (`catalog.ts`) y su página. Sólo la ven usuarios con el permiso `toolmaster`. |
+| `tools/` | Sección Tools: catálogo de herramientas (`catalog.ts`). Sólo la ven usuarios con el permiso `toolmaster`. Las herramientas con `component` viven dentro de la plataforma a todo el ancho (`flow/`: Flow comercial, sin login propio; usa la sesión de RH y la Edge Function `flow`, cuyo código está en alcance-app). Las demás abren su sitio actual. |
 | `components/` | Componentes visuales compartidos sin reglas de negocio. |
 | `lib/` | Cliente compartido de Supabase. |
 

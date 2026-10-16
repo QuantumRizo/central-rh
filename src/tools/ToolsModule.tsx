@@ -10,7 +10,7 @@ export function ToolsModule({ tool }: { tool: Tool }) {
         <div className="card-heading"><div><h2><Icon size={19} /> {tool.label}</h2>
           <p>Por ahora la herramienta se abre en su sitio actual, en otra pestaña.</p>
         </div></div>
-        <a className="tools-open" href={tool.url} target="_blank" rel="noreferrer"><ExternalLink size={16} /> Abrir {tool.label}</a>
+        {tool.url && <a className="tools-open" href={tool.url} target="_blank" rel="noreferrer"><ExternalLink size={16} /> Abrir {tool.label}</a>}
       </section>
     </div>
   );

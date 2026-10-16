@@ -1,4 +1,6 @@
+import type { ComponentType } from "react";
 import { BarChart3, MapPinned, Target, Tv, Wallet, type LucideIcon } from "lucide-react";
+import { FlowModule } from "./flow/FlowModule";
 
 // Sitios de Vercel donde viven hoy las herramientas. Si cambia un dominio, basta con definir
 // la variable correspondiente en Vercel (y en el .env local); las rutas se arman solas.
@@ -9,15 +11,16 @@ const SITES = {
 
 const url = (site: keyof typeof SITES, path: string) => `${SITES[site].replace(/\/+$/, "")}${path}`;
 
-// Herramientas de la sección Tools. Mientras se integran a la plataforma, cada una abre
-// su sitio actual en otra pestaña.
+// Herramientas de la sección Tools. Las que tienen `component` viven dentro de la plataforma
+// (con la sesión de RH); las demás abren su sitio actual en otra pestaña.
 export type Tool = {
   id: string;
   label: string;
   group: string;
   description: string;
   icon: LucideIcon;
-  url: string;
+  url?: string;
+  component?: ComponentType;
 };
 
 export const TOOLS: Tool[] = [
@@ -35,5 +38,5 @@ export const TOOLS: Tool[] = [
     url: url("cnTools", "/alcance") },
   { id: "flow", label: "Flow comercial", group: "Comercial", icon: BarChart3,
     description: "Venta, ingreso y márgenes de las campañas por cliente (Flow SIKA).",
-    url: url("cnTools", "/flow") },
+    component: FlowModule },
 ];
