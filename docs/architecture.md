@@ -12,6 +12,7 @@
 | `recruitment/` | Vacantes y candidatos; `repository.ts` concentra el acceso a datos. |
 | `signatures/` | Control de firmas, PDFs por colaborador y archivo Excel original de RH. |
 | `bug-reporter/` | Envío de reportes de errores. |
+| `tools/` | Sección Tools: catálogo de herramientas (`catalog.ts`) y su página. Sólo la ven usuarios con el permiso `toolmaster`. |
 | `components/` | Componentes visuales compartidos sin reglas de negocio. |
 | `lib/` | Cliente compartido de Supabase. |
 
@@ -28,6 +29,7 @@ Las migraciones son cronológicas; cada módulo mantiene sus tablas y políticas
 | Evaluaciones | `evaluation_cycles`, `evaluation_questions`, `evaluation_assignments`, `evaluation_responses`, `evaluation_comments`, `evaluation_final_reports` | Edge Function `send-assignment-email`. |
 | Reclutamiento | `recruitment_positions`, `recruitment_candidates`, `recruitment_matches`, bucket privado `recruitment-cvs` | `/api/recruitment-sync`; la integración con Outlook sigue sujeta a la configuración de TI. |
 | Reporte de errores | Sin tabla de datos propia | Edge Function `send-bug-report`. |
+| Permisos adicionales | `user_permissions` (hoy sólo `toolmaster`) | Función `is_toolmaster()`; se asignan por migración y se suman al rol de `user_roles`. |
 | Firmas y convenios | `employee_signature_registry`, `employee_documents`, `rh_files`, buckets privados `employee-documents` y `rh-private-files` | Importador `scripts/import-signature-files.mjs`. |
 
 ## Firmas y documentos de RH

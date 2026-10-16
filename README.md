@@ -68,3 +68,12 @@ La sincronización automática está programada diariamente a las 14:00 UTC. Un 
 Antes de activar la integración, aplicar `202609220002_recruitment.sql` con el flujo de migraciones descrito arriba y desplegar la app con las variables configuradas. Sin los permisos de TI, la interfaz puede administrar vacantes pero no leer el buzón.
 
 En Vercel deben existir `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` y `GEMINI_API_KEY`. La clave de Gemini es exclusivamente server-side y nunca debe usar el prefijo `VITE_`. `GEMINI_MODEL` es opcional; el servidor usa modelos Flash-Lite estables y cambia automáticamente a otro modelo compatible si existe saturación temporal.
+
+## Tools
+
+La sección **Tools** de la barra lateral reúne los dashboards de Simi (Street Planner, Inversión, Competencia), las Curvas de alcance y el Flow comercial. Sólo la ven usuarios con el permiso `toolmaster` en `public.user_permissions` (hoy, Félix); el permiso se suma al rol y ser admin no lo incluye. Se asigna por migración.
+
+Mientras se integran a la plataforma, cada herramienta abre su sitio actual. Las URL se arman con la URL base de cada sitio de Vercel; si cambia un dominio, define en Vercel la variable correspondiente y vuelve a desplegar:
+
+- `VITE_SIMI_DASHBOARDS_URL` (por defecto `https://dashboards-farmacias.vercel.app`).
+- `VITE_CN_TOOLS_URL` (por defecto `https://cn-tools.vercel.app`).

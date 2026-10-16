@@ -12,6 +12,8 @@ import { ChangePassword } from "./profile/ChangePassword";
 import { RecruitmentModule } from "./recruitment/RecruitmentModule";
 import { SignaturesModule } from "./signatures/SignaturesModule";
 import { BugReporter } from "./bug-reporter/BugReporter";
+import { ToolsModule } from "./tools/ToolsModule";
+import { TOOLS } from "./tools/catalog";
 import { sb } from "./lib/supabase";
 import { HIDDEN_CLIENTS } from "./timesheets/utils";
 
@@ -21,7 +23,9 @@ export function Workspace({ session }: { session: Session }) {
   const [clients, setClients] = useState<Option[]>([]);
   const [activities, setActivities] = useState<Option[]>([]);
   const [reports, setReports] = useState(false);
-  const [activeModule, setActiveModule] = useState<"timesheets" | "evaluaciones" | "perfil" | "perfiles" | "reclutamiento" | "firmas" | "cambiar-contrasena">("timesheets");
+  const [toolmaster, setToolmaster] = useState(false);
+  const [activeModule, setActiveModule] = useState<"timesheets" | "evaluaciones" | "perfil" | "perfiles" | "reclutamiento" | "firmas" | "cambiar-contrasena" | `tool:${string}`>("timesheets");
+  const activeTool = toolmaster ? TOOLS.find((tool) => activeModule === `tool:${tool.id}`) : undefined;
   const draft = useTimesheetDraft(employee);
   const { canLeave, setError, setBusy } = draft;
   const admin = role === "admin";
@@ -52,6 +56,9 @@ export function Workspace({ session }: { session: Session }) {
           ),
         );
         setActivities(results[3].data || []);
+        // Sin el permiso (o antes de aplicar su migración) la sección Tools no aparece.
+        const tools = await sb.rpc("is_toolmaster");
+        setToolmaster(tools.data === true);
         if (!results[0].data)
           throw Error("Tu cuenta no tiene un colaborador vinculado");
       } catch (e) {
@@ -106,13 +113,27 @@ export function Workspace({ session }: { session: Session }) {
             <FileSignature size={18} /> <span>Firmas y convenios</span>
           </button>}
         </nav>
+        {toolmaster && <>
+          <p className="sidebar-section-label">Tools</p>
+          <nav className="module-nav" aria-label="Tools">
+            {TOOLS.map(({ id, label, icon: Icon }) => <button
+              key={id}
+              className={activeModule === `tool:${id}` ? "active" : ""}
+              onClick={() => { if (canLeave()) { setActiveModule(`tool:${id}`); setReports(false); } }}
+            >
+              <Icon size={18} /> <span>{label}</span>
+            </button>)}
+          </nav>
+        </>}
         <div className="sidebar-footer">
           <div className="sidebar-user"><div>{canViewTimesheetReports && <span className="admin-badge">{admin ? "Superadmin" : "Admin timesheets"}</span>}</div><strong>{session.user.email}</strong></div>
           <div className="sidebar-user-actions"><button title="Salir" className="sidebar-logout" onClick={() => { if (canLeave()) sb.auth.signOut(); }}><LogOut size={17} /></button></div>
         </div>
       </aside>
       <section className="content">
-        {activeModule === "perfiles" && admin ? (
+        {activeTool ? (
+          <ToolsModule tool={activeTool} />
+        ) : activeModule === "perfiles" && admin ? (
           <ProfilesDirectory session={session} viewerEmployeeId={employee} isAdmin={admin} onEvaluations={() => setActiveModule("evaluaciones")} onChangePassword={() => setActiveModule("cambiar-contrasena")} />
         ) : activeModule === "reclutamiento" && admin ? (
           <RecruitmentModule />
