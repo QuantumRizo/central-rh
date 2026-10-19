@@ -64,7 +64,7 @@ export function AdminEvaluacionesPanel({ onViewMine }: { onViewMine: () => void 
   if (selectedReport) {
     const cycle = cycles.find((item) => item.id === selectedReport.cycle_id);
     const reportEmployee = employees.find((item) => item.id === selectedReport.employee_id);
-    return <EvaluationReportView report={selectedReport} cycle={cycle} employee={reportEmployee} onBack={() => setSelectedReport(null)} />;
+    return <EvaluationReportView report={selectedReport} cycle={cycle} employee={reportEmployee} onBack={() => { setSelectedReport(null); void load(); }} />;
   }
 
   if (showCreate || selectedCycle) return <CycleEditor
