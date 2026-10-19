@@ -1,0 +1,19 @@
+.access-module { display: grid; gap: var(--space-6); }
+.access-module .card-heading h2 { display: flex; align-items: center; gap: var(--space-2); }
+.access-search { position: relative; display: flex; align-items: center; width: min(100%, 320px); margin-bottom: var(--space-4); }
+.access-search svg { position: absolute; left: var(--space-3); color: var(--color-text-subtle); pointer-events: none; }
+.access-search input { width: 100%; padding-left: 34px; }
+.access-table-wrap { overflow-x: auto; }
+.access-table { width: 100%; border-collapse: collapse; }
+.access-table th, .access-table td { padding: var(--space-2) var(--space-3); border-bottom: 1px solid var(--color-divider); text-align: left; }
+.access-table thead th { color: var(--color-text-muted); font-size: var(--text-sm); font-weight: var(--weight-semibold); }
+.access-table .access-section { text-align: center; color: var(--color-text-secondary); border-bottom-color: var(--color-border); }
+.access-table .access-tool { text-align: center; min-width: 92px; }
+.access-table tbody th { display: grid; gap: 2px; min-width: 240px; font-size: var(--text-md); font-weight: var(--weight-regular); }
+.access-table tbody th strong { color: var(--color-text); font-weight: var(--weight-semibold); }
+.access-table tbody th span { color: var(--color-text-muted); font-size: var(--text-sm); }
+.access-table tbody tr:hover { background: var(--color-surface-muted); }
+.access-table td.access-cell { text-align: center; }
+.access-cell input { width: 18px; height: 18px; accent-color: var(--color-primary); cursor: pointer; }
+.access-cell input:disabled { cursor: default; }
+.access-empty { margin: 0; padding: var(--space-6); color: var(--color-text-muted); text-align: center; }

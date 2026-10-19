@@ -12,7 +12,7 @@ import { HIDDEN_CLIENTS } from "./timesheets/utils";
 export function Workspace({ session }: { session: Session }) {
   const [employee, setEmployee] = useState("");
   const [role, setRole] = useState("collaborator");
-  const [toolmaster, setToolmaster] = useState(false);
+  const [tools, setTools] = useState<string[]>([]);
   const [accessReady, setAccessReady] = useState(false);
   const [clients, setClients] = useState<Option[]>([]);
   const [activities, setActivities] = useState<Option[]>([]);
@@ -20,7 +20,11 @@ export function Workspace({ session }: { session: Session }) {
   const { canLeave, setError, setBusy } = draft;
   const { path, navigate, replace } = usePath(canLeave);
   const admin = role === "admin";
-  const access: Access = { admin, canViewTimesheetReports: admin || role === "timesheet_admin", toolmaster };
+  const superadmin = tools.includes("*");
+  const access: Access = {
+    admin, canViewTimesheetReports: admin || role === "timesheet_admin", superadmin,
+    hasTool: (toolId) => superadmin || tools.includes(toolId),
+  };
   const visible = MODULES.filter((module) => module.visible(access));
   const active = visible.find((module) => module.path === path) ?? visible.find((module) => module.path === DEFAULT_PATH)!;
   const activeNav = active.parent ?? active.path;
@@ -40,7 +44,7 @@ export function Workspace({ session }: { session: Session }) {
             .select("id,name")
             .eq("active", true)
             .order("name"),
-          sb.rpc("is_toolmaster"),
+          sb.rpc("my_tools"),
         ]);
         for (const r of results) if (r.error) throw r.error;
         setEmployee(results[0].data || "");
@@ -51,7 +55,7 @@ export function Workspace({ session }: { session: Session }) {
           ),
         );
         setActivities(results[3].data || []);
-        setToolmaster(results[4].data === true);
+        setTools((results[4].data as string[] | null) ?? []);
         setAccessReady(true);
         if (!results[0].data)
           throw Error("Tu cuenta no tiene un colaborador vinculado");
@@ -86,7 +90,7 @@ export function Workspace({ session }: { session: Session }) {
           </Fragment>;
         })}
         <div className="sidebar-footer">
-          <div className="sidebar-user"><div>{access.canViewTimesheetReports && <span className="admin-badge">{admin ? "Superadmin" : "Admin timesheets"}</span>}</div><strong>{session.user.email}</strong></div>
+          <div className="sidebar-user"><div>{access.canViewTimesheetReports && <span className="admin-badge">{superadmin ? "Super admin" : admin ? "Admin" : "Admin timesheets"}</span>}</div><strong>{session.user.email}</strong></div>
           <div className="sidebar-user-actions"><button title="Salir" className="sidebar-logout" onClick={() => { if (canLeave()) sb.auth.signOut(); }}><LogOut size={17} /></button></div>
         </div>
       </aside>

@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import type { Session } from "@supabase/supabase-js";
-import { BriefcaseBusiness, ClipboardCheck, Clock3, FileSignature, UserRound, Users, type LucideIcon } from "lucide-react";
+import { BriefcaseBusiness, ClipboardCheck, Clock3, FileSignature, KeyRound, UserRound, Users, type LucideIcon } from "lucide-react";
 import type { Option } from "./components/Picker";
 import { AdminDashboard } from "./timesheets/admin/AdminDashboard";
 import { TimesheetsModule } from "./timesheets/TimesheetsModule";
@@ -12,9 +12,17 @@ import { ChangePassword } from "./profile/ChangePassword";
 import { RecruitmentModule } from "./recruitment/RecruitmentModule";
 import { SignaturesModule } from "./signatures/SignaturesModule";
 import { ToolsModule } from "./tools/ToolsModule";
+import { AccessModule } from "./access/AccessModule";
 import { TOOLS } from "./tools/catalog";
 
-export type Access = { admin: boolean; canViewTimesheetReports: boolean; toolmaster: boolean };
+export type Access = {
+  admin: boolean;
+  canViewTimesheetReports: boolean;
+  /** Administra quién abre cada herramienta (permiso `superadmin`). */
+  superadmin: boolean;
+  /** Herramientas que puede abrir (`public.tool_access`; el super admin, todas). */
+  hasTool: (toolId: string) => boolean;
+};
 
 export type ModuleContext = Access & {
   session: Session;
@@ -63,9 +71,11 @@ export const MODULES: AppModule[] = [
     render: () => <SignaturesModule /> },
   ...TOOLS.map((tool): AppModule => ({
     path: `/tools/${tool.id}`, name: `tools: ${tool.id}`, section: tool.section, label: tool.label, icon: tool.icon,
-    visible: (a) => a.toolmaster, render: () => <ToolsModule tool={tool} />,
+    visible: (a) => a.hasTool(tool.id), render: () => <ToolsModule tool={tool} />,
   })),
+  { path: "/configuracion/accesos", name: "accesos", section: "Configuración", label: "Accesos", icon: KeyRound, visible: (a) => a.superadmin,
+    render: () => <AccessModule /> },
 ];
 
 export const DEFAULT_PATH = "/timesheets";
-export const SECTIONS = ["RH", "Simi", "CN Tools"] as const;
+export const SECTIONS = ["RH", "Simi", "CN Tools", "Configuración"] as const;

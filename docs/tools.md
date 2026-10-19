@@ -1,6 +1,6 @@
 # Tools: cómo agregar un dashboard o herramienta
 
-La plataforma RH es la entrada única de Central MX. La barra lateral tiene tres secciones: **RH** (los módulos de Recursos Humanos), **Simi** (dashboards de Farmacias Similares) y **CN Tools** (herramientas de Central de Negocios). Simi y CN Tools sólo las ven las cuentas con el permiso `toolmaster` (hoy, Félix y Jorge).
+La plataforma RH es la entrada única de Central MX. La barra lateral tiene tres secciones: **RH** (los módulos de Recursos Humanos), **Simi** (dashboards de Farmacias Similares) y **CN Tools** (herramientas de Central de Negocios). Cada persona ve sólo las herramientas que tiene en `public.tool_access`; el super admin (permiso `superadmin`, hoy Félix) las ve todas y asigna los accesos en **Configuración → Accesos** (`/configuracion/accesos`). Una herramienta nueva aparece ahí sola en cuanto se agrega al catálogo.
 
 ## Base de datos compartida
 
@@ -23,6 +23,9 @@ Reglas:
 6. Es la base de producción, con datos de RH en uso diario (evaluaciones, timesheets). Nunca `supabase db reset`, ni cambios a `public` fuera del flujo de migraciones del `AGENTS.md`.
 
 ## Acceso
+
+- **Quién abre qué:** `public.tool_access (user_id, tool_id)`, con el mismo `id` que el catálogo. Los servidores de cada herramienta lo comprueban con `public.user_has_tool(user_id, tool_id)` (el super admin pasa siempre). El navegador usa `my_tools()`; la pantalla de Accesos, `tool_access_matrix()` y `set_tool_access()`, que exigen super admin.
+- `toolmaster` queda sólo para subir datos en el `/admin` de los dashboards de Simi.
 
 - Los dashboards de Tools **no piden login**, por decisión de Félix (oct 2026): se abren en otra pestaña con un link público. La sección Tools oculta los links, no protege los datos. No agregues login a un dashboard si no te lo piden.
 - Lo que sí escribe datos (cargas de Excel, administración) exige el permiso `toolmaster`, comprobado en el servidor: `select exists (select 1 from public.user_permissions where user_id = $1 and permission = 'toolmaster')` con el usuario de la sesión de Supabase Auth (ver `src/lib/admin.ts` de street-planner-simi). En Storage, las políticas usan `public.is_toolmaster()`.
