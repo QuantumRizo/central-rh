@@ -18,6 +18,7 @@ import { CycleEditor } from "./CycleEditor";
 import { EvaluationReportView } from "./EvaluationReportView";
 import { EvaluationCycleDetail } from "./EvaluationCycleDetail";
 import { averageNumber, formatDate, formatScore } from "./format";
+import type { CloseCycleInput } from "./CloseCycleDialog";
 import { hasAllResponses, hasRequiredComments } from "./taskUtils";
 
 const employeeFields = "id,full_name,position,department";
@@ -75,9 +76,8 @@ export function AdminEvaluacionesPanel({ onViewMine }: { onViewMine: () => void 
     onSaved={(notice) => { setShowCreate(false); setSelectedCycle(null); setMessage(notice); void load(); }}
   />;
 
-  const closeCycle = async (cycle: EvaluationCycle) => {
+  const closeCycle = async (cycle: EvaluationCycle, input: CloseCycleInput) => {
     if (!cycle.evaluated_employee_id || closingCycleId) return;
-    if (!window.confirm(`¿Cerrar el ciclo “${cycle.name}”? Se generará el resultado final y ya no se podrán editar sus evaluaciones.`)) return;
     setClosingCycleId(cycle.id); setError(''); setMessage('');
     try {
       const [assignmentsResult, responsesResult, commentsResult, questionsResult] = await Promise.all([
@@ -92,29 +92,25 @@ export function AdminEvaluacionesPanel({ onViewMine }: { onViewMine: () => void 
       const responses = (responsesResult.data ?? []) as EvaluationResponse[];
       const comments = (commentsResult.data ?? []) as EvaluationComment[];
       const questions = (questionsResult.data ?? []) as EvaluationQuestion[];
-      const pending = assignments.filter((assignment) => {
+      const completedIds = new Set(assignments.filter((assignment) => {
         const assignmentResponses = responses.filter((response) => response.evaluator_id === assignment.evaluator_id);
         const assignmentComment = comments.find((comment) => comment.evaluator_id === assignment.evaluator_id);
-        return !hasAllResponses(assignmentResponses, questions) || !hasRequiredComments(assignmentComment);
-      });
-      if (pending.length) throw new Error(`No se puede cerrar: faltan ${pending.length} evaluación${pending.length === 1 ? '' : 'es'} por completar.`);
-      const selfValues = responses.filter((response) => response.evaluation_type === 'self').map((response) => Number(response.score));
-      const collectiveValues = responses.filter((response) => response.evaluation_type === 'peer').map((response) => Number(response.score));
-      const selfScore = averageNumber(selfValues);
-      const collectiveScore = averageNumber(collectiveValues);
-      if (selfScore === null || collectiveScore === null) throw new Error('No se puede cerrar: se necesitan autoevaluación y evaluación colectiva.');
-      const strengths = [...new Set(comments.map((comment) => comment.strengths?.trim()).filter(Boolean))].join('\n\n') || null;
-      const opportunities = [...new Set(comments.map((comment) => comment.opportunities?.trim()).filter(Boolean))].join('\n\n') || null;
+        return hasAllResponses(assignmentResponses, questions) && hasRequiredComments(assignmentComment);
+      }).map((assignment) => assignment.evaluator_id));
+      const completed = responses.filter((response) => completedIds.has(response.evaluator_id));
+      const selfScore = averageNumber(completed.filter((response) => response.evaluation_type === 'self').map((response) => Number(response.score)));
+      const collectiveScore = averageNumber(completed.filter((response) => response.evaluation_type === 'peer').map((response) => Number(response.score)));
       const existingReport = reports.find((report) => report.cycle_id === cycle.id && report.employee_id === cycle.evaluated_employee_id);
+      const automaticScore = selfScore !== null && collectiveScore !== null ? (selfScore + collectiveScore) / 2 : null;
       const { error: reportError } = await sb.from('evaluation_final_reports').upsert({
         cycle_id: cycle.id,
         employee_id: cycle.evaluated_employee_id,
         self_score: selfScore,
         collective_score: collectiveScore,
-        final_score: (selfScore + collectiveScore) / 2,
-        strengths,
-        opportunities,
-        admin_summary: existingReport?.admin_summary ?? 'Resultado consolidado con promedio 50% autoevaluación y 50% evaluación colectiva.',
+        final_score: input.finalPercent === null ? automaticScore : input.finalPercent / 100,
+        strengths: input.strengths || null,
+        opportunities: input.opportunities || null,
+        admin_summary: input.adminSummary || existingReport?.admin_summary || (automaticScore === null ? null : 'Resultado consolidado con promedio 50% autoevaluación y 50% evaluación colectiva.'),
         is_exported: existingReport?.is_exported ?? false,
       }, { onConflict: 'cycle_id,employee_id' });
       if (reportError) throw reportError;
@@ -152,7 +148,7 @@ export function AdminEvaluacionesPanel({ onViewMine }: { onViewMine: () => void 
       onEdit={() => setSelectedCycle(currentCycle)}
       onReport={() => { if (report) setSelectedReport(report); }}
       onNotify={() => void notifyCycle(currentCycle)}
-      onClose={() => void closeCycle(currentCycle)}
+      onClose={(input) => void closeCycle(currentCycle, input)}
       notifying={notifyingCycleId === currentCycle.id} closing={closingCycleId === currentCycle.id}
     />{error && <p className="error" role="alert">{error}</p>}{message && <p className="success" role="status">{message}</p>}</>;
   }

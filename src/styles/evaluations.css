@@ -955,3 +955,21 @@
 .evaluation-report-summary > div.is-pending:nth-child(3) { border-color: var(--color-holiday-border); background: var(--color-holiday-soft); }
 .evaluation-report-summary > div:nth-child(3) strong,
 .evaluation-report-summary > div:nth-child(3) small { color: var(--color-holiday); }
+
+/* Close-cycle dialog */
+.evaluation-close-dialog {
+  display: grid;
+  gap: var(--space-4);
+  width: min(100%, 560px);
+  max-height: calc(100dvh - 48px);
+  overflow: auto;
+  padding: var(--space-6);
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-overlay);
+}
+.evaluation-close-header { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-3); }
+.evaluation-close-header h2 { margin: 0 0 var(--space-1); font-size: var(--text-xl); }
+.evaluation-close-header p { margin: 0; color: var(--color-text-muted); font-size: var(--text-md); }
+.evaluation-close-dialog label { display: grid; gap: var(--space-2); color: var(--color-text-secondary); font-size: var(--text-md); font-weight: var(--weight-medium); }
+.evaluation-close-warning { margin: 0; padding: var(--space-3); border: 1px solid var(--color-warning-border); border-radius: var(--radius-md); background: var(--color-warning-soft); color: var(--color-warning); font-size: var(--text-md); }

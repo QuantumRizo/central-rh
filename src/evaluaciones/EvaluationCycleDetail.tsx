@@ -4,6 +4,7 @@ import { formatDate, formatScore } from './format';
 import { buildParticipants, loadCycleData, participantStatus } from './cycleData';
 import { buildEvaluationSummary } from './evaluationSummary';
 import { EvaluationResultsTable } from './EvaluationResultsTable';
+import { CloseCycleDialog, type CloseCycleInput } from './CloseCycleDialog';
 import { EvaluationResponseDetail } from './EvaluationResponseDetail';
 import type { EvaluationAssignment, EvaluationComment, EvaluationCycle, EvaluationEmployee, EvaluationQuestion, EvaluationResponse, EvaluationFinalReport } from './types';
 
@@ -14,7 +15,7 @@ export function EvaluationCycleDetail({ cycle, report, onBack, onEdit, onReport,
   onEdit: () => void;
   onReport: () => void;
   onNotify: () => void;
-  onClose: () => void;
+  onClose: (input: CloseCycleInput) => void;
   notifying: boolean;
   closing: boolean;
 }) {
@@ -25,6 +26,7 @@ export function EvaluationCycleDetail({ cycle, report, onBack, onEdit, onReport,
   const [questions, setQuestions] = useState<EvaluationQuestion[]>([]);
   const [busy, setBusy] = useState(true);
   const [error, setError] = useState('');
+  const [closeOpen, setCloseOpen] = useState(false);
   const [selectedEvaluatorId, setSelectedEvaluatorId] = useState<string | null>(null);
 
   const exportWorkbook = (args: Parameters<typeof import('./evaluationExcel').downloadEvaluationWorkbook>[0]) => { void import('./evaluationExcel').then(({ downloadEvaluationWorkbook }) => downloadEvaluationWorkbook(args)).catch((exportError: Error) => setError(exportError.message)); };
@@ -93,6 +95,7 @@ export function EvaluationCycleDetail({ cycle, report, onBack, onEdit, onReport,
             status: participantStatus(participant),
           })),
         })} disabled={busy || Boolean(error) || !participants.length}><Download size={16} /> Descargar resumen Excel</button>
+        {cycle.status === 'active' && participants.length > 0 && <button className="secondary" onClick={() => setCloseOpen(true)} disabled={busy || Boolean(error) || closing}>Cerrar ciclo</button>}
         {cycle.status === 'active' && <button onClick={onNotify} disabled={notifying}>{notifying ? 'Enviando…' : 'Enviar avisos'}</button>}
       </div>
     </div>
@@ -108,7 +111,14 @@ export function EvaluationCycleDetail({ cycle, report, onBack, onEdit, onReport,
         const content = <><div className={`evaluation-task-icon ${complete ? 'done' : ''}`}>{complete ? <Check size={18} /> : <ClipboardCheck size={18} />}</div><div className="evaluation-task-copy"><strong>{employee?.full_name || 'Colaborador no disponible'}</strong><span>{assignment.evaluator_id === cycle.evaluated_employee_id ? 'Autoevaluación' : 'Evaluación colectiva'}{employee?.department ? ` · ${employee.department}` : ''}</span></div><div className="evaluation-detail-response"><span className={`evaluation-task-status ${complete ? 'done' : ''}`}>{complete ? 'Respondió' : started ? 'En curso' : 'Sin responder'}</span>{!complete && started && <small>{answered} de {questions.length} preguntas respondidas</small>}{started && <small className="evaluation-detail-open">Ver respuesta <ChevronRight size={16} /></small>}</div></>;
         return started ? <button type="button" className="evaluation-detail-participant evaluation-detail-participant-link" key={assignment.id} onClick={() => setSelectedEvaluatorId(assignment.evaluator_id)} aria-label={`Ver respuesta de ${employee?.full_name || 'colaborador'}`}>{content}</button> : <div className="evaluation-detail-participant" key={assignment.id}>{content}</div>;
       })}</div> : <div className="evaluation-empty"><ClipboardCheck size={30} /><strong>Sin participantes asignados</strong><p>Agrega evaluadores para empezar el seguimiento.</p></div>}</section>
-      {cycle.status === 'active' && participants.length > 0 && <div className="evaluation-detail-footer"><span>{pending > 0 ? `Faltan ${pending} evaluación${pending === 1 ? '' : 'es'} por completar para cerrar el ciclo.` : 'Todas las evaluaciones están completas.'}</span><button type="button" className="secondary" onClick={onClose} disabled={closing || pending > 0}>{closing ? 'Cerrando…' : 'Cerrar ciclo'}</button></div>}
     </>}
+    {closeOpen && <CloseCycleDialog pending={pending} busy={closing} initial={{
+      strengths: uniqueComments(completedComments.map((entry) => entry.comment?.strengths)),
+      opportunities: uniqueComments(completedComments.map((entry) => entry.comment?.opportunities)),
+    }} onCancel={() => setCloseOpen(false)} onConfirm={(input) => { setCloseOpen(false); onClose(input); }} />}
   </div>;
+}
+
+function uniqueComments(values: (string | null | undefined)[]) {
+  return [...new Set(values.map((value) => value?.trim()).filter(Boolean))].join('\n\n');
 }
