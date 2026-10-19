@@ -887,8 +887,7 @@
 
 /* Print-only blocks stay hidden on screen */
 .evaluation-print-header,
-.evaluation-print-dictamen,
-.evaluation-print-signatures { display: none; }
+.evaluation-print-dictamen { display: none; }
 
 @page { size: A4; margin: 14mm; }
 
@@ -896,7 +895,7 @@
   * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   body { background: #fff; }
   .app { padding-left: 0; background: #fff; }
-  .app-sidebar, .bug-reporter,
+  .app-sidebar,
   .evaluation-report-view .page-header,
   .evaluation-results-toolbar,
   .evaluation-admin-editor { display: none; }
@@ -928,10 +927,6 @@
   .evaluation-print-dictamen p { margin: 0; font-size: var(--text-base); line-height: 1.6; white-space: pre-wrap; }
   .evaluation-print-final { display: flex; align-items: center; justify-content: space-between; }
   .evaluation-print-final strong { font-size: var(--text-3xl); }
-  .evaluation-print-signatures { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-12); padding-top: var(--space-8); break-inside: avoid; }
-  .evaluation-print-signatures div { padding-top: var(--space-10); border-bottom: 1px solid var(--color-text); }
-  .evaluation-print-signatures span { display: block; transform: translateY(100%); color: var(--color-text-muted); font-size: var(--text-sm); }
-  .evaluation-print-signatures p { grid-column: 1 / -1; margin: var(--space-8) 0 0; color: var(--color-text-subtle); font-size: var(--text-sm); text-align: center; }
 }
 
 /* Score cards: tinted like the original report (self / collective / final) */

@@ -241,3 +241,7 @@
     transition: none;
   }
 }
+
+@media print {
+  .bug-reporter { display: none; }
+}

@@ -116,11 +116,6 @@ export function EvaluationReportView({ report, cycle, employee, onBack }: { repo
         <div><h3>Síntesis administrativa / conclusión</h3><p>{current.admin_summary || 'Sin síntesis administrativa.'}</p></div>
         {current.final_score !== null && <div className="evaluation-print-final"><h3>Calificación final asignada</h3><strong>{formatScore(current.final_score)}</strong></div>}
       </section>
-      <div className="evaluation-print-signatures">
-        <div><span>Firma del administrador</span></div>
-        <div><span>Firma del colaborador</span></div>
-        <p>Documento generado el {new Date().toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' })} — Central de Negocios</p>
-      </div>
     </>}
   </div>;
 }
