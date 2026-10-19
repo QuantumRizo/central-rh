@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, Download, LoaderCircle } from "lucide-react";
+import { ArrowLeft, Download, FileText, LoaderCircle } from "lucide-react";
 import { AdminDictamenEditor, dictamenFromReport, parsePercent } from './AdminDictamenEditor';
 import { buildParticipants, loadCycleData, participantStatus, type CycleData, type Participant } from './cycleData';
 import { buildEvaluationSummary } from './evaluationSummary';
@@ -42,6 +42,16 @@ export function EvaluationReportView({ report, cycle, employee, onBack }: { repo
   const { percent: percentValue, invalid: percentInvalid } = parsePercent(draft.finalPercent);
   const current: EvaluationFinalReport = { ...report, strengths: draft.strengths.trim() || null, opportunities: draft.opportunities.trim() || null, admin_summary: draft.adminSummary.trim() || null, final_score: percentValue === null || percentInvalid ? report.final_score : percentValue / 100 };
 
+  // El PDF es la impresión del navegador (Guardar como PDF); el título del documento sirve de nombre de archivo.
+  const downloadPdf = () => {
+    const previous = document.title;
+    const slug = (value: string) => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/gi, '_').replace(/^_|_$/g, '');
+    document.title = `Reporte_${slug(employee?.full_name || 'evaluacion')}_${slug(cycle?.name || 'ciclo')}`;
+    const restore = () => { document.title = previous; window.removeEventListener('afterprint', restore); };
+    window.addEventListener('afterprint', restore);
+    window.print();
+  };
+
   const exportExcel = async () => {
     if (!data || !cycle) return;
     setExporting(true);
@@ -69,17 +79,22 @@ export function EvaluationReportView({ report, cycle, employee, onBack }: { repo
         <h1>Reporte: {employee?.full_name || 'Persona evaluada'}</h1>
         <p className="evaluation-report-meta"><span>Ciclo: {cycle?.name || 'Ciclo histórico'}</span>{employee?.position && <><i />{employee.position}</>}</p>
       </div>
+      <div className="page-header-actions">
+      <button className="secondary" onClick={downloadPdf} disabled={busy}><FileText size={16} /> Descargar PDF</button>
       <button className="secondary" onClick={() => void exportExcel()} disabled={busy || exporting || !data || !cycle || !participants.length}>
         {exporting ? <LoaderCircle className="spin" size={16} /> : <Download size={16} />} Exportar Excel
       </button>
+      </div>
     </header>
     <div className="evaluation-print-header">
-      <h1>Central de Negocios</h1>
+      <img src="/Logo_CN_2025_Negro.webp" alt="Central" />
+      <h1>Reporte de evaluación de desempeño</h1>
       <dl>
         <div><dt>Colaborador:</dt><dd>{employee?.full_name ?? '—'}</dd></div>
         <div><dt>Área:</dt><dd>{employee?.department ?? '—'}</dd></div>
         <div><dt>Puesto:</dt><dd>{employee?.position ?? '—'}</dd></div>
         <div><dt>Ciclo:</dt><dd>{cycle?.name ?? '—'}</dd></div>
+        <div><dt>Fecha:</dt><dd>{new Date().toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' })}</dd></div>
       </dl>
     </div>
     {error && <p className="error" role="alert">{error}</p>}
@@ -117,8 +132,9 @@ function EvaluatorDetails({ participants, questions, responses, comments, evalua
     .filter((participant) => participant.started)
     .sort((a, b) => Number(b.assignment.evaluator_id === evaluatedId) - Number(a.assignment.evaluator_id === evaluatedId) || (a.employee?.full_name ?? '').localeCompare(b.employee?.full_name ?? '', 'es'));
   if (!entries.length) return null;
-  return <section className="evaluation-evaluator-details">
+  return <section className="evaluation-evaluator-details evaluation-admin-only">
     <h2>Detalle de evaluadores y comentarios</h2>
+    <p className="evaluation-admin-only-note">Solo para administración: esta sección no se incluye en el PDF que se entrega al colaborador.</p>
     {entries.map(({ assignment, employee }) => {
       const own = responses.filter((response) => response.evaluator_id === assignment.evaluator_id && response.evaluated_id === evaluatedId);
       const comment = comments.find((item) => item.evaluator_id === assignment.evaluator_id);

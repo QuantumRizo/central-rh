@@ -45,12 +45,12 @@ export function EvaluationResultsTable({ categories, questionScores }: { categor
           <span className={`evaluation-score ${collectiveTone(category.collectiveScore)}`}>{formatScore(category.collectiveScore)}</span>
           <span>{formatDiff(category.selfScore, category.collectiveScore)}</span>
         </button>
-        {open && category.questions.map((question) => {
+        {category.questions.map((question) => {
           const scores = questionScores.get(question.id);
           const self = scores?.self ?? null;
           const collective = scores?.collective ?? null;
           const low = (self !== null && self < LOW_SCORE) || (collective !== null && collective < LOW_SCORE);
-          return <div className="evaluation-results-grid evaluation-results-row is-question" key={question.id}>
+          return <div className={`evaluation-results-grid evaluation-results-row is-question${open ? '' : ' is-collapsed'}`} key={question.id}>
             <span className="evaluation-results-name"><small>#{numbers.get(question.id)}</small><span>{question.question_text}{low && <em className="evaluation-low-badge">Oportunidad de mejora</em>}</span></span>
             <span className="evaluation-score muted">–</span>
             <span className={`evaluation-score ${self !== null && self < 0.75 ? 'warn' : ''}`}>{formatScore(self)}</span>
