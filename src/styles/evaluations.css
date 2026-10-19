@@ -944,3 +944,14 @@
   .evaluation-print-signatures span { display: block; transform: translateY(100%); color: var(--color-text-muted); font-size: var(--text-sm); }
   .evaluation-print-signatures p { grid-column: 1 / -1; margin: var(--space-8) 0 0; color: var(--color-text-subtle); font-size: var(--text-sm); text-align: center; }
 }
+
+/* Score cards: tinted like the original report (self / collective / final) */
+.evaluation-report-summary > div:nth-child(1) { border-color: var(--color-personal-border); background: var(--color-personal-soft); }
+.evaluation-report-summary > div:nth-child(1) small { color: var(--color-personal); }
+.evaluation-report-summary > div:nth-child(2) { border-color: var(--color-success-border); background: var(--color-success-soft); }
+.evaluation-report-summary > div:nth-child(2) strong,
+.evaluation-report-summary > div:nth-child(2) small { color: var(--color-success); }
+.evaluation-report-summary > div:nth-child(3),
+.evaluation-report-summary > div.is-pending:nth-child(3) { border-color: var(--color-holiday-border); background: var(--color-holiday-soft); }
+.evaluation-report-summary > div:nth-child(3) strong,
+.evaluation-report-summary > div:nth-child(3) small { color: var(--color-holiday); }
