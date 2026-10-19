@@ -64,18 +64,24 @@ export async function downloadEvaluationWorkbook({ cycle, evaluated, participant
     position = last + 2;
   }
 
-  const ordered = [...participants].sort((a, b) => Number(b.evaluatorId === evaluatedId) - Number(a.evaluatorId === evaluatedId));
+  // Autoevaluación primero; después los evaluadores con respuesta completa (los que entran en el promedio vertical) y al final el resto.
+  const isSelf = (participant: ExportParticipant) => participant.evaluatorId === evaluatedId;
+  const isComplete = (participant: ExportParticipant) => participant.status === 'Respondió';
+  const selfRows = participants.filter(isSelf);
+  const peerRows = participants.filter((participant) => !isSelf(participant) && isComplete(participant));
+  const otherRows = participants.filter((participant) => !isSelf(participant) && !isComplete(participant));
+  const ordered = [...selfRows, ...peerRows, ...otherRows];
   const percent = (value: number | null | undefined) => (value === null || value === undefined ? null : Number(value));
-  for (const { evaluatorId, employee, status } of ordered) {
+  const isPercentColumn = (column: (typeof layout)[number]) => column.kind === 'question' || column.kind === 'category' || (column.kind === 'summary' && column.header !== 'Resumen administrativo');
+  const letter = (index: number) => sheet.getColumn(index + 1).letter;
+
+  const addEvaluatorRow = ({ evaluatorId, employee, status }: ExportParticipant) => {
     const byQuestion = new Map(responses
       .filter((response) => response.evaluator_id === evaluatorId && response.evaluated_id === evaluatedId)
       .map((response) => [response.question_id, Number(response.score)]));
     const row = sheet.addRow(layout.map((column) => {
       if (column.kind === 'question') return byQuestion.get(column.question!.id) ?? null;
-      if (column.kind === 'category') {
-        const values = questions.filter((question) => question.category === column.category && byQuestion.has(question.id)).map((question) => byQuestion.get(question.id) ?? 0);
-        return averageNumber(values);
-      }
+      if (column.kind === 'category') return null;
       switch (column.header) {
         case 'Ciclo': return cycle.name;
         case 'Evaluado': return evaluated?.full_name ?? '';
@@ -90,15 +96,49 @@ export async function downloadEvaluationWorkbook({ cycle, evaluated, participant
         default: return report?.admin_summary ?? '';
       }
     }));
+    // Promedio horizontal: cada categoría promedia sus reactivos en esa fila.
     layout.forEach((column, index) => {
       const cell = row.getCell(index + 1);
-      if (column.kind === 'question' || column.kind === 'category' || (column.kind === 'summary' && column.header !== 'Resumen administrativo')) {
+      if (column.kind === 'category') {
+        const values = questions.filter((question) => question.category === column.category && byQuestion.has(question.id)).map((question) => byQuestion.get(question.id) ?? 0);
+        const count = categories.find((category) => category.key === column.category)?.questions.length ?? 0;
+        const average = averageNumber(values);
+        if (average !== null) cell.value = { formula: `AVERAGE(${letter(index - count)}${row.number}:${letter(index - 1)}${row.number})`, result: average };
+      }
+      if (isPercentColumn(column)) {
         cell.numFmt = '0%';
         cell.alignment = { horizontal: 'center' };
       }
       if (column.kind === 'category') cell.font = { bold: true };
     });
+    return row;
+  };
+
+  selfRows.forEach(addEvaluatorRow);
+  const peerStart = sheet.rowCount + 1;
+  peerRows.forEach(addEvaluatorRow);
+  const peerEnd = sheet.rowCount;
+
+  // Promedio vertical: promedio colectivo de cada reactivo y categoría (solo evaluadores con respuesta completa).
+  if (peerRows.length) {
+    const totals = sheet.addRow(layout.map((column, index) => {
+      if (column.header === 'Evaluador') return 'Promedio colectivo';
+      if (column.kind !== 'question' && column.kind !== 'category') return null;
+      const values = Array.from({ length: peerEnd - peerStart + 1 }, (_, offset) => sheet.getRow(peerStart + offset).getCell(index + 1).value)
+        .map((value) => (typeof value === 'number' ? value : value && typeof value === 'object' && 'result' in value ? Number(value.result) : null))
+        .filter((value): value is number => value !== null && Number.isFinite(value));
+      const average = averageNumber(values);
+      return average === null ? null : { formula: `AVERAGE(${letter(index)}${peerStart}:${letter(index)}${peerEnd})`, result: average };
+    }));
+    totals.eachCell({ includeEmpty: true }, (cell) => {
+      cell.font = { bold: true };
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: BAND_FILL } };
+      cell.border = { top: { style: 'thin' } };
+      if (typeof cell.value === 'object' && cell.value !== null) { cell.numFmt = '0%'; cell.alignment = { horizontal: 'center' }; }
+    });
   }
+
+  otherRows.forEach(addEvaluatorRow);
 
   const commentSheet = workbook.addWorksheet('Fortalezas y oportunidades', { views: [{ state: 'frozen', ySplit: 1 }] });
   commentSheet.columns = [
