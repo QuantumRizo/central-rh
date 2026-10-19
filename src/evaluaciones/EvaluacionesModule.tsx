@@ -37,6 +37,8 @@ export function EvaluacionesModule({ employeeId, isAdmin }: Props) {
   const [revision, setRevision] = useState(0);
 
   const loadTasks = useCallback(async () => {
+    // El id del empleado llega de forma asíncrona (o no existe para cuentas sin empleado ligado).
+    if (!employeeId) { setTasks([]); setBusy(false); return; }
     setBusy(true);
     setError('');
     try {
