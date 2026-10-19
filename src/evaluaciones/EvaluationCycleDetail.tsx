@@ -112,13 +112,6 @@ export function EvaluationCycleDetail({ cycle, report, onBack, onEdit, onReport,
         return started ? <button type="button" className="evaluation-detail-participant evaluation-detail-participant-link" key={assignment.id} onClick={() => setSelectedEvaluatorId(assignment.evaluator_id)} aria-label={`Ver respuesta de ${employee?.full_name || 'colaborador'}`}>{content}</button> : <div className="evaluation-detail-participant" key={assignment.id}>{content}</div>;
       })}</div> : <div className="evaluation-empty"><ClipboardCheck size={30} /><strong>Sin participantes asignados</strong><p>Agrega evaluadores para empezar el seguimiento.</p></div>}</section>
     </>}
-    {closeOpen && <CloseCycleDialog pending={pending} busy={closing} initial={{
-      strengths: uniqueComments(completedComments.map((entry) => entry.comment?.strengths)),
-      opportunities: uniqueComments(completedComments.map((entry) => entry.comment?.opportunities)),
-    }} onCancel={() => setCloseOpen(false)} onConfirm={(input) => { setCloseOpen(false); onClose(input); }} />}
+    {closeOpen && <CloseCycleDialog pending={pending} busy={closing} onCancel={() => setCloseOpen(false)} onConfirm={(input) => { setCloseOpen(false); onClose(input); }} />}
   </div>;
-}
-
-function uniqueComments(values: (string | null | undefined)[]) {
-  return [...new Set(values.map((value) => value?.trim()).filter(Boolean))].join('\n\n');
 }
