@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, Download, FileText, LoaderCircle } from "lucide-react";
 import { AdminDictamenEditor, dictamenFromReport, parsePercent } from './AdminDictamenEditor';
-import { buildParticipants, loadCycleData, participantStatus, type CycleData, type Participant } from './cycleData';
+import { buildParticipants, loadCycleData, participantStatus, type CycleData } from './cycleData';
 import { buildEvaluationSummary } from './evaluationSummary';
 import { EvaluationResultsTable } from './EvaluationResultsTable';
 import { formatScore } from "./format";
-import type { EvaluationComment, EvaluationCycle, EvaluationEmployee, EvaluationFinalReport, EvaluationQuestion, EvaluationResponse } from './types';
+import type { EvaluationCycle, EvaluationEmployee, EvaluationFinalReport } from './types';
 
 export function EvaluationReportView({ report, cycle, employee, onBack }: { report: EvaluationFinalReport; cycle?: EvaluationCycle; employee?: EvaluationEmployee; onBack: () => void }) {
   const [data, setData] = useState<CycleData | null>(null);
@@ -35,7 +35,6 @@ export function EvaluationReportView({ report, cycle, employee, onBack }: { repo
     new Set(participants.filter((participant) => participant.complete).map((participant) => participant.assignment.evaluator_id)),
     report.employee_id,
   ), [data, participants, report.employee_id]);
-  const comments = (data?.comments ?? []).filter((comment) => comment.evaluated_id === report.employee_id);
   const selfScore = report.self_score ?? summary.selfScore;
   const collectiveScore = report.collective_score ?? summary.collectiveScore;
 
@@ -117,7 +116,6 @@ export function EvaluationReportView({ report, cycle, employee, onBack }: { repo
         <div><h3>Síntesis administrativa / conclusión</h3><p>{current.admin_summary || 'Sin síntesis administrativa.'}</p></div>
         {current.final_score !== null && <div className="evaluation-print-final"><h3>Calificación final asignada</h3><strong>{formatScore(current.final_score)}</strong></div>}
       </section>
-      <EvaluatorDetails participants={participants} questions={data?.questions ?? []} responses={data?.responses ?? []} comments={comments} evaluatedId={report.employee_id} />
       <div className="evaluation-print-signatures">
         <div><span>Firma del administrador</span></div>
         <div><span>Firma del colaborador</span></div>
@@ -125,40 +123,4 @@ export function EvaluationReportView({ report, cycle, employee, onBack }: { repo
       </div>
     </>}
   </div>;
-}
-
-function EvaluatorDetails({ participants, questions, responses, comments, evaluatedId }: { participants: Participant[]; questions: EvaluationQuestion[]; responses: EvaluationResponse[]; comments: EvaluationComment[]; evaluatedId: string }) {
-  const entries = participants
-    .filter((participant) => participant.started)
-    .sort((a, b) => Number(b.assignment.evaluator_id === evaluatedId) - Number(a.assignment.evaluator_id === evaluatedId) || (a.employee?.full_name ?? '').localeCompare(b.employee?.full_name ?? '', 'es'));
-  if (!entries.length) return null;
-  return <section className="evaluation-evaluator-details evaluation-admin-only">
-    <h2>Detalle de evaluadores y comentarios</h2>
-    <p className="evaluation-admin-only-note">Solo para administración: esta sección no se incluye en el PDF que se entrega al colaborador.</p>
-    {entries.map(({ assignment, employee }) => {
-      const own = responses.filter((response) => response.evaluator_id === assignment.evaluator_id && response.evaluated_id === evaluatedId);
-      const comment = comments.find((item) => item.evaluator_id === assignment.evaluator_id);
-      const isSelf = assignment.evaluator_id === evaluatedId;
-      return <article className="evaluation-report-card evaluation-evaluator-card" key={assignment.id}>
-        <header>
-          <span className="evaluation-avatar">{(employee?.full_name ?? '?').charAt(0).toUpperCase()}</span>
-          <div><h3>{employee?.full_name || 'Colaborador'}{isSelf && <em>Autoevaluación</em>}</h3><p>{employee?.position || 'Sin puesto'} • {employee?.department || 'Sin área'}</p></div>
-        </header>
-        {(comment?.comment || comment?.strengths || comment?.opportunities) && <div className="evaluation-evaluator-comments">
-          {comment.comment && <div><span>Comentario general</span><p>{comment.comment}</p></div>}
-          {comment.strengths && <div><span>Fortalezas</span><p>{comment.strengths}</p></div>}
-          {comment.opportunities && <div><span>Oportunidades de mejora</span><p>{comment.opportunities}</p></div>}
-        </div>}
-        <span className="evaluation-evaluator-label">Respuestas del evaluador (0% a 100%)</span>
-        <div className="evaluation-evaluator-answers">
-          {questions.map((question, index) => {
-            const response = own.find((item) => item.question_id === question.id);
-            if (!response) return null;
-            const score = Number(response.score);
-            return <div key={question.id}><small>{index + 1}.</small><p>{question.question_text}</p><strong className={score >= 0.75 ? 'good' : score >= 0.5 ? 'warn' : 'bad'}>{formatScore(score)}</strong></div>;
-          })}
-        </div>
-      </article>;
-    })}
-  </section>;
 }
