@@ -5,10 +5,11 @@ import { buildParticipants, loadCycleData, participantStatus } from './cycleData
 import { buildEvaluationSummary } from './evaluationSummary';
 import { EvaluationResultsTable } from './EvaluationResultsTable';
 import { CloseCycleDialog, type CloseCycleInput } from './CloseCycleDialog';
+import { AdminDictamenEditor, dictamenFromReport, type DictamenValues } from './AdminDictamenEditor';
 import { EvaluationResponseDetail } from './EvaluationResponseDetail';
 import type { EvaluationAssignment, EvaluationComment, EvaluationCycle, EvaluationEmployee, EvaluationQuestion, EvaluationResponse, EvaluationFinalReport } from './types';
 
-export function EvaluationCycleDetail({ cycle, report, onBack, onEdit, onReport, onNotify, onClose, notifying, closing }: {
+export function EvaluationCycleDetail({ cycle, report, onBack, onEdit, onReport, onNotify, onClose, onReportSaved, notifying, closing }: {
   cycle: EvaluationCycle;
   report?: EvaluationFinalReport;
   onBack: () => void;
@@ -16,6 +17,7 @@ export function EvaluationCycleDetail({ cycle, report, onBack, onEdit, onReport,
   onReport: () => void;
   onNotify: () => void;
   onClose: (input: CloseCycleInput) => void;
+  onReportSaved: () => void;
   notifying: boolean;
   closing: boolean;
 }) {
@@ -27,6 +29,7 @@ export function EvaluationCycleDetail({ cycle, report, onBack, onEdit, onReport,
   const [busy, setBusy] = useState(true);
   const [error, setError] = useState('');
   const [closeOpen, setCloseOpen] = useState(false);
+  const [draft, setDraft] = useState<DictamenValues>(() => dictamenFromReport(report));
   const [selectedEvaluatorId, setSelectedEvaluatorId] = useState<string | null>(null);
 
   const exportWorkbook = (args: Parameters<typeof import('./evaluationExcel').downloadEvaluationWorkbook>[0]) => { void import('./evaluationExcel').then(({ downloadEvaluationWorkbook }) => downloadEvaluationWorkbook(args)).catch((exportError: Error) => setError(exportError.message)); };
@@ -106,12 +109,13 @@ export function EvaluationCycleDetail({ cycle, report, onBack, onEdit, onReport,
       <section className="evaluation-report-summary" aria-label="Resumen de resultados"><div><span>Autoevaluación</span><strong>{formatScore(summary.selfScore)}</strong><small>{summary.selfScore === null ? 'Pendiente' : 'Evaluación completa'}</small></div><div><span>Evaluación colectiva</span><strong>{formatScore(summary.collectiveScore)}</strong><small>{summary.peerCount} evaluador{summary.peerCount === 1 ? '' : 'es'} con respuesta completa</small></div><div><span>Resultado final</span><strong>{formatScore(report?.final_score ?? null)}</strong><small>{report?.final_score == null ? 'Disponible al cerrar el ciclo' : 'Resultado consolidado'}</small></div></section>
       <section className="evaluation-report-card evaluation-detail-results"><div className="evaluation-report-card-heading"><div><h2>Resultados por categoría y reactivo</h2><p>Promedios de evaluaciones completas. Abre una categoría para comparar las preguntas.</p></div></div>{summary.categories.length ? <EvaluationResultsTable categories={summary.categories} questionScores={summary.questionScores} /> : <p className="evaluation-form-note">No hay preguntas configuradas.</p>}</section>
       {completedComments.length > 0 && <section className="evaluation-detail-comments"><article><h2>Fortalezas observadas</h2>{completedComments.filter((entry) => entry.comment?.strengths?.trim()).map((entry) => <div key={entry.id}><strong>{entry.name}</strong><p>{entry.comment?.strengths}</p></div>)}</article><article><h2>Oportunidades observadas</h2>{completedComments.filter((entry) => entry.comment?.opportunities?.trim()).map((entry) => <div key={entry.id}><strong>{entry.name}</strong><p>{entry.comment?.opportunities}</p></div>)}</article></section>}
-      {report && (report.strengths || report.opportunities || report.admin_summary) && <section className="evaluation-report-card evaluation-detail-dictamen"><div className="evaluation-report-card-heading"><h2>Dictamen y retroalimentación administrativa</h2></div>{report.strengths && <div><h3>Fortalezas</h3><p>{report.strengths}</p></div>}{report.opportunities && <div><h3>Oportunidades</h3><p>{report.opportunities}</p></div>}{report.admin_summary && <div><h3>Síntesis administrativa</h3><p>{report.admin_summary}</p></div>}</section>}
+      {cycle.status === 'active' && cycle.evaluated_employee_id && <AdminDictamenEditor cycleId={cycle.id} employeeId={cycle.evaluated_employee_id} report={report} draft onChange={setDraft} onSaved={onReportSaved} />}
+      {cycle.status !== 'active' && report && (report.strengths || report.opportunities || report.admin_summary) && <section className="evaluation-report-card evaluation-detail-dictamen"><div className="evaluation-report-card-heading"><h2>Dictamen y retroalimentación administrativa</h2></div>{report.strengths && <div><h3>Fortalezas</h3><p>{report.strengths}</p></div>}{report.opportunities && <div><h3>Oportunidades</h3><p>{report.opportunities}</p></div>}{report.admin_summary && <div><h3>Síntesis administrativa</h3><p>{report.admin_summary}</p></div>}</section>}
       <section className="evaluation-task-card"><div className="evaluation-card-heading"><div><h2>Quién ha respondido</h2><p>Abre una respuesta para ver todas las preguntas y comentarios. Los promedios incluyen solo evaluaciones completas.</p></div><span>{participants.length} participantes</span></div>{participants.length ? <div className="evaluation-detail-list">{participants.map(({ assignment, employee, answered, complete, started }) => {
         const content = <><div className={`evaluation-task-icon ${complete ? 'done' : ''}`}>{complete ? <Check size={18} /> : <ClipboardCheck size={18} />}</div><div className="evaluation-task-copy"><strong>{employee?.full_name || 'Colaborador no disponible'}</strong><span>{assignment.evaluator_id === cycle.evaluated_employee_id ? 'Autoevaluación' : 'Evaluación colectiva'}{employee?.department ? ` · ${employee.department}` : ''}</span></div><div className="evaluation-detail-response"><span className={`evaluation-task-status ${complete ? 'done' : ''}`}>{complete ? 'Respondió' : started ? 'En curso' : 'Sin responder'}</span>{!complete && started && <small>{answered} de {questions.length} preguntas respondidas</small>}{started && <small className="evaluation-detail-open">Ver respuesta <ChevronRight size={16} /></small>}</div></>;
         return started ? <button type="button" className="evaluation-detail-participant evaluation-detail-participant-link" key={assignment.id} onClick={() => setSelectedEvaluatorId(assignment.evaluator_id)} aria-label={`Ver respuesta de ${employee?.full_name || 'colaborador'}`}>{content}</button> : <div className="evaluation-detail-participant" key={assignment.id}>{content}</div>;
       })}</div> : <div className="evaluation-empty"><ClipboardCheck size={30} /><strong>Sin participantes asignados</strong><p>Agrega evaluadores para empezar el seguimiento.</p></div>}</section>
     </>}
-    {closeOpen && <CloseCycleDialog pending={pending} busy={closing} onCancel={() => setCloseOpen(false)} onConfirm={(input) => { setCloseOpen(false); onClose(input); }} />}
+    {closeOpen && <CloseCycleDialog pending={pending} busy={closing} initial={draft} onCancel={() => setCloseOpen(false)} onConfirm={(input) => { setCloseOpen(false); onClose(input); }} />}
   </div>;
 }

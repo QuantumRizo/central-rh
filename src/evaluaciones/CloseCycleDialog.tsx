@@ -3,23 +3,24 @@ import { LoaderCircle, X } from 'lucide-react';
 
 export type CloseCycleInput = { strengths: string; opportunities: string; adminSummary: string; finalPercent: number | null };
 
-export function CloseCycleDialog({ pending, busy, onCancel, onConfirm }: {
+export function CloseCycleDialog({ pending, busy, initial, onCancel, onConfirm }: {
   pending: number;
   busy: boolean;
+  initial: { strengths: string; opportunities: string; adminSummary: string; finalPercent: string };
   onCancel: () => void;
   onConfirm: (input: CloseCycleInput) => void;
 }) {
-  const [strengths, setStrengths] = useState('');
-  const [opportunities, setOpportunities] = useState('');
-  const [adminSummary, setAdminSummary] = useState('');
-  const [finalPercent, setFinalPercent] = useState('');
+  const [strengths, setStrengths] = useState(initial.strengths);
+  const [opportunities, setOpportunities] = useState(initial.opportunities);
+  const [adminSummary, setAdminSummary] = useState(initial.adminSummary);
+  const [finalPercent, setFinalPercent] = useState(initial.finalPercent);
   const percent = finalPercent.trim() === '' ? null : Number(finalPercent);
   const invalid = percent !== null && (!Number.isFinite(percent) || percent < 0 || percent > 100);
 
   return <div className="ai-modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget && !busy) onCancel(); }}>
     <div className="evaluation-close-dialog" role="dialog" aria-modal="true" aria-labelledby="close-cycle-title">
       <div className="evaluation-close-header">
-        <div><h2 id="close-cycle-title">Cerrar ciclo</h2><p>Se generará el reporte final y ya no se podrán editar las evaluaciones.</p></div>
+        <div><h2 id="close-cycle-title">Cerrar ciclo</h2><p>Se generará el reporte final y ya no se podrán editar las evaluaciones. Desde este momento el colaborador podrá ver su resultado final.</p></div>
         <button type="button" className="icon" onClick={onCancel} disabled={busy} aria-label="Cancelar"><X size={18} /></button>
       </div>
       {pending > 0 && <p className="evaluation-close-warning" role="alert">Faltan {pending} evaluación{pending === 1 ? '' : 'es'} por completar. Si cierras ahora, no se incluirán en los promedios.</p>}

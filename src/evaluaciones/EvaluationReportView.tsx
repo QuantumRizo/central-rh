@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, Download, LoaderCircle } from "lucide-react";
-import { sb } from "../lib/supabase";
+import { AdminDictamenEditor, dictamenFromReport, parsePercent } from './AdminDictamenEditor';
 import { buildParticipants, loadCycleData, participantStatus, type CycleData, type Participant } from './cycleData';
 import { buildEvaluationSummary } from './evaluationSummary';
 import { EvaluationResultsTable } from './EvaluationResultsTable';
@@ -12,12 +12,7 @@ export function EvaluationReportView({ report, cycle, employee, onBack }: { repo
   const [busy, setBusy] = useState(true);
   const [exporting, setExporting] = useState(false);
   const [error, setError] = useState('');
-  const [strengths, setStrengths] = useState(report.strengths ?? '');
-  const [opportunities, setOpportunities] = useState(report.opportunities ?? '');
-  const [adminSummary, setAdminSummary] = useState(report.admin_summary ?? '');
-  const [finalPercent, setFinalPercent] = useState(report.final_score === null ? '' : String(Math.round(Number(report.final_score) * 100)));
-  const [saving, setSaving] = useState(false);
-  const [saved, setSaved] = useState(false);
+  const [draft, setDraft] = useState(() => dictamenFromReport(report));
 
   useEffect(() => {
     let live = true;
@@ -44,30 +39,8 @@ export function EvaluationReportView({ report, cycle, employee, onBack }: { repo
   const selfScore = report.self_score ?? summary.selfScore;
   const collectiveScore = report.collective_score ?? summary.collectiveScore;
 
-  const percentValue = finalPercent.trim() === '' ? null : Number(finalPercent);
-  const percentInvalid = percentValue !== null && (!Number.isFinite(percentValue) || percentValue < 0 || percentValue > 100);
-  const current: EvaluationFinalReport = { ...report, strengths: strengths.trim() || null, opportunities: opportunities.trim() || null, admin_summary: adminSummary.trim() || null, final_score: percentValue === null || percentInvalid ? report.final_score : percentValue / 100 };
-
-  const saveReport = async () => {
-    if (percentInvalid) return;
-    setSaving(true);
-    setSaved(false);
-    setError('');
-    try {
-      const { error: saveError } = await sb.from('evaluation_final_reports').update({
-        strengths: current.strengths,
-        opportunities: current.opportunities,
-        admin_summary: current.admin_summary,
-        final_score: percentValue === null ? null : percentValue / 100,
-      }).eq('id', report.id);
-      if (saveError) throw saveError;
-      setSaved(true);
-    } catch (saveError) {
-      setError((saveError as Error).message);
-    } finally {
-      setSaving(false);
-    }
-  };
+  const { percent: percentValue, invalid: percentInvalid } = parsePercent(draft.finalPercent);
+  const current: EvaluationFinalReport = { ...report, strengths: draft.strengths.trim() || null, opportunities: draft.opportunities.trim() || null, admin_summary: draft.adminSummary.trim() || null, final_score: percentValue === null || percentInvalid ? report.final_score : percentValue / 100 };
 
   const exportExcel = async () => {
     if (!data || !cycle) return;
@@ -122,15 +95,7 @@ export function EvaluationReportView({ report, cycle, employee, onBack }: { repo
           ? <EvaluationResultsTable categories={summary.categories} questionScores={summary.questionScores} />
           : <p className="evaluation-form-note">Sin respuestas registradas para este reporte.</p>}
       </section>
-      <section className="evaluation-report-card evaluation-admin-editor">
-        <div className="evaluation-report-card-heading"><div><h2>Dictamen y Retroalimentación Administrativa</h2><p>Estructura el reporte final del colaborador separando fortalezas, oportunidades detectadas en los reactivos y la síntesis administrativa.</p></div></div>
-        <label>Fortalezas y Competencias Destacadas<textarea rows={5} value={strengths} onChange={(event) => { setStrengths(event.target.value); setSaved(false); }} placeholder="Describe las principales fortalezas, habilidades destacadas y logros del colaborador durante este ciclo..." /></label>
-        <label>Áreas de Oportunidad y Mejora<textarea rows={5} value={opportunities} onChange={(event) => { setOpportunities(event.target.value); setSaved(false); }} placeholder="Detalla las áreas prioritarias de desarrollo identificadas a partir de las calificaciones más bajas y conductas observadas..." /></label>
-        <label>Síntesis Administrativa / Conclusión<textarea rows={5} value={adminSummary} onChange={(event) => { setAdminSummary(event.target.value); setSaved(false); }} placeholder="Redacta el análisis consolidado, conclusión ejecutiva y acuerdos de seguimiento con el colaborador..." /></label>
-        <label className="evaluation-final-score">Calificación final (%)<input type="number" min={0} max={100} step={1} value={finalPercent} onChange={(event) => { setFinalPercent(event.target.value); setSaved(false); }} placeholder="0–100" aria-invalid={percentInvalid} /></label>
-        {percentInvalid && <p className="error" role="alert">La calificación final debe estar entre 0 y 100.</p>}
-        <div className="evaluation-form-actions"><p>{saved ? 'Reporte guardado.' : 'Los cambios se incluyen al exportar a Excel.'}</p><button type="button" onClick={() => void saveReport()} disabled={saving || percentInvalid}>{saving ? 'Guardando…' : 'Guardar reporte'}</button></div>
-      </section>
+      <div className="evaluation-admin-editor-wrap"><AdminDictamenEditor cycleId={report.cycle_id} employeeId={report.employee_id} report={report} draft={false} onChange={setDraft} /></div>
       <section className="evaluation-print-dictamen">
         {current.strengths && <div><h3>Fortalezas y competencias destacadas</h3><p>{current.strengths}</p></div>}
         {current.opportunities && <div><h3>Áreas de oportunidad y mejora</h3><p>{current.opportunities}</p></div>}

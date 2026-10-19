@@ -7,6 +7,8 @@ type ExportParticipant = { evaluatorId: string; employee?: EvaluationEmployee; s
 
 const HEADER_FILL = 'FF156082';
 const BAND_FILL = 'FFDCE6F1';
+const CATEGORY_FILL = 'FFE97132';
+const CATEGORY_SOFT_FILL = 'FFFBE3D6';
 const FIXED_COLUMNS = ['Ciclo', 'Evaluado', 'Área del evaluado', 'Evaluador', 'Área del evaluador', 'Tipo de evaluación', 'Estado'];
 
 export async function downloadEvaluationWorkbook({ cycle, evaluated, participants, questions, responses, comments, report, selfScore, collectiveScore, fileLabel }: {
@@ -43,7 +45,7 @@ export async function downloadEvaluationWorkbook({ cycle, evaluated, participant
     const cell = headerRow.getCell(index + 1);
     cell.value = column.header;
     cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
-    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: HEADER_FILL } };
+    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: column.kind === 'category' ? CATEGORY_FILL : HEADER_FILL } };
     cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
     sheet.getColumn(index + 1).width = column.kind === 'fixed' ? (index === 0 ? 34 : 24) : column.kind === 'summary' ? 16 : column.kind === 'category' ? 14 : 18;
   });
@@ -109,7 +111,10 @@ export async function downloadEvaluationWorkbook({ cycle, evaluated, participant
         cell.numFmt = '0%';
         cell.alignment = { horizontal: 'center' };
       }
-      if (column.kind === 'category') cell.font = { bold: true };
+      if (column.kind === 'category') {
+        cell.font = { bold: true };
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: CATEGORY_SOFT_FILL } };
+      }
     });
     return row;
   };
@@ -132,7 +137,7 @@ export async function downloadEvaluationWorkbook({ cycle, evaluated, participant
     }));
     totals.eachCell({ includeEmpty: true }, (cell) => {
       cell.font = { bold: true };
-      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: BAND_FILL } };
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: CATEGORY_SOFT_FILL } };
       cell.border = { top: { style: 'thin' } };
       if (typeof cell.value === 'object' && cell.value !== null) { cell.numFmt = '0%'; cell.alignment = { horizontal: 'center' }; }
     });

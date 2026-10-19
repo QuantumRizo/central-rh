@@ -149,6 +149,7 @@ export function AdminEvaluacionesPanel({ onViewMine }: { onViewMine: () => void 
       onReport={() => { if (report) setSelectedReport(report); }}
       onNotify={() => void notifyCycle(currentCycle)}
       onClose={(input) => void closeCycle(currentCycle, input)}
+      onReportSaved={() => void load()}
       notifying={notifyingCycleId === currentCycle.id} closing={closingCycleId === currentCycle.id}
     />{error && <p className="error" role="alert">{error}</p>}{message && <p className="success" role="status">{message}</p>}</>;
   }
