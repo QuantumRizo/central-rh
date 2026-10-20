@@ -570,3 +570,7 @@
     display: none;
   }
 }
+.profile-access-role { margin: 0 0 var(--space-3); color: var(--color-text-secondary); font-size: var(--text-md); }
+.profile-access-tools { display: grid; gap: var(--space-2); margin: 0; padding: 0; list-style: none; }
+.profile-access-tools li { display: flex; justify-content: space-between; gap: var(--space-3); font-size: var(--text-md); }
+.profile-access-tools small { color: var(--color-text-muted); font-size: var(--text-sm); }

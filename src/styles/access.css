@@ -17,3 +17,14 @@
 .access-cell input { width: 18px; height: 18px; accent-color: var(--color-primary); cursor: pointer; }
 .access-cell input:disabled { cursor: default; }
 .access-empty { margin: 0; padding: var(--space-6); color: var(--color-text-muted); text-align: center; }
+.access-legend { display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-6); margin: 0 0 var(--space-4); font-size: var(--text-sm); }
+.access-legend div { display: flex; gap: var(--space-2); }
+.access-legend dt { color: var(--color-text); font-weight: var(--weight-semibold); }
+.access-legend dd { margin: 0; color: var(--color-text-muted); }
+.access-table .access-role-head { min-width: 150px; }
+.access-select { width: 100%; min-width: 96px; min-height: 32px; padding: 4px 8px; font-size: var(--text-sm); }
+.access-select.is-on { border-color: var(--color-primary-border); background: var(--color-primary-soft); color: var(--color-primary-strong); font-weight: var(--weight-semibold); }
+.access-history { display: grid; gap: 0; margin: 0; padding: 0; list-style: none; }
+.access-history li { display: grid; grid-template-columns: 170px minmax(0, 1fr) auto; gap: var(--space-3); padding: var(--space-2) 0; border-bottom: 1px solid var(--color-divider); font-size: var(--text-md); }
+.access-history time, .access-history small { color: var(--color-text-muted); font-size: var(--text-sm); }
+@media (max-width: 640px) { .access-history li { grid-template-columns: 1fr; gap: 2px; } }

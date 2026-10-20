@@ -24,8 +24,9 @@ Reglas:
 
 ## Acceso
 
-- **Quién abre qué:** `public.tool_access (user_id, tool_id)`, con el mismo `id` que el catálogo. Los servidores de cada herramienta lo comprueban con `public.user_has_tool(user_id, tool_id)` (el super admin pasa siempre). El navegador usa `my_tools()`; la pantalla de Accesos, `tool_access_matrix()` y `set_tool_access()`, que exigen super admin.
-- `toolmaster` queda sólo para subir datos en el `/admin` de los dashboards de Simi.
+- **Quién abre qué:** `public.tool_access (user_id, tool_id, level)`, con el mismo `id` que el catálogo y nivel `ver` o `cargar` (sólo dashboards de Simi: subir su Excel en el `/admin`; `public.user_can_load`). Los servidores de cada herramienta lo comprueban con `public.user_has_tool(user_id, tool_id)` (el super admin pasa siempre). El navegador usa `my_tools()`; la pantalla de Accesos, `tool_access_matrix()` y `set_tool_access()`, que exigen super admin.
+- El permiso `toolmaster` ya no existe; lo reemplazó el nivel `cargar`.
+- **Rol de RH:** el super admin también lo cambia en Accesos (`set_user_role`). Cada cambio de rol o de nivel queda en `public.access_log` y se ve en el historial de la misma pantalla; el perfil de cada persona muestra su tarjeta "Accesos" (`employee_access`).
 
 - Los dashboards de Tools **no piden login**, por decisión de Félix (oct 2026): se abren en otra pestaña con un link público. La sección Tools oculta los links, no protege los datos. No agregues login a un dashboard si no te lo piden.
 - Lo que sí escribe datos (cargas de Excel, administración) exige el permiso `toolmaster`, comprobado en el servidor: `select exists (select 1 from public.user_permissions where user_id = $1 and permission = 'toolmaster')` con el usuario de la sesión de Supabase Auth (ver `src/lib/admin.ts` de street-planner-simi). En Storage, las políticas usan `public.is_toolmaster()`.

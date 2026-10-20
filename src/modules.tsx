@@ -74,7 +74,7 @@ export const MODULES: AppModule[] = [
     visible: (a) => a.hasTool(tool.id), render: () => <ToolsModule tool={tool} />,
   })),
   { path: "/configuracion/accesos", name: "accesos", section: "Configuración", label: "Accesos", icon: KeyRound, visible: (a) => a.superadmin,
-    render: () => <AccessModule /> },
+    render: (c) => <AccessModule selfUserId={c.session.user.id} /> },
 ];
 
 export const DEFAULT_PATH = "/timesheets";
