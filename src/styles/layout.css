@@ -70,7 +70,11 @@
   gap: 2px;
 }
 
-.app-sidebar .module-nav button {
+.app-sidebar .module-nav button,
+.app-sidebar .module-nav a {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
   width: 100%;
   justify-content: flex-start;
   gap: var(--space-3);
@@ -83,11 +87,13 @@
   text-align: left;
 }
 
-.app-sidebar .module-nav button svg {
+.app-sidebar .module-nav button svg,
+.app-sidebar .module-nav a svg {
   flex: none;
 }
 
-.app-sidebar .module-nav button:hover:not(:disabled) {
+.app-sidebar .module-nav button:hover:not(:disabled),
+.app-sidebar .module-nav a:hover {
   background: var(--sidebar-hover);
   color: var(--sidebar-text-strong);
 }
@@ -267,7 +273,8 @@
     display: none;
   }
 
-  .app-sidebar .module-nav button {
+  .app-sidebar .module-nav button,
+  .app-sidebar .module-nav a {
     flex: 0 0 auto;
     width: auto;
     gap: 6px;
@@ -309,3 +316,6 @@
     min-width: 0;
   }
 }
+
+/* Las herramientas son enlaces (abren otra pestaña) con el mismo aspecto que los botones. */
+.app-sidebar .module-nav a { border-radius: var(--radius-md); }

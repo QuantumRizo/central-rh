@@ -32,6 +32,17 @@ Reglas:
 - Lo que sí escribe datos (cargas de Excel, administración) exige el permiso `toolmaster`, comprobado en el servidor: `select exists (select 1 from public.user_permissions where user_id = $1 and permission = 'toolmaster')` con el usuario de la sesión de Supabase Auth (ver `src/lib/admin.ts` de street-planner-simi). En Storage, las políticas usan `public.is_toolmaster()`.
 - Las cuentas son las de RH. Un permiso nuevo (por ejemplo para un dashboard concreto) se agrega con una migración: amplía el `check` de `public.user_permissions.permission` y crea su función `is_<permiso>()` como `is_toolmaster()`.
 
+## Inicio de sesión único
+
+Las herramientas no tienen login propio: la Plataforma es la única entrada.
+
+1. La barra lateral abre la herramienta directo en otra pestaña (`href` en `src/modules.tsx`).
+2. Si la herramienta no tiene sesión, manda a `<Plataforma>/sso?to=<su URL>`.
+3. La Plataforma (`src/sso.ts`, `App.tsx`) pide login si hace falta y regresa a esa URL con el access token en el fragmento `#sso=` (no viaja al servidor). Sólo lo entrega a los orígenes de `TOOL_ORIGINS` (`src/tools/catalog.ts`, los sitios de `SITES`) y por https.
+4. Las herramientas guardan sólo ese token (~1 h) y, al vencer, repiten el paso 2 sin que la persona escriba nada. No guardan refresh tokens, así que nunca rotan la sesión de la Plataforma.
+
+Un sitio nuevo de herramientas debe agregarse a `SITES` para recibir el pase, y usar la franja "← Plataforma Central" (ver `platform-bar` en cn-tools y en los dashboards de Simi).
+
 ## Agregar un dashboard
 
 **¿Es de Farmacias Similares?** Va en street-planner-simi como un dashboard más: su README explica la estructura por `slug` (página, API, schema, importador). Luego agrega su enlace aquí.

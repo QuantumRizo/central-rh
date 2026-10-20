@@ -43,6 +43,8 @@ export type AppModule = {
   section?: (typeof SECTIONS)[number];
   label?: string;
   icon?: LucideIcon;
+  /** Si existe, la opción del menú abre este sitio en otra pestaña en lugar de una pantalla. */
+  href?: string;
   /** Opción del menú que se marca activa cuando la pantalla es una subpantalla. */
   parent?: string;
   visible: (access: Access) => boolean;
@@ -70,7 +72,7 @@ export const MODULES: AppModule[] = [
   { path: "/firmas", name: "firmas", section: "RH", label: "Firmas y convenios", icon: FileSignature, visible: (a) => a.can("firmas", "admin"),
     render: () => <SignaturesModule /> },
   ...TOOLS.map((tool): AppModule => ({
-    path: `/tools/${tool.id}`, name: `tools: ${tool.id}`, section: tool.section, label: tool.label, icon: tool.icon,
+    path: `/tools/${tool.id}`, name: `tools: ${tool.id}`, section: tool.section, label: tool.label, icon: tool.icon, href: tool.url,
     visible: (a) => a.hasTool(tool.id), render: () => <ToolsModule tool={tool} />,
   })),
   { path: "/configuracion/accesos", name: "accesos", section: "Configuración", label: "Accesos", icon: KeyRound, visible: (a) => a.superadmin,

@@ -81,7 +81,9 @@ export function Workspace({ session }: { session: Session }) {
           return <Fragment key={section}>
             <p className="sidebar-section-label">{section}</p>
             <nav className="module-nav" aria-label={section}>
-              {items.map(({ path: to, label, icon: Icon }) => <button key={to} className={activeNav === to ? "active" : ""} onClick={() => go(to)}>
+              {items.map(({ path: to, label, icon: Icon, href }) => href ? <a key={to} href={href} target="_blank" rel="noopener" title={`Abrir ${label} en otra pestaña`}>
+                {Icon && <Icon size={18} />} <span>{label}</span>
+              </a> : <button key={to} className={activeNav === to ? "active" : ""} onClick={() => go(to)}>
                 {Icon && <Icon size={18} />} <span>{label}</span>
               </button>)}
             </nav>

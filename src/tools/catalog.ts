@@ -7,9 +7,13 @@ const SITES = {
   cnTools: import.meta.env.VITE_CN_TOOLS_URL || "https://cn-tools.vercel.app",
 };
 
+/** Sitios a los que la Plataforma entrega un pase de sesión (/sso). Ningún otro origen lo recibe. */
+export const TOOL_ORIGINS = new Set(Object.values(SITES).map((site) => new URL(site).origin));
+
 const url = (site: keyof typeof SITES, path: string) => `${SITES[site].replace(/\/+$/, "")}${path}`;
 
-// Herramientas de la sección Tools. Cada una abre su sitio en otra pestaña.
+// Herramientas de Simi y CN Tools. La barra lateral las abre directo en otra pestaña; cada sitio
+// toma la sesión de la Plataforma por /sso (src/sso.ts), sin pedir otro login.
 export type Tool = {
   id: string;
   label: string;
