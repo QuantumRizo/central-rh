@@ -166,8 +166,8 @@ export default async function handler(req: any, res: any) {
     const auth = createClient(SUPABASE_URL, ANON_KEY, { global: { headers: { Authorization: `Bearer ${token}` } } });
     const { data: { user } } = await auth.auth.getUser(token);
     if (!user) return reply(res, 401, { error: 'Sesión inválida' });
-    const { data: role } = await auth.from('user_roles').select('role').eq('user_id', user.id).maybeSingle();
-    if (role?.role !== 'admin') return reply(res, 403, { error: 'Sólo administradores' });
+    const { data: allowed } = await auth.rpc('has_module', { module: 'reclutamiento', min_level: 'admin' });
+    if (allowed !== true) return reply(res, 403, { error: 'Tu cuenta no administra Reclutamiento' });
   }
   try {
     const mailbox = process.env.MS_RECRUITMENT_MAILBOX;

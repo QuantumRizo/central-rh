@@ -8,10 +8,11 @@ import { sb } from "./lib/supabase";
 import { usePath } from "./lib/router";
 import { DEFAULT_PATH, MODULES, SECTIONS, type Access } from "./modules";
 import { HIDDEN_CLIENTS } from "./timesheets/utils";
+import { meets } from "./access/levels";
 
 export function Workspace({ session }: { session: Session }) {
   const [employee, setEmployee] = useState("");
-  const [role, setRole] = useState("collaborator");
+  const [modules, setModules] = useState<Record<string, string>>({});
   const [tools, setTools] = useState<string[]>([]);
   const [accessReady, setAccessReady] = useState(false);
   const [clients, setClients] = useState<Option[]>([]);
@@ -19,12 +20,13 @@ export function Workspace({ session }: { session: Session }) {
   const draft = useTimesheetDraft(employee);
   const { canLeave, setError, setBusy } = draft;
   const { path, navigate, replace } = usePath(canLeave);
-  const admin = role === "admin";
   const superadmin = tools.includes("*");
   const access: Access = {
-    admin, canViewTimesheetReports: admin || role === "timesheet_admin", superadmin,
+    superadmin,
+    can: (module, level) => meets(modules[module], level),
     hasTool: (toolId) => superadmin || tools.includes(toolId),
   };
+  const levels = Object.values(modules);
   const visible = MODULES.filter((module) => module.visible(access));
   const active = visible.find((module) => module.path === path) ?? visible.find((module) => module.path === DEFAULT_PATH)!;
   const activeNav = active.parent ?? active.path;
@@ -33,11 +35,7 @@ export function Workspace({ session }: { session: Session }) {
       try {
         const results = await Promise.all([
           sb.rpc("my_employee_id"),
-          sb
-            .from("user_roles")
-            .select("role")
-            .eq("user_id", session.user.id)
-            .maybeSingle(),
+          sb.rpc("my_modules"),
           sb.from("clients").select("id,name").eq("active", true).order("name"),
           sb
             .from("activities")
@@ -48,7 +46,7 @@ export function Workspace({ session }: { session: Session }) {
         ]);
         for (const r of results) if (r.error) throw r.error;
         setEmployee(results[0].data || "");
-        setRole(results[1].data?.role || "collaborator");
+        setModules((results[1].data as Record<string, string> | null) ?? {});
         setClients(
           (results[2].data || []).filter(
             (client) => !HIDDEN_CLIENTS.has(client.name),
@@ -90,7 +88,7 @@ export function Workspace({ session }: { session: Session }) {
           </Fragment>;
         })}
         <div className="sidebar-footer">
-          <div className="sidebar-user"><div>{access.canViewTimesheetReports && <span className="admin-badge">{superadmin ? "Super admin" : admin ? "Admin" : "Admin timesheets"}</span>}</div><strong>{session.user.email}</strong></div>
+          <div className="sidebar-user"><div>{levels.length > 0 && <span className="admin-badge">{superadmin ? "Super admin" : levels.includes("admin") ? "Admin" : "Reportes"}</span>}</div><strong>{session.user.email}</strong></div>
           <div className="sidebar-user-actions"><button title="Salir" className="sidebar-logout" onClick={() => { if (canLeave()) sb.auth.signOut(); }}><LogOut size={17} /></button></div>
         </div>
       </aside>

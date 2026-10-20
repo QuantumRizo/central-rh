@@ -321,7 +321,7 @@ export default async function handler(req: any, res: any) {
     if (userError || !userData.user) throw Error("Tu sesión expiró");
     const [{ data: employeeId, error: employeeError }, { data: role }, { data: clients, error: clientsError }, { data: activities, error: activitiesError }] = await Promise.all([
       sb.rpc("my_employee_id"),
-      sb.from("user_roles").select("role").eq("user_id", userData.user.id).maybeSingle(),
+      sb.rpc("has_module", { module: "timesheets", min_level: "admin" }),
       sb.from("clients").select("id,name").eq("active", true).order("name"),
       sb.from("activities").select("id,name").eq("active", true).order("name"),
     ]);
@@ -344,7 +344,8 @@ export default async function handler(req: any, res: any) {
     const { data: existing, error: existingError } = await sb.from("timesheets").select("work_date").eq("employee_id", employeeId).in("work_date", dates);
     if (existingError) throw existingError;
     const existingDates = new Set((existing || []).map((item) => item.work_date));
-    const isAdmin = role?.role === "admin";
+    // Sobrescribir días ya capturados es de Timesheets admin (Plataforma Central → Accesos).
+    const isAdmin = role === true;
     const overwrite = isAdmin && req.body?.overwrite === true;
     const summary = {
       total: generated.payloads.length,

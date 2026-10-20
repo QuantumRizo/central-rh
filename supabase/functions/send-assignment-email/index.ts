@@ -39,12 +39,9 @@ Deno.serve(async (request) => {
     const { data: { user } } = await userClient.auth.getUser();
     if (!user) return json({ success: false, message: 'Unauthorized' }, 401);
 
-    const { data: role } = await adminClient
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', user.id)
-      .maybeSingle();
-    if (role?.role !== 'admin') return json({ success: false, message: 'Admin access required' }, 403);
+    // Evaluaciones admin (Plataforma Central → Accesos); el super admin siempre pasa.
+    const { data: allowed } = await adminClient.rpc('user_has_module', { target_user: user.id, module: 'evaluaciones', min_level: 'admin' });
+    if (allowed !== true) return json({ success: false, message: 'Admin access required' }, 403);
 
     const { cycle_id: cycleId, evaluator_ids: requestedEvaluatorIds } = await request.json();
     if (!cycleId) return json({ success: false, message: 'Missing cycle_id' }, 400);

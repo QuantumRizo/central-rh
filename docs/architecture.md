@@ -18,7 +18,7 @@ Para agregar un módulo: crea su carpeta y agrega una entrada en `MODULES`. Las 
 | `components/` | Componentes visuales compartidos sin reglas de negocio. |
 | `lib/` | Cliente compartido de Supabase. |
 
-Al ampliar un módulo, coloca sus componentes, tipos y funciones de datos en su carpeta. Mantén `App.tsx` y `Workspace.tsx` centrados en sesión y navegación. Las reglas de autorización y escritura siguen en Supabase (RLS y funciones); la separación del frontend no reemplaza esos controles.
+Al ampliar un módulo, coloca sus componentes, tipos y funciones de datos en su carpeta. Mantén `App.tsx` y `Workspace.tsx` centrados en sesión y navegación. Las reglas de autorización y escritura siguen en Supabase (RLS y funciones); la separación del frontend no reemplaza esos controles. Quién administra cada módulo se decide por `public.module_access` (ver `docs/tools.md`, "Acceso"): en el frontend, `access.can(módulo, nivel)`; en la base, `public.has_module()`.
 
 ## Propiedad de datos en Supabase
 

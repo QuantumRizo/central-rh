@@ -25,7 +25,7 @@ const dateLabel = new Intl.DateTimeFormat('es-MX', { day: 'numeric', month: 'sho
 const score = (value: number | null) => value === null ? '—' : `${Math.round(Number(value) * 100)}%`;
 const localDate = (value: Date) => `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, '0')}-${String(value.getDate()).padStart(2, '0')}`;
 
-export function Profile({ session, employeeId, viewerEmployeeId, isAdmin = false, onBack, backLabel = 'Volver a perfiles', onEvaluations, onChangePassword }: { session: Session; employeeId: string; viewerEmployeeId: string; isAdmin?: boolean; onBack?: () => void; backLabel?: string; onEvaluations: () => void; onChangePassword?: () => void }) {
+export function Profile({ session, employeeId, viewerEmployeeId, isAdmin = false, canSeeDocuments = false, onBack, backLabel = 'Volver a perfiles', onEvaluations, onChangePassword }: { session: Session; employeeId: string; viewerEmployeeId: string; isAdmin?: boolean; canSeeDocuments?: boolean; onBack?: () => void; backLabel?: string; onEvaluations: () => void; onChangePassword?: () => void }) {
   const [employee, setEmployee] = useState<Employee | null>(null);
   const [reports, setReports] = useState<Report[]>([]);
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
@@ -174,7 +174,7 @@ export function Profile({ session, employeeId, viewerEmployeeId, isAdmin = false
       <TimesheetCalendar employeeId={employeeId} selectedDate={localDate(today)} refreshKey={0} />
       <section className="profile-card profile-evaluations"><div className="profile-card-title"><ClipboardCheck size={19} /><h2>Evaluaciones</h2></div>{reports.length ? <div className="profile-report-list">{reports.map((report) => <div className="profile-report" key={report.id}><div><strong>Resultado final</strong><span>{dateLabel.format(new Date(report.created_at))}</span></div><strong className="profile-report-score">{score(report.final_score)}</strong><small>Autoevaluación {score(report.self_score)} · Equipo {score(report.collective_score)}</small></div>)}</div> : <p className="profile-empty">Aún no hay resultados finales de evaluaciones.</p>}<button className="secondary" type="button" onClick={onEvaluations}>{isOwn ? 'Ir a evaluaciones' : 'Ir al panel de evaluaciones'}</button></section>
       <ProfileAccess employeeId={employeeId} />
-      {isAdmin && <EmployeeDocuments employeeId={employeeId} />}
+      {canSeeDocuments && <EmployeeDocuments employeeId={employeeId} />}
       {isOwn && <section className="profile-card profile-account-card"><div className="profile-card-title"><KeyRound size={19} /><h2>Cuenta y acceso</h2></div><p className="profile-account-email">Tu cuenta está vinculada a <strong>{session.user.email}</strong>.</p>{onChangePassword && <button className="secondary profile-change-password" type="button" onClick={onChangePassword}>Cambiar contraseña</button>}</section>}
     </>}
     {selectedPhoto && <PhotoCropper imageUrl={selectedPhoto} busy={uploading} error={error} onCancel={() => setSelectedPhoto(null)} onSave={(area) => void uploadPhoto(area)} />}
