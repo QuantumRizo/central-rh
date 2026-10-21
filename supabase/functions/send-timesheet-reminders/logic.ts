@@ -10,14 +10,6 @@ export function mexicoNow(now: Date) {
 const utcDate = (date: string) => new Date(`${date}T12:00:00Z`);
 const isoDate = (date: Date) => date.toISOString().slice(0, 10);
 
-export function threeMonthsBefore(date: string) {
-  const original = utcDate(date);
-  const target = new Date(Date.UTC(original.getUTCFullYear(), original.getUTCMonth() - 3, 1, 12));
-  const lastDay = new Date(Date.UTC(target.getUTCFullYear(), target.getUTCMonth() + 1, 0, 12)).getUTCDate();
-  target.setUTCDate(Math.min(original.getUTCDate(), lastDay));
-  return isoDate(target);
-}
-
 export function weekdays(from: string, to: string) {
   const result: string[] = [];
   for (const date = utcDate(from), end = utcDate(to); date <= end; date.setUTCDate(date.getUTCDate() + 1)) {
@@ -33,10 +25,19 @@ export function monday(date: string) {
   return isoDate(day);
 }
 
-export function previousFriday(mondayDate: string) {
-  const day = utcDate(mondayDate);
-  day.setUTCDate(day.getUTCDate() - 3);
-  return isoDate(day);
+export function reminderPeriods(wednesdayDate: string) {
+  const weekStart = utcDate(monday(wednesdayDate));
+  const shifted = (days: number) => {
+    const date = new Date(weekStart);
+    date.setUTCDate(date.getUTCDate() + days);
+    return isoDate(date);
+  };
+  return {
+    previousStart: shifted(-7),
+    previousEnd: shifted(-3),
+    currentStart: shifted(0),
+    currentEnd: shifted(1),
+  };
 }
 
 export function eligibleStart(startDate: string | null, hireDate: string | null, windowStart: string) {
