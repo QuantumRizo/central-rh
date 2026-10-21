@@ -1,8 +1,9 @@
-import { Info, LayoutDashboard, Plus, Trash2 } from "lucide-react";
+import { Copy, Info, LayoutDashboard, Plus, Trash2 } from "lucide-react";
 import { SheetSkeleton } from "../components/LoadingSkeletons";
 import { Picker, type Option } from "../components/Picker";
 import { AiTimesheetGenerator } from "./AiTimesheetGenerator";
 import { TimesheetCalendar } from "./TimesheetCalendar";
+import { RepeatDays } from "./RepeatDays";
 import { ABSENCE_OPTIONS, attendanceLabel } from "./attendance";
 import { day } from "./utils";
 import type { useTimesheetDraft } from "./useTimesheetDraft";
@@ -10,7 +11,7 @@ import type { useTimesheetDraft } from "./useTimesheetDraft";
 type Props = { employee: string; admin: boolean; canViewTimesheetReports: boolean; onReports: () => void; clients: Option[]; activities: Option[]; draft: ReturnType<typeof useTimesheetDraft> };
 
 export function TimesheetsModule({ employee, admin, canViewTimesheetReports, onReports, clients, activities, draft }: Props) {
-  const { baseline, savedSheetDate, date, setDate, attendance, setAttendance, mode, setMode, entry, setEntry, exit, setExit, permissionEntry, setPermissionEntry, permissionExit, setPermissionExit, rows, setRows, busy, setBusy, saving, error, setError, message, aiCompletionMessage, setAiCompletionMessage, importRevision, setImportRevision, sheetRevision, deleting, dirty, canLeave, workdayHours, totalHours, total, hoursAreComplete, scheduleReady, isWeekend, weekendDayName, deleteSheet, save, update } = draft;
+  const { baseline, savedSheetDate, date, setDate, attendance, setAttendance, mode, setMode, entry, setEntry, exit, setExit, permissionEntry, setPermissionEntry, permissionExit, setPermissionExit, rows, setRows, busy, setBusy, saving, error, setError, message, aiCompletionMessage, setAiCompletionMessage, importRevision, setImportRevision, sheetRevision, deleting, dirty, canLeave, workdayHours, totalHours, total, hoursAreComplete, scheduleReady, isWeekend, weekendDayName, deleteSheet, save, update, copying, copyPreviousDay, repeatDay } = draft;
   return (
     <>
             <div className="page-header">
@@ -57,6 +58,9 @@ export function TimesheetsModule({ employee, admin, canViewTimesheetReports, onR
                     }}
                   />
                 </label>
+                <button type="button" className="secondary" disabled={busy || saving || deleting || copying} onClick={copyPreviousDay}>
+                  <Copy size={16} /> {copying ? "Copiando…" : "Copiar día anterior"}
+                </button>
                 <div className={`weekend-hint ${isWeekend ? "is-active" : ""}`} role="note">
                   <Info size={15} />
                   <span>Los fines de semana no requieren registro, salvo que hayas laborado.</span>
@@ -256,14 +260,19 @@ export function TimesheetsModule({ employee, admin, canViewTimesheetReports, onR
                           </div>
                         ))}
                       </div>
+                      {rows.some((r) => !r.client_id || !r.activity_id) && (
+                        <p className="under-warning" role="status">
+                          Elige cliente y actividad en todas las filas para poder guardar.
+                        </p>
+                      )}
                       <button
                         className="add"
                         onClick={() =>
                           setRows([
                             ...rows,
                             {
-                              client_id: clients[0]?.id || "",
-                              activity_id: activities[0]?.id || "",
+                              client_id: "",
+                              activity_id: "",
                               hours: 0,
                               percentage: 0,
                             },
@@ -272,6 +281,11 @@ export function TimesheetsModule({ employee, admin, canViewTimesheetReports, onR
                       >
                         <Plus size={18} /> Agregar actividad
                       </button>
+                      <RepeatDays
+                        disabled={dirty || savedSheetDate !== date || saving || deleting}
+                        hint={dirty || savedSheetDate !== date ? "Guarda este día primero; después puedes copiarlo a otros días del periodo." : "Copia este reparto a los días hábiles del periodo que aún no tengan registro. Los días ya capturados no se modifican."}
+                        onRepeat={repeatDay}
+                      />
                     </>
                   ) : (
                     <p className="notice">
@@ -301,7 +315,7 @@ export function TimesheetsModule({ employee, admin, canViewTimesheetReports, onR
                     baseline === null ||
                     (attendance === "worked" &&
                       (!hoursAreComplete ||
-                        rows.some((r) => (Number(r.hours) || 0) <= 0) ||
+                        rows.some((r) => (Number(r.hours) || 0) <= 0 || !r.client_id || !r.activity_id) ||
                         !scheduleReady))
                   }
                   onClick={save}

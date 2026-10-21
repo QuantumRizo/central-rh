@@ -129,6 +129,103 @@ export function useTimesheetDraft(employee: string) {
       setDeleting(false);
     }
   };
+  const toSaveRows = (mergedRows: Entry[]) => {
+    const saveRows = mergedRows.map((row) => ({
+      client_id: row.client_id,
+      activity_id: row.activity_id,
+      percentage: Number(((Number(row.hours) || 0) / workdayHours * 100).toFixed(2)),
+    }));
+    if (saveRows.length) {
+      const previousTotal = saveRows
+        .slice(0, -1)
+        .reduce((sum, row) => sum + row.percentage, 0);
+      saveRows[saveRows.length - 1].percentage = Number((100 - previousTotal).toFixed(2));
+    }
+    return saveRows;
+  };
+  const sheetPayload = (workDate: string, saveRows: ReturnType<typeof toSaveRows>) => ({
+    employee_id: employee,
+    work_date: workDate,
+    attendance,
+    mode,
+    entry_time: entry,
+    exit_time: exit,
+    permission_entry_time: mode === "schedule_permission" ? permissionEntry : "",
+    permission_exit_time: mode === "schedule_permission" ? permissionExit : "",
+    entries: attendance === "worked" ? saveRows : [],
+  });
+  const [copying, setCopying] = useState(false);
+  const copyPreviousDay = async () => {
+    if (busy || saving || deleting || copying) return;
+    if (rows.length && !window.confirm("Se reemplazará lo capturado en este día. ¿Continuar?")) return;
+    setCopying(true);
+    setError("");
+    setMessage("");
+    try {
+      const { data, error } = await sb
+        .from("timesheets")
+        .select("work_date,mode,entry_time,exit_time,permission_entry_time,permission_exit_time,timesheet_entries(client_id,activity_id,percentage)")
+        .eq("employee_id", employee)
+        .eq("attendance", "worked")
+        .lt("work_date", date)
+        .order("work_date", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (error) throw error;
+      if (!data?.timesheet_entries?.length) {
+        setError("No hay un día trabajado anterior para copiar.");
+        return;
+      }
+      const copiedEntry = data.entry_time?.slice(0, 5) || "09:00";
+      const copiedExit = data.exit_time?.slice(0, 5) || "18:00";
+      const copiedHours = workedHours(copiedEntry, copiedExit);
+      setAttendance("worked");
+      setMode(data.mode || "office");
+      setEntry(copiedEntry);
+      setExit(copiedExit);
+      setPermissionEntry(data.permission_entry_time?.slice(0, 5) || "09:00");
+      setPermissionExit(data.permission_exit_time?.slice(0, 5) || "18:00");
+      setRows(data.timesheet_entries.map((row: Entry) => ({
+        ...row,
+        hours: Number(((Number(row.percentage) || 0) * copiedHours / 100).toFixed(2)),
+      })));
+      const label = new Date(data.work_date + "T12:00:00").toLocaleDateString("es-MX", { weekday: "long", day: "numeric", month: "long" });
+      setMessage(`Copiado del ${label}. Revisa las horas y guarda el día.`);
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setCopying(false);
+    }
+  };
+  /** Guarda el día abierto, tal como está guardado, en los días hábiles sin registro del rango. */
+  const repeatDay = async (from: string, to: string) => {
+    if (dirty || savedSheetDate !== date || attendance !== "worked") return "Guarda este día antes de repetirlo.";
+    if (!from || !to || from > to) return "Elige un rango de fechas válido.";
+    const targets: string[] = [];
+    for (let d = new Date(from + "T12:00:00"); d <= new Date(to + "T12:00:00") && targets.length < 62; d.setDate(d.getDate() + 1)) {
+      const iso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+      if (d.getDay() !== 0 && d.getDay() !== 6 && iso !== date && iso <= day()) targets.push(iso);
+    }
+    if (!targets.length) return "No hay días hábiles en ese rango.";
+    const { data: existing, error } = await sb.from("timesheets").select("work_date").eq("employee_id", employee).gte("work_date", from).lte("work_date", to);
+    if (error) return error.message;
+    const taken = new Set((existing || []).map((row: { work_date: string }) => row.work_date));
+    const missing = targets.filter((iso) => !taken.has(iso));
+    if (!missing.length) return "Todos esos días ya tienen registro; no se cambió ninguno.";
+    const saveRows = toSaveRows(mergeDuplicateEntries(rows));
+    let saved = 0;
+    for (const iso of missing) {
+      const { error: saveError } = await sb.rpc("save_timesheet", { payload: sheetPayload(iso, saveRows) });
+      if (saveError) {
+        if (saved) setSheetRevision((value) => value + 1);
+        return `Se guardaron ${saved} días; falló ${iso}: ${saveError.message}`;
+      }
+      saved += 1;
+    }
+    setSheetRevision((value) => value + 1);
+    const skipped = targets.length - missing.length;
+    return `Listo: se guardaron ${saved} días${skipped ? ` y se omitieron ${skipped} que ya tenían registro` : ""}.`;
+  };
   const save = async () => {
     if (baseline === null || busy || saving || deleting) return;
     setSaving(true);
@@ -136,32 +233,8 @@ export function useTimesheetDraft(employee: string) {
     setMessage("");
     try {
       const mergedRows = attendance === "worked" ? mergeDuplicateEntries(rows) : [];
-      const saveRows = mergedRows.map((row) => ({
-        client_id: row.client_id,
-        activity_id: row.activity_id,
-        percentage: Number(((Number(row.hours) || 0) / workdayHours * 100).toFixed(2)),
-      }));
-      if (saveRows.length) {
-        const previousTotal = saveRows
-          .slice(0, -1)
-          .reduce((sum, row) => sum + row.percentage, 0);
-        saveRows[saveRows.length - 1].percentage = Number((100 - previousTotal).toFixed(2));
-      }
-      const { error } = await sb.rpc("save_timesheet", {
-        payload: {
-          employee_id: employee,
-          work_date: date,
-          attendance,
-          mode,
-          entry_time: entry,
-          exit_time: exit,
-          permission_entry_time:
-            mode === "schedule_permission" ? permissionEntry : "",
-          permission_exit_time:
-            mode === "schedule_permission" ? permissionExit : "",
-          entries: attendance === "worked" ? saveRows : [],
-        },
-      });
+      const saveRows = toSaveRows(mergedRows);
+      const { error } = await sb.rpc("save_timesheet", { payload: sheetPayload(date, saveRows) });
       if (error) throw error;
       setSavedSheetDate(date);
       setSheetRevision((value) => value + 1);
@@ -182,5 +255,5 @@ export function useTimesheetDraft(employee: string) {
   };
   const update = (i: number, patch: Partial<Entry>) =>
     setRows((prev) => prev.map((r, j) => (i === j ? { ...r, ...patch } : r)));
-  return { baseline, savedSheetDate, date, setDate, attendance, setAttendance, mode, setMode, entry, setEntry, exit, setExit, permissionEntry, setPermissionEntry, permissionExit, setPermissionExit, rows, setRows, busy, setBusy, saving, error, setError, message, aiCompletionMessage, setAiCompletionMessage, importRevision, setImportRevision, sheetRevision, deleting, dirty, canLeave, workdayHours, totalHours, total, hoursAreComplete, scheduleReady, isWeekend, weekendDayName, deleteSheet, save, update };
+  return { baseline, savedSheetDate, date, setDate, attendance, setAttendance, mode, setMode, entry, setEntry, exit, setExit, permissionEntry, setPermissionEntry, permissionExit, setPermissionExit, rows, setRows, busy, setBusy, saving, error, setError, message, aiCompletionMessage, setAiCompletionMessage, importRevision, setImportRevision, sheetRevision, deleting, dirty, canLeave, workdayHours, totalHours, total, hoursAreComplete, scheduleReady, isWeekend, weekendDayName, deleteSheet, save, update, copying, copyPreviousDay, repeatDay };
 }

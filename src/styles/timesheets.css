@@ -887,3 +887,31 @@
     justify-self: start;
   }
 }
+
+/* ---------- Repeat a day across a period ---------- */
+
+.repeat-days {
+  display: grid;
+  gap: var(--space-3);
+  margin-top: var(--space-6);
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-muted);
+}
+
+.repeat-days h3 {
+  margin: 0;
+}
+
+.repeat-days-row {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.repeat-days-row label {
+  width: 180px;
+  margin: 0;
+}
