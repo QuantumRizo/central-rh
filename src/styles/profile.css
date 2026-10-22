@@ -3,9 +3,11 @@
 /* ---------- Profile ---------- */
 
 .profile-hero {
-  display: flex;
-  align-items: center;
-  gap: var(--space-5);
+  display: grid;
+  justify-items: center;
+  gap: var(--space-4);
+  padding-block: var(--space-8);
+  text-align: center;
 }
 
 .profile-avatar,
@@ -21,9 +23,9 @@
 }
 
 .profile-avatar {
-  width: 96px;
-  height: 96px;
-  font-size: var(--text-3xl);
+  width: 112px;
+  height: 112px;
+  font-size: var(--text-4xl);
 }
 
 .profile-avatar img,
@@ -39,9 +41,15 @@
   min-width: 0;
 }
 
+.profile-identity {
+  display: grid;
+  justify-items: center;
+}
+
 .profile-identity h2 {
   margin: var(--space-2) 0 2px;
-  font-size: var(--text-2xl);
+  font-size: var(--text-4xl);
+  letter-spacing: -0.02em;
   overflow-wrap: anywhere;
 }
 
@@ -54,15 +62,21 @@
 .profile-photo-action,
 .profile-hero-actions {
   display: grid;
-  justify-items: end;
+  justify-items: center;
   align-self: center;
   gap: var(--space-2);
+}
+
+.profile-hero-actions {
+  grid-auto-flow: column;
+  align-items: start;
+  gap: var(--space-3);
 }
 
 .profile-photo-action small {
   color: var(--color-text-muted);
   font-size: var(--text-sm);
-  text-align: right;
+  text-align: center;
 }
 
 .profile-grid {
@@ -85,11 +99,11 @@
 
 .profile-details > div {
   display: grid;
-  grid-template-columns: 120px minmax(0, 1fr);
+  grid-template-columns: minmax(90px, 1fr) minmax(0, 2fr);
   gap: var(--space-3);
   padding: var(--space-3) 0;
   border-top: 1px solid var(--color-divider);
-  font-size: var(--text-md);
+  font-size: var(--text-base);
 }
 
 .profile-details dt {
@@ -99,11 +113,13 @@
 .profile-details dd {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 6px;
+  text-align: right;
   min-width: 0;
   margin: 0;
   color: var(--color-text);
-  font-weight: var(--weight-medium);
+  font-weight: var(--weight-regular);
   overflow-wrap: anywhere;
 }
 
@@ -335,6 +351,9 @@
   align-items: end;
   gap: var(--space-3);
   padding: var(--space-4);
+  border-color: transparent;
+  background: var(--color-divider);
+  box-shadow: none;
 }
 
 .profiles-filters label {
@@ -399,14 +418,20 @@
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  margin: 0;
-  font-size: var(--text-lg);
+  margin: 0 var(--space-4);
+  color: var(--color-text-muted);
+  font-size: var(--text-md);
+  font-weight: var(--weight-semibold);
 }
 
 .profiles-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--space-3);
+  grid-template-columns: 1fr;
+  overflow: hidden;
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-xs);
 }
 
 .profiles-person {
@@ -418,16 +443,20 @@
   min-width: 0;
   min-height: 72px;
   padding: var(--space-3) var(--space-4);
-  border-color: var(--color-border);
-  border-radius: var(--radius-lg);
-  background: var(--color-surface);
+  border: 0;
+  border-top: 1px solid var(--color-divider);
+  border-radius: 0;
+  background: transparent;
   color: var(--color-text);
   font-weight: var(--weight-regular);
   text-align: left;
 }
 
+.profiles-person:first-child {
+  border-top: 0;
+}
+
 .profiles-person:hover:not(:disabled) {
-  border-color: var(--color-border-strong);
   background: var(--color-surface-muted);
 }
 
@@ -492,30 +521,24 @@
 }
 
 @media (max-width: 640px) {
-  .profile-hero {
-    display: grid;
-    grid-template-columns: 72px minmax(0, 1fr);
-    gap: var(--space-3);
-  }
-
   .profile-avatar {
-    width: 72px;
-    height: 72px;
-    font-size: var(--text-2xl);
+    width: 88px;
+    height: 88px;
+    font-size: var(--text-3xl);
   }
 
   .profile-identity h2 {
-    font-size: var(--text-xl);
+    font-size: var(--text-3xl);
   }
 
   .profile-photo-action,
   .profile-hero-actions {
-    grid-column: 1 / -1;
     justify-items: stretch;
+    width: 100%;
   }
 
-  .profile-photo-action small {
-    text-align: center;
+  .profile-hero-actions {
+    grid-auto-flow: row;
   }
 
   .profile-edit-form,
@@ -534,8 +557,7 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .profile-report-list,
-  .profiles-grid {
+  .profile-report-list {
     grid-template-columns: 1fr;
   }
 

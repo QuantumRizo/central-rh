@@ -54,6 +54,10 @@ Un módulo nuevo = un archivo nuevo en `src/styles/` importado al final de `src/
 | `.back-link`, `.add`, `.detail-link` | Acciones de texto (volver, agregar fila, abrir detalle) |
 | `.icon` | Botón de solo icono (eliminar, cerrar) |
 
+## Controles segmentados
+
+Para elegir una opción entre 2–5 (modalidad, trabajó/no trabajó, pestañas de reportes) usa `<Segmented>` de `src/components/Segmented.tsx` o `.admin-tabs`; no uses listas desplegables ni radios sueltos. Basado en `segmented-controls.md` del HIG de Apple.
+
 ## Tokens principales
 
 | Token | Valor | Uso |
