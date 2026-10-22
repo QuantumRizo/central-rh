@@ -1,6 +1,6 @@
 import { Fragment, useEffect, useState } from "react";
 import type { Session } from "@supabase/supabase-js";
-import { LogOut } from "lucide-react";
+import { Ellipsis, LogOut, X } from "lucide-react";
 import { useTimesheetDraft } from "./timesheets/useTimesheetDraft";
 import type { Option } from "./components/Picker";
 import { BugReporter } from "./bug-reporter/BugReporter";
@@ -67,7 +67,21 @@ export function Workspace({ session }: { session: Session }) {
   useEffect(() => {
     if (accessReady && active.path !== path) replace(active.path);
   }, [accessReady, active.path, path, replace]);
-  const go = (to: string) => { if (to !== path && canLeave()) navigate(to); };
+  const [moreOpen, setMoreOpen] = useState(false);
+  useEffect(() => {
+    if (!moreOpen) return;
+    const close = (event: KeyboardEvent) => { if (event.key === "Escape") setMoreOpen(false); };
+    document.addEventListener("keydown", close);
+    document.body.style.overflow = "hidden";
+    return () => { document.removeEventListener("keydown", close); document.body.style.overflow = ""; };
+  }, [moreOpen]);
+  const go = (to: string) => { setMoreOpen(false); if (to !== path && canLeave()) navigate(to); };
+  // En el teléfono las pantallas de uso diario van en la barra inferior; el resto, en la hoja "Más".
+  const tabs = visible.filter((module) => module.section && !module.href).slice(0, 3);
+  const inMore = (module: (typeof visible)[number]) => Boolean(module.section) && !tabs.includes(module);
+  const moreActive = !tabs.some((module) => module.path === activeNav);
+  const role = levels.length > 0 ? (superadmin ? "Super admin" : levels.includes("admin") ? "Admin" : "Reportes") : "";
+  const signOut = () => { if (canLeave()) sb.auth.signOut(); };
   return (
     <main className="app">
       <aside className="app-sidebar">
@@ -97,6 +111,42 @@ export function Workspace({ session }: { session: Session }) {
       <section className="content">
         {active.render({ ...access, session, employee, clients, activities, draft, navigate: go })}
       </section>
+      <nav className="tab-bar" aria-label="Principal">
+        {tabs.map(({ path: to, label, icon: Icon }) => <button key={to} className={activeNav === to && !moreOpen ? "active" : ""} aria-current={activeNav === to ? "page" : undefined} onClick={() => go(to)}>
+          {Icon && <Icon size={22} />}<span>{label}</span>
+        </button>)}
+        <button className={moreOpen || moreActive ? "active" : ""} aria-expanded={moreOpen} aria-haspopup="dialog" onClick={() => setMoreOpen(true)}>
+          <Ellipsis size={22} /><span>Más</span>
+        </button>
+      </nav>
+      {moreOpen && <div className="sheet-backdrop" onClick={() => setMoreOpen(false)}>
+        <div className="sheet" role="dialog" aria-modal="true" aria-label="Más" onClick={(event) => event.stopPropagation()}>
+          <div className="sheet-grabber" aria-hidden="true" />
+          <header className="sheet-header">
+            <h2>Más</h2>
+            <button className="icon" autoFocus aria-label="Cerrar" onClick={() => setMoreOpen(false)}><X size={18} /></button>
+          </header>
+          {SECTIONS.map((section) => {
+            const items = visible.filter((module) => module.section === section && inMore(module));
+            if (!items.length) return null;
+            return <section className="sheet-group" key={section}>
+              <h3>{section}</h3>
+              <div className="sheet-list">
+                {items.map(({ path: to, label, icon: Icon, href }) => href
+                  ? <a key={to} href={href} target="_blank" rel="noopener">{Icon && <Icon size={20} />}<span>{label}</span></a>
+                  : <button key={to} className={activeNav === to ? "active" : ""} aria-current={activeNav === to ? "page" : undefined} onClick={() => go(to)}>{Icon && <Icon size={20} />}<span>{label}</span></button>)}
+              </div>
+            </section>;
+          })}
+          <section className="sheet-group">
+            <h3>Cuenta</h3>
+            <div className="sheet-list">
+              <p className="sheet-account"><span>{session.user.email}</span>{role && <span className="admin-badge">{role}</span>}</p>
+              <button className="danger" onClick={signOut}><LogOut size={20} /><span>Cerrar sesión</span></button>
+            </div>
+          </section>
+        </div>
+      </div>}
       <BugReporter module={active.name} />
     </main>
   );

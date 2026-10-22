@@ -17,7 +17,7 @@
   padding: 0;
   border-radius: var(--radius-full);
   background: var(--color-primary);
-  color: var(--sidebar-text-strong);
+  color: var(--color-on-primary);
   box-shadow: var(--shadow-overlay);
   animation: bug-fab-in 0.4s ease-out both, bug-fab-bob 4s ease-in-out 1s infinite;
   transition: transform 0.2s ease, background 0.2s ease;
@@ -124,7 +124,7 @@
   align-self: flex-end;
   border-bottom-right-radius: var(--space-1);
   background: var(--color-primary);
-  color: var(--sidebar-text-strong);
+  color: var(--color-on-primary);
 }
 
 .bug-bubble.error {
@@ -222,7 +222,7 @@
 @media (max-width: 640px) {
   .bug-reporter {
     right: var(--space-4);
-    bottom: var(--space-4);
+    bottom: calc(var(--tab-bar-height) + env(safe-area-inset-bottom) + var(--space-4));
   }
 
   .bug-panel {

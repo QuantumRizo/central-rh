@@ -174,8 +174,8 @@
   max-width: 280px;
   padding: 6px 10px;
   border-radius: var(--radius-sm);
-  background: var(--sidebar-bg);
-  color: var(--sidebar-text-strong);
+  background: var(--color-tooltip-bg);
+  color: var(--color-on-primary);
   font-size: var(--text-sm);
   line-height: 1.4;
   pointer-events: none;
