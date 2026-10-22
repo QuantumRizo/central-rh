@@ -344,6 +344,20 @@
   gap: var(--space-4);
 }
 
+.evaluation-detail-top {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+
+.evaluation-detail-top > .evaluation-report-card { margin: 0; padding: var(--space-4) var(--space-5); }
+.evaluation-detail-top .evaluation-detail-dates { margin-top: var(--space-3); padding-top: var(--space-3); }
+.evaluation-detail-top .evaluation-detail-progress { align-content: space-between; gap: var(--space-3); }
+
+@media (max-width: 860px) {
+  .evaluation-detail-top { grid-template-columns: minmax(0, 1fr); }
+}
+
 .evaluation-cycle-detail h2 { margin: 0; font-size: var(--text-lg); }
 .evaluation-detail-overview-heading p:last-child,
 .evaluation-detail-progress-heading p:last-child {

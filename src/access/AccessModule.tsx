@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { History, KeyRound, Search } from "lucide-react";
+import { ArrowLeft, ChevronRight, History, Search } from "lucide-react";
 import { sb } from "../lib/supabase";
 import { TOOLS } from "../tools/catalog";
 import { LEVEL_LABELS, RH_MODULES, TEMPLATES, canLoadData, moduleLevelLabel, type ModuleId, type ToolLevel } from "./levels";
@@ -32,6 +32,8 @@ export function AccessModule({ selfUserId }: { selfUserId: string }) {
   const [error, setError] = useState("");
   const [query, setQuery] = useState("");
   const [saving, setSaving] = useState("");
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [detailOpen, setDetailOpen] = useState(false);
 
   const loadHistory = useCallback(async () => {
     const { data } = await sb.rpc("access_history", { max_rows: 40 });
@@ -92,87 +94,88 @@ export function AccessModule({ selfUserId }: { selfUserId: string }) {
   }
 
   const busyRow = (person: Person) => saving.startsWith(`${person.user_id}:`);
+  const selected = people.find((p) => p.user_id === selectedId) ?? visible[0] ?? null;
+  const locked = selected ? selected.superadmin || selected.user_id === selfUserId : false;
+  const lockedReason = selected?.superadmin ? "El super admin tiene todo" : selected?.user_id === selfUserId ? "No puedes cambiar tus propios accesos" : undefined;
+  const pick = (id: string) => { setSelectedId(id); setDetailOpen(true); };
 
   return (
-    <div className="access-module">
+    <div className={`access-module ${detailOpen ? "is-detail" : ""}`}>
       <div className="page-header"><div><p className="eyebrow">CONFIGURACIÓN</p><h1>Accesos</h1><p>Qué módulos de RH administra cada persona y qué herramientas de Simi y CN Tools abre. Todos usan sus propios timesheets, evaluaciones y perfil.</p></div></div>
       {error && <p className="error" role="alert">{error}</p>}
-      <section className="admin-card">
-        <div className="card-heading">
-          <div><h2><KeyRound size={19} /> Accesos por persona</h2><p>{busy ? "Cargando…" : `${people.length} cuentas. Los cambios se guardan al elegir.`}</p></div>
-        </div>
-        <dl className="access-legend">
-          {RH_MODULES.flatMap((m) => m.levels.map((level) => (
-            <div key={`${m.id}-${level.value}`}><dt>{m.label} · {level.label}</dt><dd>{level.help}</dd></div>
-          )))}
-          <div><dt>Simi · Ver y cargar</dt><dd>Además de ver el dashboard, sube su Excel en el /admin.</dd></div>
-        </dl>
-        <label className="access-search"><Search size={16} /><input type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar persona" aria-label="Buscar persona" /></label>
-        {!busy && <div className="access-table-wrap">
-          <table className="access-table">
-            <thead>
-              <tr>
-                <th rowSpan={2} scope="col">Persona</th>
-                <th scope="colgroup" colSpan={RH_MODULES.length + 1} className="access-section">RH</th>
-                {TOOL_SECTIONS.map((section) => <th key={section} scope="colgroup" colSpan={TOOLS.filter((t) => t.section === section).length} className="access-section">{section}</th>)}
-              </tr>
-              <tr>
-                <th scope="col" className="access-tool">Plantilla</th>
-                {RH_MODULES.map((m) => <th key={m.id} scope="col" className="access-tool">{m.label}</th>)}
-                {TOOLS.map((tool) => <th key={tool.id} scope="col" className="access-tool">{tool.label}</th>)}
-              </tr>
-            </thead>
-            <tbody>
-              {visible.map((person) => {
-                const locked = person.superadmin || person.user_id === selfUserId;
-                return (
-                  <tr key={person.user_id}>
-                    <th scope="row">
-                      <strong>{person.full_name}</strong>
-                      <span>{person.email}{person.superadmin ? " · Super admin" : ""}</span>
-                    </th>
-                    <td>
-                      <select className="access-select" value="" disabled={locked || busyRow(person)} aria-label={`Plantilla para ${person.full_name}`}
-                        onChange={(event) => applyTemplate(person, event.target.value)}>
-                        <option value="">Aplicar…</option>
-                        {TEMPLATES.map((t) => <option key={t.id} value={t.id}>{t.label}</option>)}
+      <div className="access-split">
+        <section className="access-people" aria-label="Personas">
+          <label className="access-search"><Search size={16} /><input type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar persona" aria-label="Buscar persona" /></label>
+          <p className="access-count">{busy ? "Cargando…" : `${visible.length} de ${people.length} cuentas`}</p>
+          {!busy && <ul className="access-list">
+            {visible.map((person) => (
+              <li key={person.user_id}>
+                <button type="button" className={person.user_id === selected?.user_id ? "active" : ""} onClick={() => pick(person.user_id)} aria-current={person.user_id === selected?.user_id}>
+                  <span className="access-avatar" aria-hidden="true">{person.full_name.trim().charAt(0).toLocaleUpperCase("es-MX")}</span>
+                  <span className="access-person"><strong>{person.full_name}</strong><small>{person.email}</small></span>
+                  {person.superadmin && <span className="access-badge">Super admin</span>}
+                  <ChevronRight size={16} aria-hidden="true" />
+                </button>
+              </li>
+            ))}
+          </ul>}
+          {!busy && !visible.length && <p className="access-empty">Nadie coincide con la búsqueda.</p>}
+        </section>
+        {selected && <section className="access-detail" aria-label={`Accesos de ${selected.full_name}`}>
+          <button type="button" className="back-link access-back" onClick={() => setDetailOpen(false)}><ArrowLeft size={17} /> Personas</button>
+          <header className="access-detail-head">
+            <span className="access-avatar large" aria-hidden="true">{selected.full_name.trim().charAt(0).toLocaleUpperCase("es-MX")}</span>
+            <div><h2>{selected.full_name}</h2><p>{selected.email}{selected.superadmin ? " · Super admin" : ""}</p></div>
+          </header>
+          {lockedReason && <p className="access-note">{lockedReason}.</p>}
+          <h3 className="access-group-title">Módulos de RH</h3>
+          <div className="access-group">
+            <div className="access-row">
+              <div className="access-row-text"><strong>Plantilla</strong><small>Llena todos los módulos de golpe.</small></div>
+              <select className="access-select" value="" disabled={locked || busyRow(selected)} aria-label={`Plantilla para ${selected.full_name}`} onChange={(event) => applyTemplate(selected, event.target.value)}>
+                <option value="">Aplicar…</option>
+                {TEMPLATES.map((t) => <option key={t.id} value={t.id}>{t.label}</option>)}
+              </select>
+            </div>
+            {RH_MODULES.map((m) => {
+              const level = selected.superadmin ? "admin" : selected.modules[m.id] ?? "";
+              const help = m.levels.find((l) => l.value === level)?.help ?? "Sin acceso";
+              return (
+                <div className="access-row" key={m.id}>
+                  <div className="access-row-text"><strong>{m.label}</strong><small>{help}</small></div>
+                  <select className={`access-select ${level ? "is-on" : ""}`} value={level} disabled={locked || busyRow(selected)} title={lockedReason}
+                    aria-label={`${selected.full_name}: ${m.label}`} onChange={(event) => setModule(selected, m.id, event.target.value)}>
+                    <option value="">Sin acceso</option>
+                    {m.levels.map((l) => <option key={l.value} value={l.value}>{l.label}</option>)}
+                  </select>
+                </div>
+              );
+            })}
+          </div>
+          {TOOL_SECTIONS.map((section) => (
+            <div key={section}>
+              <h3 className="access-group-title">{section}</h3>
+              <div className="access-group">
+                {TOOLS.filter((tool) => tool.section === section).map((tool) => {
+                  const level = selected.superadmin ? (canLoadData(tool.id) ? "cargar" : "ver") : selected.tools[tool.id] ?? "";
+                  return (
+                    <div className="access-row" key={tool.id}>
+                      <div className="access-row-text"><strong>{tool.label}</strong>{canLoadData(tool.id) && <small>Además de ver el dashboard, sube su Excel en el /admin.</small>}</div>
+                      <select className={`access-select ${level ? "is-on" : ""}`} value={level} disabled={selected.superadmin || busyRow(selected)} title={selected.superadmin ? "El super admin tiene todo" : undefined}
+                        aria-label={`${selected.full_name}: ${tool.label}`} onChange={(event) => setTool(selected, tool.id, event.target.value)}>
+                        <option value="">Sin acceso</option>
+                        <option value="ver">{LEVEL_LABELS.ver}</option>
+                        {canLoadData(tool.id) && <option value="cargar">{LEVEL_LABELS.cargar}</option>}
                       </select>
-                    </td>
-                    {RH_MODULES.map((m) => {
-                      const level = person.superadmin ? "admin" : person.modules[m.id] ?? "";
-                      return (
-                        <td key={m.id} className="access-cell">
-                          <select className={`access-select ${level ? "is-on" : ""}`} value={level} disabled={locked || busyRow(person)}
-                            title={person.superadmin ? "El super admin tiene todo" : person.user_id === selfUserId ? "No puedes cambiar tus propios accesos" : undefined}
-                            aria-label={`${person.full_name}: ${m.label}`} onChange={(event) => setModule(person, m.id, event.target.value)}>
-                            <option value="">—</option>
-                            {m.levels.map((l) => <option key={l.value} value={l.value}>{l.label}</option>)}
-                          </select>
-                        </td>
-                      );
-                    })}
-                    {TOOLS.map((tool) => {
-                      const level = person.superadmin ? (canLoadData(tool.id) ? "cargar" : "ver") : person.tools[tool.id] ?? "";
-                      return (
-                        <td key={tool.id} className="access-cell">
-                          <select className={`access-select ${level ? "is-on" : ""}`} value={level} disabled={person.superadmin || busyRow(person)}
-                            title={person.superadmin ? "El super admin tiene todo" : undefined}
-                            aria-label={`${person.full_name}: ${tool.label}`} onChange={(event) => setTool(person, tool.id, event.target.value)}>
-                            <option value="">—</option>
-                            <option value="ver">{LEVEL_LABELS.ver}</option>
-                            {canLoadData(tool.id) && <option value="cargar">{LEVEL_LABELS.cargar}</option>}
-                          </select>
-                        </td>
-                      );
-                    })}
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-          {!visible.length && <p className="access-empty">Nadie coincide con la búsqueda.</p>}
-        </div>}
-      </section>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+          <p className="access-note">Los cambios se guardan al elegir.</p>
+        </section>}
+      </div>
       <section className="admin-card">
         <div className="card-heading"><div><h2><History size={19} /> Historial</h2><p>Últimos cambios de acceso.</p></div></div>
         {history.length ? <ul className="access-history">{history.map((change, index) => (

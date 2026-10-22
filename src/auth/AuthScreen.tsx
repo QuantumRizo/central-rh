@@ -97,13 +97,16 @@ export function AuthScreen({
           : "Timesheets";
   return (
     <main className="login">
-      <form className="card auth-card" onSubmit={submit}>
+      <aside className="login-brand">
         <img
           className="cn-login-logo"
           src="/Logo_CN_2025_Negro.webp"
           alt="Central MX"
         />
-        <div className="brand">Plataforma Central</div>
+        <p className="login-brand-name">Plataforma Central</p>
+      </aside>
+      <form className="card auth-card" onSubmit={submit}>
+        {view === "login" && <h1>Iniciar sesión</h1>}
         {view !== "login" && <h1>{title}</h1>}
         {view !== "login" && (
           <p>

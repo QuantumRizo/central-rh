@@ -106,7 +106,7 @@
   --radius-full: 999px;
 
   /* Elevation */
-  --shadow-xs: 0 1px 2px rgba(16, 24, 40, 0.04), 0 4px 16px rgba(16, 24, 40, 0.03);
+  --shadow-xs: 0 1px 2px rgba(16, 24, 40, 0.04);
   --shadow-overlay: 0 16px 40px rgba(16, 24, 40, 0.16);
   --shadow-segment: 0 1px 3px rgba(16, 24, 40, 0.12);
   --focus-ring: 0 0 0 3px rgba(11, 94, 183, 0.18);

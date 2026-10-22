@@ -86,6 +86,7 @@
 .app-sidebar .module-nav button svg,
 .app-sidebar .module-nav a svg {
   flex: none;
+  color: var(--color-primary);
 }
 
 .app-sidebar .module-nav button:hover:not(:disabled),
