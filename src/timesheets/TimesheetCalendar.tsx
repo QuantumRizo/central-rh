@@ -2,6 +2,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { CalendarDays, CheckCircle2, ChevronLeft, ChevronRight, CircleAlert } from "lucide-react";
 import { sb } from "../lib/supabase";
 import { attendanceLabel } from "./attendance";
+import { isMexicoHoliday } from "./holidays";
 
 type Sheet = { work_date: string; attendance: string; entry_time: string | null; exit_time: string | null };
 type Kind = "worked" | "missing" | "absence" | "vacation" | "personal_day" | "sick_leave" | "holiday" | "off" | "future" | "before";
@@ -109,11 +110,13 @@ export function TimesheetCalendar({
           day = { date, kind: sheet.attendance as Kind, label: `${pretty} · ${attendanceLabel(sheet.attendance)}` };
           stats.absences++;
         } else if (date > today) {
-          day = { date, kind: "future", label: pretty };
+          day = { date, kind: isMexicoHoliday(date) ? "holiday" : "future", label: isMexicoHoliday(date) ? `${pretty} · Feriado` : pretty };
         } else if (joined && date < joined) {
           day = { date, kind: "before", label: `${pretty} · Antes de tu ingreso` };
         } else if (weekend) {
           day = { date, kind: "off", label: `${pretty} · Fin de semana` };
+        } else if (isMexicoHoliday(date)) {
+          day = { date, kind: "holiday", label: `${pretty} · Feriado` };
         } else if (date === today) {
           day = { date, kind: "off", label: `${pretty} · Hoy, aún sin capturar` };
         } else {

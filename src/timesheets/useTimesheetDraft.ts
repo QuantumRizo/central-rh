@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { sb } from "../lib/supabase";
 import { day, workedHours } from "./utils";
+import { isMexicoHoliday } from "./holidays";
 import { mergeDuplicateEntries, sheetSnapshot, type Entry } from "./model";
 
 export function useTimesheetDraft(employee: string) {
@@ -49,7 +50,7 @@ export function useTimesheetDraft(employee: string) {
         if (error) throw error;
         if (!live) return;
         setSavedSheetDate(data ? date : null);
-        setAttendance(data?.attendance || "worked");
+        setAttendance(data?.attendance || (isMexicoHoliday(date) ? "holiday" : "worked"));
         setMode(data?.mode || "office");
         setEntry(data?.entry_time?.slice(0, 5) || "09:00");
         setExit(data?.exit_time?.slice(0, 5) || "18:00");
@@ -65,7 +66,7 @@ export function useTimesheetDraft(employee: string) {
         }));
         setRows(loadedRows);
         setBaseline(sheetSnapshot({
-          attendance: data?.attendance || 'worked',
+          attendance: data?.attendance || (isMexicoHoliday(date) ? 'holiday' : 'worked'),
           mode: data?.mode || 'office',
           entry: data?.entry_time?.slice(0,5) || '09:00',
           exit: data?.exit_time?.slice(0,5) || '18:00',
