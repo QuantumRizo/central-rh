@@ -73,5 +73,5 @@ La barra lateral se divide en **RH**, **Simi** (Street Planner, Inversión, Comp
 
 Cada herramienta abre su sitio en otra pestaña; esos sitios no piden login, así que la sección Tools oculta los enlaces pero no protege los datos. Las URL se arman con la URL base de cada sitio de Vercel; si cambia un dominio, define en Vercel la variable correspondiente y vuelve a desplegar:
 
-- `VITE_SIMI_DASHBOARDS_URL` (por defecto `https://dashboards-farmacias.vercel.app`).
+- `VITE_SIMI_DASHBOARDS_URL` (por defecto `https://dashboards-cn-partners.vercel.app`; `dashboards-farmacias.vercel.app` redirige ahí).
 - `VITE_CN_TOOLS_URL` (por defecto `https://cn-tools.vercel.app`).
