@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import type { Session } from "@supabase/supabase-js";
-import { BriefcaseBusiness, ClipboardCheck, Clock3, FileSignature, KeyRound, LayoutGrid, UserRound, Users, Wrench, type LucideIcon } from "lucide-react";
+import { BriefcaseBusiness, ClipboardCheck, Clock3, FileSignature, KeyRound, LayoutGrid, PanelsTopLeft, UserRound, Users, Wrench, type LucideIcon } from "lucide-react";
 import type { Option } from "./components/Picker";
 import { AdminDashboard } from "./timesheets/admin/AdminDashboard";
 import { TimesheetsModule } from "./timesheets/TimesheetsModule";
@@ -78,8 +78,10 @@ export const MODULES: AppModule[] = [
     render: (c) => <ToolsHub section="Simi" title="Dashboards Simi" description="Dashboards de Farmacias Similares. Se abren en otra pestaña." hasTool={c.hasTool} /> },
   { path: "/cn-tools", name: "tools: cn-tools", section: "Herramientas", label: "Herramientas CN", icon: Wrench, visible: (a) => hasAny(a, "CN Tools"),
     render: (c) => <ToolsHub section="CN Tools" title="Herramientas CN" description="Herramientas de Central de Negocios. Se abren en otra pestaña." hasTool={c.hasTool} /> },
+  { path: "/clientes", name: "tools: clientes", section: "Herramientas", label: "Herramientas Clientes", icon: PanelsTopLeft, visible: (a) => hasAny(a, "Clientes"),
+    render: (c) => <ToolsHub section="Clientes" title="Herramientas Clientes" description="Dashboards de clientes. Se abren en otra pestaña." hasTool={c.hasTool} /> },
   ...TOOLS.map((tool): AppModule => ({
-    path: `/tools/${tool.id}`, name: `tools: ${tool.id}`, parent: tool.section === "Simi" ? "/simi" : "/cn-tools",
+    path: `/tools/${tool.id}`, name: `tools: ${tool.id}`, parent: tool.section === "Simi" ? "/simi" : tool.section === "Clientes" ? "/clientes" : "/cn-tools",
     visible: (a) => a.hasTool(tool.id), render: () => <ToolsModule tool={tool} />,
   })),
   { path: "/configuracion/accesos", name: "accesos", section: "Configuración", label: "Accesos", icon: KeyRound, visible: (a) => a.superadmin,
