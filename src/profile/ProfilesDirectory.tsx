@@ -42,7 +42,6 @@ export function ProfilesDirectory({ session, viewerEmployeeId, isAdmin, canSeeDo
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [query, setQuery] = useState('');
   const [position, setPosition] = useState('');
-  const [department, setDepartment] = useState('');
   const [status, setStatus] = useState('');
   const [order, setOrder] = useState<Order>('surname');
   const [busy, setBusy] = useState(true);
@@ -83,14 +82,13 @@ export function ProfilesDirectory({ session, viewerEmployeeId, isAdmin, canSeeDo
   }, []);
 
   const positions = useMemo(() => [...new Set(people.map((person) => person.position || 'Por asignar'))].sort(compare), [people]);
-  const departments = useMemo(() => [...new Set(people.map((person) => person.department || 'Sin área'))].sort(compare), [people]);
+  // Las áreas están ocultas hasta nuevo aviso (nadie tiene área asignada); la columna `department` se conserva.
 
   const groups = useMemo(() => {
     const text = normalize(query.trim());
     const filtered = people.filter((person) =>
-      (!text || normalize(`${person.full_name} ${person.position} ${person.department || ''}`).includes(text)) &&
+      (!text || normalize(`${person.full_name} ${person.position}`).includes(text)) &&
       (!position || (person.position || 'Por asignar') === position) &&
-      (!department || (person.department || 'Sin área') === department) &&
       (!status || person.status === status),
     );
     filtered.sort((a, b) => {
@@ -103,7 +101,7 @@ export function ProfilesDirectory({ session, viewerEmployeeId, isAdmin, canSeeDo
       grouped.set(heading, [...(grouped.get(heading) || []), person]);
     }
     return { count: filtered.length, sections: [...grouped.entries()] };
-  }, [people, query, position, department, status, order]);
+  }, [people, query, position, status, order]);
 
   if (selectedId) return <Profile key={selectedId} session={session} employeeId={selectedId} viewerEmployeeId={viewerEmployeeId} isAdmin={isAdmin} canSeeDocuments={canSeeDocuments} onBack={() => setSelectedId(null)} onEvaluations={onEvaluations} onChangePassword={onChangePassword} />;
 
@@ -111,14 +109,13 @@ export function ProfilesDirectory({ session, viewerEmployeeId, isAdmin, canSeeDo
     <div className="page-header"><div><p className="eyebrow">ADMINISTRACIÓN</p><h1>Perfiles</h1><p>Consulta la información de los colaboradores y abre su perfil.</p></div><span className="profiles-total"><Users size={18} /> {people.length} colaboradores</span></div>
     {error && <p className="error" role="alert">{error}</p>}
     <section className="profiles-filters" aria-label="Buscar y ordenar perfiles">
-      <label className="profiles-search"><span>Buscar</span><span><Search size={17} /><input type="search" placeholder="Nombre, puesto o área" value={query} onChange={(event) => setQuery(event.target.value)} /></span></label>
+      <label className="profiles-search"><span>Buscar</span><span><Search size={17} /><input type="search" placeholder="Nombre o puesto" value={query} onChange={(event) => setQuery(event.target.value)} /></span></label>
       <label>Ordenar por<select value={order} onChange={(event) => setOrder(event.target.value as Order)}><option value="surname">Primer apellido</option><option value="position">Puesto</option><option value="name">Nombre</option></select></label>
       <label>Puesto<select value={position} onChange={(event) => setPosition(event.target.value)}><option value="">Todos los puestos</option>{positions.map((value) => <option key={value} value={value}>{value}</option>)}</select></label>
-      <label>Área<select value={department} onChange={(event) => setDepartment(event.target.value)}><option value="">Todas las áreas</option>{departments.map((value) => <option key={value} value={value}>{value}</option>)}</select></label>
       <label>Estado<select value={status} onChange={(event) => setStatus(event.target.value)}><option value="">Todos</option><option value="Activo">Activo</option><option value="Baja">Baja</option></select></label>
     </section>
-    <div className="profiles-results"><p>{busy ? 'Cargando perfiles…' : `${groups.count} ${groups.count === 1 ? 'perfil' : 'perfiles'} ${query || position || department || status ? 'encontrados' : 'disponibles'}`}</p>{(query || position || department || status) && <button type="button" className="profiles-clear" onClick={() => { setQuery(''); setPosition(''); setDepartment(''); setStatus(''); }}>Limpiar filtros</button>}</div>
+    <div className="profiles-results"><p>{busy ? 'Cargando perfiles…' : `${groups.count} ${groups.count === 1 ? 'perfil' : 'perfiles'} ${query || position || status ? 'encontrados' : 'disponibles'}`}</p>{(query || position || status) && <button type="button" className="profiles-clear" onClick={() => { setQuery(''); setPosition(''); setStatus(''); }}>Limpiar filtros</button>}</div>
     {!busy && !error && !groups.count && <div className="profiles-empty">No hay perfiles que coincidan con los filtros.</div>}
-    {groups.sections.map(([heading, members]) => <section className="profiles-group" key={heading}><h2>{heading} <span>{members.length}</span></h2><div className="profiles-grid">{members.map((person) => { const avatarUrl = person.avatar_path ? avatarUrls[person.avatar_path] : null; const showPhoto = Boolean(avatarUrl && person.avatar_path && !failedAvatars.has(person.avatar_path)); return <button key={person.id} type="button" className="profiles-person" onClick={() => setSelectedId(person.id)}><span className="profiles-avatar">{showPhoto ? <img src={avatarUrl || ''} alt="" loading="lazy" decoding="async" onError={() => { if (person.avatar_path) setFailedAvatars((current) => new Set(current).add(person.avatar_path!)); }} /> : initials(person.full_name)}</span><span className="profiles-person-copy"><strong>{person.full_name}</strong><small>{person.position || 'Por asignar'}</small><small>{person.department || 'Sin área'}</small></span><span className={`profiles-status ${person.status === 'Activo' ? 'active' : ''}`}>{person.status}</span><ChevronRight size={18} className="profiles-arrow" /></button>; })}</div></section>)}
+    {groups.sections.map(([heading, members]) => <section className="profiles-group" key={heading}><h2>{heading} <span>{members.length}</span></h2><div className="profiles-grid">{members.map((person) => { const avatarUrl = person.avatar_path ? avatarUrls[person.avatar_path] : null; const showPhoto = Boolean(avatarUrl && person.avatar_path && !failedAvatars.has(person.avatar_path)); return <button key={person.id} type="button" className="profiles-person" onClick={() => setSelectedId(person.id)}><span className="profiles-avatar">{showPhoto ? <img src={avatarUrl || ''} alt="" loading="lazy" decoding="async" onError={() => { if (person.avatar_path) setFailedAvatars((current) => new Set(current).add(person.avatar_path!)); }} /> : initials(person.full_name)}</span><span className="profiles-person-copy"><strong>{person.full_name}</strong><small>{person.position || 'Por asignar'}</small></span><span className={`profiles-status ${person.status === 'Activo' ? 'active' : ''}`}>{person.status}</span><ChevronRight size={18} className="profiles-arrow" /></button>; })}</div></section>)}
   </div>;
 }

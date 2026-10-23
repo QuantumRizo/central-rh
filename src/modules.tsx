@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import type { Session } from "@supabase/supabase-js";
-import { BriefcaseBusiness, ClipboardCheck, Clock3, FileSignature, KeyRound, UserRound, Users, type LucideIcon } from "lucide-react";
+import { BriefcaseBusiness, ClipboardCheck, Clock3, FileSignature, KeyRound, LayoutGrid, UserRound, Users, Wrench, type LucideIcon } from "lucide-react";
 import type { Option } from "./components/Picker";
 import { AdminDashboard } from "./timesheets/admin/AdminDashboard";
 import { TimesheetsModule } from "./timesheets/TimesheetsModule";
@@ -12,6 +12,7 @@ import { ChangePassword } from "./profile/ChangePassword";
 import { RecruitmentModule } from "./recruitment/RecruitmentModule";
 import { SignaturesModule } from "./signatures/SignaturesModule";
 import { ToolsModule } from "./tools/ToolsModule";
+import { ToolsHub } from "./tools/ToolsHub";
 import { AccessModule } from "./access/AccessModule";
 import type { ModuleId, ModuleLevel } from "./access/levels";
 import { TOOLS } from "./tools/catalog";
@@ -52,6 +53,7 @@ export type AppModule = {
 };
 
 const everyone = () => true;
+const hasAny = (access: Access, section: (typeof TOOLS)[number]["section"]) => TOOLS.some((tool) => tool.section === section && access.hasTool(tool.id));
 
 // Un módulo nuevo = una entrada aquí. El orden es el de la barra lateral.
 export const MODULES: AppModule[] = [
@@ -71,8 +73,13 @@ export const MODULES: AppModule[] = [
     render: () => <RecruitmentModule /> },
   { path: "/firmas", name: "firmas", section: "RH", label: "Firmas y convenios", icon: FileSignature, visible: (a) => a.can("firmas", "admin"),
     render: () => <SignaturesModule /> },
+  // Cada sección de herramientas es una sola entrada del menú que abre su página de tarjetas.
+  { path: "/simi", name: "tools: simi", section: "Herramientas", label: "Dashboards Simi", icon: LayoutGrid, visible: (a) => hasAny(a, "Simi"),
+    render: (c) => <ToolsHub section="Simi" title="Dashboards Simi" description="Dashboards de Farmacias Similares. Se abren en otra pestaña." hasTool={c.hasTool} /> },
+  { path: "/cn-tools", name: "tools: cn-tools", section: "Herramientas", label: "Herramientas CN", icon: Wrench, visible: (a) => hasAny(a, "CN Tools"),
+    render: (c) => <ToolsHub section="CN Tools" title="Herramientas CN" description="Herramientas de Central de Negocios. Se abren en otra pestaña." hasTool={c.hasTool} /> },
   ...TOOLS.map((tool): AppModule => ({
-    path: `/tools/${tool.id}`, name: `tools: ${tool.id}`, section: tool.section, label: tool.label, icon: tool.icon, href: tool.url,
+    path: `/tools/${tool.id}`, name: `tools: ${tool.id}`, parent: tool.section === "Simi" ? "/simi" : "/cn-tools",
     visible: (a) => a.hasTool(tool.id), render: () => <ToolsModule tool={tool} />,
   })),
   { path: "/configuracion/accesos", name: "accesos", section: "Configuración", label: "Accesos", icon: KeyRound, visible: (a) => a.superadmin,
@@ -80,4 +87,4 @@ export const MODULES: AppModule[] = [
 ];
 
 export const DEFAULT_PATH = "/timesheets";
-export const SECTIONS = ["RH", "Simi", "CN Tools", "Configuración"] as const;
+export const SECTIONS = ["RH", "Herramientas", "Configuración"] as const;

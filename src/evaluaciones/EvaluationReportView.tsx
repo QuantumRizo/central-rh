@@ -90,7 +90,6 @@ export function EvaluationReportView({ report, cycle, employee, onBack }: { repo
       <h1>Reporte de evaluación de desempeño</h1>
       <dl>
         <div><dt>Colaborador:</dt><dd>{employee?.full_name ?? '—'}</dd></div>
-        <div><dt>Área:</dt><dd>{employee?.department ?? '—'}</dd></div>
         <div><dt>Puesto:</dt><dd>{employee?.position ?? '—'}</dd></div>
         <div><dt>Ciclo:</dt><dd>{cycle?.name ?? '—'}</dd></div>
         <div><dt>Fecha:</dt><dd>{new Date().toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' })}</dd></div>

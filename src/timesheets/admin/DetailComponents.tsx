@@ -1,4 +1,4 @@
-import { ArrowLeft, CalendarDays, Check, Clock3, LayoutDashboard, UserCheck, Users, X } from "lucide-react";
+import { ArrowLeft, CalendarDays, Check, Clock3, Flag, LayoutDashboard, UserCheck, Users, X } from "lucide-react";
 import { attendanceLabel } from "../attendance";
 import { workedHours } from "../utils";
 import { Metric } from "./SummaryComponents";
@@ -189,8 +189,9 @@ export function PersonDetail({
         <Metric
           icon={<UserCheck />}
           label="No trabajados"
-          value={detail.own.filter((sheet: any) => sheet.attendance !== "worked").length}
+          value={detail.own.filter((sheet: any) => sheet.attendance !== "worked" && sheet.attendance !== "holiday").length}
         />
+        <Metric icon={<Flag />} label="Feriados" value={detail.own.filter((sheet: any) => sheet.attendance === "holiday").length} />
       </div>
       <LegacyActivitySummary
         rows={detail.activities}

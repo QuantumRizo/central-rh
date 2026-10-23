@@ -19,3 +19,37 @@
 }
 .tools-open:hover { background: var(--color-primary-hover); }
 .tools-open:focus-visible { outline: 0; box-shadow: var(--focus-ring); }
+
+/* ---------- Tools hub: tarjetas de cada sección de herramientas ---------- */
+.tools-hub { display: grid; align-content: start; gap: var(--space-6); min-width: 0; }
+.tools-group { display: grid; gap: var(--space-3); }
+.tools-group h2 { margin: 0 var(--space-1); color: var(--color-text-muted); font-size: var(--text-md); font-weight: var(--weight-semibold); }
+.tools-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: var(--space-4); }
+
+.tool-card {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-4);
+  padding: var(--card-padding);
+  color: var(--color-text);
+  text-decoration: none;
+  transition: border-color 0.15s, background-color 0.15s;
+}
+.tool-card:hover { border-color: var(--color-primary-border); background: var(--color-primary-soft); }
+.tool-card:focus-visible { outline: 0; box-shadow: var(--focus-ring); }
+.tool-card-icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-md);
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+.tool-card-body { display: grid; gap: var(--space-1); min-width: 0; padding-right: var(--space-5); }
+.tool-card-body strong { font-size: var(--text-lg); font-weight: var(--weight-semibold); }
+.tool-card-body span { color: var(--color-text-muted); font-size: var(--text-base); line-height: 1.4; }
+.tool-card-open { position: absolute; top: var(--space-4); right: var(--space-4); color: var(--color-text-muted); transition: color 0.15s; }
+.tool-card:hover .tool-card-open { color: var(--color-primary); }

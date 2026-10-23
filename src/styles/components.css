@@ -21,7 +21,8 @@
 .profile-card,
 .profiles-filters,
 .profiles-empty,
-.recruitment-card {
+.recruitment-card,
+.tool-card {
   min-width: 0;
   background: var(--color-surface);
   border: 1px solid var(--color-divider);

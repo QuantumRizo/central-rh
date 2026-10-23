@@ -1,4 +1,4 @@
-import { ArrowLeft, CalendarDays, Check, Clock3, Download, LayoutDashboard, Search, UserCheck, Users, X } from "lucide-react";
+import { ArrowLeft, CalendarDays, Clock3, Download, LayoutDashboard, Search, UserCheck, Users, X } from "lucide-react";
 import { AdminSkeleton } from "../../components/LoadingSkeletons";
 import { PendingDays, ReportDetails } from "./ReportDetails";
 import { ABSENCE_OPTIONS, attendanceLabel } from "../attendance";
@@ -11,7 +11,7 @@ import { AdminTable } from "./AdminTable";
 import { useAdminReport, type AdminTab } from "./useAdminReport";
 
 export function AdminDashboard({ canEdit, onBack }: { canEdit: boolean; onBack: () => void }) {
-  const { selection, setSelection, revision, setRevision, from, setFrom, to, setTo, tab, setTab, query, setQuery, employees, sheets, busy, error, selectedClientName, setSelectedClientName, selectedPersonId, setSelectedPersonId, worked, absenceCounts, peopleWithCapture, coverage, hours, toIsWeekend, missing, personRows, clientRows, activityRows, absenceRows, selectedClientDetail, selectedPersonDetail } = useAdminReport();
+  const { selection, setSelection, revision, setRevision, from, setFrom, to, setTo, tab, setTab, query, setQuery, employees, sheets, busy, error, selectedClientName, setSelectedClientName, selectedPersonId, setSelectedPersonId, worked, absenceCounts, peopleWithCapture, coverage, hours, personRows, clientRows, activityRows, absenceRows, selectedClientDetail, selectedPersonDetail } = useAdminReport();
   const tabs: [AdminTab, string][] = [
     ["summary", "Resumen"],
     ["people", "Personas"],
@@ -196,54 +196,6 @@ export function AdminDashboard({ canEdit, onBack }: { canEdit: boolean; onBack: 
               <section className="admin-card">
                 <div className="card-heading">
                   <div>
-                    <h2>
-                      Avance al{" "}
-                      {new Date(`${to}T12:00:00`).toLocaleDateString("es-MX", {
-                        day: "numeric",
-                        month: "long",
-                      })}
-                    </h2>
-                    <p>{toIsWeekend ? 'La captura de esta fecha es opcional.' : 'Personas que aún no han capturado en la fecha final.'}</p>
-                  </div>
-                  {toIsWeekend ? (
-                    <span className="count-weekend">Fin de semana</span>
-                  ) : (
-                    <span className={missing.length ? "count-warn" : "count-ok"}>
-                      {missing.length} pendientes
-                    </span>
-                  )}
-                </div>
-                {!toIsWeekend && (
-                  <div className="progress">
-                    <span
-                      style={{
-                        width: `${100 - (employees.length ? (missing.length / employees.length) * 100 : 0)}%`,
-                      }}
-                    />
-                  </div>
-                )}
-                {toIsWeekend ? (
-                  <p className="all-done weekend-note" role="status">
-                    🏖️ La fecha final es {new Date(to + 'T12:00:00').getDay() === 6 ? 'sábado' : 'domingo'} — día no laboral. Los fines de semana son opcionales y no se contabilizan como pendientes.
-                  </p>
-                ) : missing.length ? (
-                  <details className="pending-details" key={to}>
-                    <summary>Ver {missing.length} personas pendientes</summary>
-                    <ul>
-                      {missing.map((e) => (
-                        <li key={e.id}>{e.full_name}</li>
-                      ))}
-                    </ul>
-                  </details>
-                ) : (
-                  <p className="all-done">
-                    <Check size={18} /> Todo el equipo activo ha capturado.
-                  </p>
-                )}
-              </section>
-              <section className="admin-card">
-                <div className="card-heading">
-                  <div>
                     <h2>Estado del período</h2>
                     <p>Resumen de asistencia registrada.</p>
                   </div>
@@ -266,19 +218,6 @@ export function AdminDashboard({ canEdit, onBack }: { canEdit: boolean; onBack: 
                   <div>
                     <h2>Clientes con más dedicación</h2>
                     <p>Días equivalentes según porcentaje reportado.</p>
-                  </div>
-                </div>
-                <RankList
-                  rows={clientRows
-                    .slice(0, 5)
-                    .map((r) => ({ name: r.name, value: r.equivalent }))}
-                />
-              </section>
-              <section className="admin-card">
-                <div className="card-heading">
-                  <div>
-                    <h2>Dedicación por cliente</h2>
-                    <p>Tiempo acumulado por cliente en el período.</p>
                   </div>
                 </div>
                 <RankList

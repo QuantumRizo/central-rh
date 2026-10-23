@@ -108,7 +108,7 @@ export function TimesheetCalendar({
           stats.worked++;
         } else if (sheet) {
           day = { date, kind: sheet.attendance as Kind, label: `${pretty} · ${attendanceLabel(sheet.attendance)}` };
-          stats.absences++;
+          if (sheet.attendance !== "holiday") stats.absences++;
         } else if (date > today) {
           day = { date, kind: isMexicoHoliday(date) ? "holiday" : "future", label: isMexicoHoliday(date) ? `${pretty} · Feriado` : pretty };
         } else if (joined && date < joined) {

@@ -160,7 +160,7 @@ export function useAdminReport() {
     .map(([name, equivalent]) => ({ name, equivalent }))
     .sort((a, b) => b.equivalent - a.equivalent);
   const absenceRows = sheets
-    .filter((s) => s.attendance !== "worked")
+    .filter((s) => s.attendance !== "worked" && s.attendance !== "holiday")
     .filter((s) =>
       `${s.employee?.full_name || ""} ${s.employee?.position || ""}`
         .toLowerCase()
