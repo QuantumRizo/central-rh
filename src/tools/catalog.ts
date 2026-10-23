@@ -3,7 +3,7 @@ import { BarChart3, Images, MapPinned, Radio, Target, Tv, Wallet, type LucideIco
 // Sitios de Vercel donde viven hoy las herramientas. Si cambia un dominio, basta con definir
 // la variable correspondiente en Vercel (y en el .env local); las rutas se arman solas.
 const SITES = {
-  simi: import.meta.env.VITE_SIMI_DASHBOARDS_URL || "https://dashboards-farmacias.vercel.app",
+  simi: import.meta.env.VITE_SIMI_DASHBOARDS_URL || "https://dashboards-cn-partners.vercel.app",
   cnTools: import.meta.env.VITE_CN_TOOLS_URL || "https://cn-tools.vercel.app",
 };
 
