@@ -9,7 +9,7 @@ const HEADER_FILL = 'FF156082';
 const BAND_FILL = 'FFDCE6F1';
 const CATEGORY_FILL = 'FFE97132';
 const CATEGORY_SOFT_FILL = 'FFFBE3D6';
-const FIXED_COLUMNS = ['Ciclo', 'Evaluado', 'Área del evaluado', 'Evaluador', 'Área del evaluador', 'Tipo de evaluación', 'Estado'];
+const FIXED_COLUMNS = ['Ciclo', 'Evaluado', 'Evaluador', 'Tipo de evaluación', 'Estado'];
 
 export async function downloadEvaluationWorkbook({ cycle, evaluated, participants, questions, responses, comments, report, selfScore, collectiveScore, fileLabel }: {
   cycle: EvaluationCycle;
@@ -87,9 +87,7 @@ export async function downloadEvaluationWorkbook({ cycle, evaluated, participant
       switch (column.header) {
         case 'Ciclo': return cycle.name;
         case 'Evaluado': return evaluated?.full_name ?? '';
-        case 'Área del evaluado': return evaluated?.department ?? '';
         case 'Evaluador': return employee?.full_name ?? '';
-        case 'Área del evaluador': return employee?.department ?? '';
         case 'Tipo de evaluación': return evaluatorId === evaluatedId ? 'Autoevaluación' : 'Colectiva';
         case 'Estado': return status;
         case 'Autoevaluación consolidada': return selfScore;
@@ -148,7 +146,6 @@ export async function downloadEvaluationWorkbook({ cycle, evaluated, participant
   const commentSheet = workbook.addWorksheet('Fortalezas y oportunidades', { views: [{ state: 'frozen', ySplit: 1 }] });
   commentSheet.columns = [
     { header: 'Evaluador', width: 30 },
-    { header: 'Área del evaluador', width: 22 },
     { header: 'Comentario general', width: 50 },
     { header: 'Fortalezas', width: 70 },
     { header: 'Oportunidades', width: 70 },
@@ -160,7 +157,7 @@ export async function downloadEvaluationWorkbook({ cycle, evaluated, participant
   });
   for (const { evaluatorId, employee } of ordered) {
     const comment = comments.find((item) => item.evaluator_id === evaluatorId && item.evaluated_id === evaluatedId);
-    const row = commentSheet.addRow([employee?.full_name ?? '', employee?.department ?? '', comment?.comment ?? '', comment?.strengths ?? '', comment?.opportunities ?? '']);
+    const row = commentSheet.addRow([employee?.full_name ?? '', comment?.comment ?? '', comment?.strengths ?? '', comment?.opportunities ?? '']);
     row.alignment = { vertical: 'top', wrapText: true };
   }
 
