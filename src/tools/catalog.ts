@@ -1,4 +1,4 @@
-import { BarChart3, MapPinned, Radio, Target, Tv, Wallet, type LucideIcon } from "lucide-react";
+import { BarChart3, Images, MapPinned, Radio, Target, Tv, Wallet, type LucideIcon } from "lucide-react";
 
 // Sitios de Vercel donde viven hoy las herramientas. Si cambia un dominio, basta con definir
 // la variable correspondiente en Vercel (y en el .env local); las rutas se arman solas.
@@ -18,7 +18,7 @@ export type Tool = {
   id: string;
   label: string;
   /** Sección de la barra lateral. */
-  section: "Simi" | "CN Tools";
+  section: "Simi" | "CN Tools" | "Clientes";
   group: string;
   description: string;
   icon: LucideIcon;
@@ -26,6 +26,10 @@ export type Tool = {
 };
 
 export const TOOLS: Tool[] = [
+  // Lo ve el cliente de CN Sika: el sitio de Simi lo muestra sin la franja de Plataforma Central.
+  { id: "sika", label: "Sika", section: "Clientes", group: "Dashboards de clientes", icon: Images,
+    description: "Campañas digitales de Sika: YouTube, Programmatic y Meta, con sus testigos.",
+    url: url("simi", "/sika") },
   { id: "street-planner", label: "Street Planner", section: "Simi", group: "Dashboards Simi", icon: MapPinned,
     description: "Sitios OOH, farmacias e impactos por estado, ciudad y radio.",
     url: url("simi", "/street-planner") },

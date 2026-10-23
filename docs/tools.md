@@ -1,6 +1,6 @@
 # Tools: cómo agregar un dashboard o herramienta
 
-La plataforma RH es la entrada única de Central MX. La barra lateral tiene **RH** (los módulos de Recursos Humanos), **Herramientas** y **Configuración**. Herramientas tiene dos entradas, **Dashboards Simi** (Farmacias Similares) y **Herramientas CN** (Central de Negocios), y cada una abre una página con tarjetas de sus herramientas (`src/tools/ToolsHub.tsx`). Cada persona ve sólo las herramientas que tiene en `public.tool_access`; el super admin (permiso `superadmin`, hoy Félix) las ve todas y asigna los accesos en **Configuración → Accesos** (`/configuracion/accesos`). Una herramienta nueva aparece ahí sola en cuanto se agrega al catálogo.
+La plataforma RH es la entrada única de Central MX. La barra lateral tiene **RH** (los módulos de Recursos Humanos), **Herramientas** y **Configuración**. Herramientas tiene tres entradas, **Dashboards Simi** (Farmacias Similares), **Herramientas CN** (Central de Negocios) y **Herramientas Clientes** (dashboards que ven los clientes de CN, como Sika), y cada una abre una página con tarjetas de sus herramientas (`src/tools/ToolsHub.tsx`). Cada persona ve sólo las herramientas que tiene en `public.tool_access`; el super admin (permiso `superadmin`, hoy Félix) las ve todas y asigna los accesos en **Configuración → Accesos** (`/configuracion/accesos`). Una herramienta nueva aparece ahí sola en cuanto se agrega al catálogo.
 
 ## Base de datos compartida
 
