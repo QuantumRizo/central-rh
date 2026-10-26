@@ -50,6 +50,37 @@ export async function downloadTimesheetWorkbook(sheets: any[], employeeId: strin
   summary.addRow(['Fuente', 'Central RH · timesheets']);
   summary.addRow(['Nota', 'Los porcentajes de actividades son partes del día, no horas exactas.']);
 
+  const byClient = new Map<string, { days: Set<string>; equivalent: number }>();
+  const byTask = new Map<string, { days: Set<string>; equivalent: number }>();
+  let equivalentTotal = 0;
+  for (const sheet of own) for (const entry of sheet.timesheet_entries || []) {
+    const equivalent = (Number(entry.percentage) || 0) / 100;
+    equivalentTotal += equivalent;
+    for (const [group, name] of [[byClient, entry.client?.name || 'Sin cliente'], [byTask, entry.activity?.name || 'Sin tarea']] as const) {
+      const item = group.get(name) || { days: new Set<string>(), equivalent: 0 };
+      item.days.add(sheet.work_date);
+      item.equivalent += equivalent;
+      group.set(name, item);
+    }
+  }
+  const addBreakdown = (title: string, label: string, group: Map<string, { days: Set<string>; equivalent: number }>) => {
+    const sheet = workbook.addWorksheet(title);
+    sheet.columns = [
+      { header: label, width: title === 'Por tarea' ? 75 : 40 },
+      { header: 'Días con registro', width: 21 },
+      { header: 'Días equivalentes', width: 22 },
+      { header: '% de actividad', width: 19 },
+    ];
+    styleHeader(sheet);
+    for (const [name, item] of [...group].sort((a, b) => b[1].equivalent - a[1].equivalent || a[0].localeCompare(b[0]))) {
+      const row = sheet.addRow([name, item.days.size, item.equivalent, equivalentTotal ? item.equivalent / equivalentTotal : 0]);
+      row.getCell(3).numFmt = '0.00';
+      row.getCell(4).numFmt = '0.0%';
+    }
+  };
+  addBreakdown('Por cliente', 'Cliente', byClient);
+  addBreakdown('Por tarea', 'Tarea (actividad)', byTask);
+
   const daily = workbook.addWorksheet('Capturas');
   daily.columns = [
     { header: 'Fecha', width: 15 }, { header: 'Asistencia', width: 20 }, { header: 'Modalidad', width: 22 },
