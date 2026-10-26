@@ -1,6 +1,6 @@
 # Tools: cómo agregar un dashboard o herramienta
 
-La plataforma RH es la entrada única de Central MX. La barra lateral tiene **RH** (los módulos de Recursos Humanos), **Herramientas** y **Configuración**. Herramientas tiene tres entradas, **Dashboards Simi** (Farmacias Similares), **Herramientas CN** (Central de Negocios) y **Herramientas Clientes** (dashboards que ven los clientes de CN, como Sika), y cada una abre una página con tarjetas de sus herramientas (`src/tools/ToolsHub.tsx`). Cada persona ve sólo las herramientas que tiene en `public.tool_access`; el super admin (permiso `superadmin`, hoy Félix) las ve todas y asigna los accesos en **Configuración → Accesos** (`/configuracion/accesos`). Una herramienta nueva aparece ahí sola en cuanto se agrega al catálogo.
+La plataforma RH es la entrada única de Central MX. La barra lateral tiene **RH** (los módulos de Recursos Humanos), **Herramientas** y **Configuración**. Herramientas tiene dos entradas, **Herramientas CN** (Central de Negocios) y **Herramientas Clientes** (dashboards de clientes como Sika y herramientas de Farmacias Similares); cada una abre una página con tarjetas de sus herramientas (`src/tools/ToolsHub.tsx`). Cada persona ve sólo las herramientas que tiene en `public.tool_access`; el super admin (permiso `superadmin`, hoy Félix) las ve todas y asigna los accesos en **Configuración → Accesos** (`/configuracion/accesos`). Una herramienta nueva aparece ahí sola en cuanto se agrega al catálogo.
 
 ## Base de datos compartida
 
@@ -49,7 +49,7 @@ Un sitio nuevo de herramientas debe agregarse a `SITES` para recibir el pase, y 
 
 **¿Es otra herramienta?** Puede ir en `cn-tools` (alcance-app) o en un proyecto nuevo de Vercel. En cualquier caso usa el Supabase de Central RH con su propio schema.
 
-**Para que aparezca como tarjeta:** agrega una entrada en `TOOLS` de `src/tools/catalog.ts` (id, nombre, sección `Simi` o `CN Tools`, grupo, descripción, ícono de `lucide-react` y URL). Una sección nueva necesita su página (`ToolsHub`) y su entrada en `MODULES` de `src/modules.tsx`. La URL se arma con la base de su sitio (`SITES`); si es un sitio nuevo, agrega su variable `VITE_…_URL` con valor por defecto y documéntala en el README. Con eso aparece en la página de su sección, con su ruta `/tools/<id>` y el botón que lo abre en otra pestaña.
+**Para que aparezca como tarjeta:** agrega una entrada en `TOOLS` de `src/tools/catalog.ts` (id, nombre, sección `Simi`, `Clientes` o `CN Tools`, grupo, descripción, ícono de `lucide-react` y URL). Simi y Clientes se presentan en **Herramientas Clientes**; CN Tools tiene su propia página. Una sección nueva necesita su página (`ToolsHub`) y su entrada en `MODULES` de `src/modules.tsx`. La URL se arma con la base de su sitio (`SITES`); si es un sitio nuevo, agrega su variable `VITE_…_URL` con valor por defecto y documéntala en el README. Con eso aparece en la página de su sección, con su ruta `/tools/<id>` y el botón que lo abre en otra pestaña.
 
 ## Agregar un módulo de RH (no un tool)
 

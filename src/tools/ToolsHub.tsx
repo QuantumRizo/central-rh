@@ -2,8 +2,9 @@ import { ArrowUpRight } from "lucide-react";
 import { TOOLS, type Tool } from "./catalog";
 
 /** Página de una sección de herramientas: tarjetas agrupadas que abren cada sitio en otra pestaña. */
-export function ToolsHub({ section, title, description, hasTool }: { section: Tool["section"]; title: string; description: string; hasTool: (toolId: string) => boolean }) {
-  const tools = TOOLS.filter((tool) => tool.section === section && hasTool(tool.id));
+export function ToolsHub({ section, title, description, hasTool }: { section: Tool["section"] | Tool["section"][]; title: string; description: string; hasTool: (toolId: string) => boolean }) {
+  const sections = Array.isArray(section) ? section : [section];
+  const tools = TOOLS.filter((tool) => sections.includes(tool.section) && hasTool(tool.id));
   const groups = [...new Set(tools.map((tool) => tool.group))];
   return (
     <div className="tools-hub">

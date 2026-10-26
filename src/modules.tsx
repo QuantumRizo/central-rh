@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import type { Session } from "@supabase/supabase-js";
-import { BriefcaseBusiness, ClipboardCheck, Clock3, FileSignature, KeyRound, LayoutGrid, PanelsTopLeft, UserRound, Users, Wrench, type LucideIcon } from "lucide-react";
+import { BriefcaseBusiness, ClipboardCheck, Clock3, FileSignature, KeyRound, PanelsTopLeft, UserRound, Users, Wrench, type LucideIcon } from "lucide-react";
 import type { Option } from "./components/Picker";
 import { AdminDashboard } from "./timesheets/admin/AdminDashboard";
 import { TimesheetsModule } from "./timesheets/TimesheetsModule";
@@ -77,14 +77,16 @@ export const MODULES: AppModule[] = [
   { path: "/firmas", name: "firmas", section: "RH", label: "Firmas y convenios", icon: FileSignature, visible: (a) => a.can("firmas", "admin"),
     render: () => <SignaturesModule /> },
   // Cada sección de herramientas es una sola entrada del menú que abre su página de tarjetas.
-  { path: "/simi", name: "tools: simi", section: "Herramientas", label: "Dashboards Simi", icon: LayoutGrid, visible: (a) => hasAny(a, "Simi"),
-    render: (c) => <ToolsHub section="Simi" title="Dashboards Simi" description="Dashboards de Farmacias Similares. Se abren en otra pestaña." hasTool={c.hasTool} /> },
   { path: "/cn-tools", name: "tools: cn-tools", section: "Herramientas", label: "Herramientas CN", icon: Wrench, visible: (a) => hasAny(a, "CN Tools"),
     render: (c) => <ToolsHub section="CN Tools" title="Herramientas CN" description="Herramientas de Central de Negocios. Se abren en otra pestaña." hasTool={c.hasTool} /> },
-  { path: "/clientes", name: "tools: clientes", section: "Herramientas", label: "Herramientas Clientes", icon: PanelsTopLeft, visible: (a) => hasAny(a, "Clientes"),
-    render: (c) => <ToolsHub section="Clientes" title="Herramientas Clientes" description="Dashboards de clientes. Se abren en otra pestaña." hasTool={c.hasTool} /> },
+  { path: "/clientes", name: "tools: clientes", section: "Herramientas", label: "Herramientas Clientes", icon: PanelsTopLeft,
+    visible: (a) => hasAny(a, "Clientes") || hasAny(a, "Simi"),
+    render: (c) => <ToolsHub section={["Clientes", "Simi"]} title="Herramientas Clientes" description="Dashboards de clientes y herramientas de Farmacias Similares. Se abren en otra pestaña." hasTool={c.hasTool} /> },
+  // Mantiene operativos enlaces guardados a la antigua sección; ya no aparece como opción aparte.
+  { path: "/simi", name: "tools: simi (legacy)", visible: (a) => hasAny(a, "Simi"),
+    render: (c) => <ToolsHub section={["Clientes", "Simi"]} title="Herramientas Clientes" description="Dashboards de clientes y herramientas de Farmacias Similares. Se abren en otra pestaña." hasTool={c.hasTool} /> },
   ...TOOLS.map((tool): AppModule => ({
-    path: `/tools/${tool.id}`, name: `tools: ${tool.id}`, parent: tool.section === "Simi" ? "/simi" : tool.section === "Clientes" ? "/clientes" : "/cn-tools",
+    path: `/tools/${tool.id}`, name: `tools: ${tool.id}`, parent: tool.section === "CN Tools" ? "/cn-tools" : "/clientes",
     visible: (a) => a.hasTool(tool.id), render: () => <ToolsModule tool={tool} />,
   })),
   { path: "/configuracion/accesos", name: "accesos", section: "Configuración", label: "Accesos", icon: KeyRound, visible: (a) => a.superadmin,
