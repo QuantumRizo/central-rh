@@ -1,0 +1,72 @@
+.my-timesheet-report {
+  display: grid;
+  gap: var(--space-6);
+}
+
+.my-report-filters {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+}
+
+.my-report-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+
+.my-report-breakdown {
+  display: grid;
+  align-content: start;
+  gap: var(--space-4);
+}
+
+.my-report-breakdown .table-wrap,
+.my-report-captures .table-wrap {
+  max-height: 480px;
+}
+
+.my-report-breakdown th:first-child,
+.my-report-breakdown td:first-child {
+  text-align: left;
+}
+
+.my-report-breakdown th:not(:first-child),
+.my-report-breakdown td:not(:first-child),
+.my-report-captures th:nth-child(n + 6),
+.my-report-captures td:nth-child(n + 6) {
+  text-align: right;
+}
+
+.my-report-captures {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.my-timesheet-report > .report-note {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+}
+
+@media (max-width: 860px) {
+  .my-report-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .my-report-filters .date-filter {
+    width: 100%;
+  }
+
+  .my-report-filters .date-filter label {
+    min-width: 0;
+  }
+
+  .my-report-filters .date-filter input {
+    width: 100%;
+  }
+}

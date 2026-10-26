@@ -4,6 +4,7 @@ import { BriefcaseBusiness, ClipboardCheck, Clock3, FileSignature, KeyRound, Lay
 import type { Option } from "./components/Picker";
 import { AdminDashboard } from "./timesheets/admin/AdminDashboard";
 import { TimesheetsModule } from "./timesheets/TimesheetsModule";
+import { MyTimesheetReport } from "./timesheets/MyTimesheetReport";
 import type { useTimesheetDraft } from "./timesheets/useTimesheetDraft";
 import { EvaluacionesModule } from "./evaluaciones/EvaluacionesModule";
 import { Profile } from "./profile/Profile";
@@ -58,13 +59,15 @@ const hasAny = (access: Access, section: (typeof TOOLS)[number]["section"]) => T
 // Un módulo nuevo = una entrada aquí. El orden es el de la barra lateral.
 export const MODULES: AppModule[] = [
   { path: "/timesheets", name: "timesheets", section: "RH", label: "Timesheets", icon: Clock3, visible: everyone,
-    render: (c) => <TimesheetsModule employee={c.employee} admin={c.can("timesheets", "admin")} canViewTimesheetReports={c.can("timesheets", "reportes")} onReports={() => c.navigate("/timesheets/reportes")} clients={c.clients} activities={c.activities} draft={c.draft} /> },
+    render: (c) => <TimesheetsModule employee={c.employee} admin={c.can("timesheets", "admin")} canViewTimesheetReports={c.can("timesheets", "reportes")} onReports={() => c.navigate("/timesheets/reportes")} onMyReport={() => c.navigate("/timesheets/mi-reporte")} clients={c.clients} activities={c.activities} draft={c.draft} /> },
+  { path: "/timesheets/mi-reporte", name: "mi reporte de timesheets", parent: "/timesheets", visible: everyone,
+    render: (c) => <MyTimesheetReport employeeId={c.employee} onCapture={() => c.navigate("/timesheets")} /> },
   { path: "/timesheets/reportes", name: "timesheets (panel admin)", parent: "/timesheets", visible: (a) => a.can("timesheets", "reportes"),
     render: (c) => <AdminDashboard canEdit={c.can("timesheets", "admin")} onBack={() => c.navigate("/timesheets")} /> },
   { path: "/evaluaciones", name: "evaluaciones", section: "RH", label: "Evaluaciones", icon: ClipboardCheck, visible: everyone,
     render: (c) => <EvaluacionesModule employeeId={c.employee} isAdmin={c.can("evaluaciones", "admin")} /> },
   { path: "/perfil", name: "perfil", section: "RH", label: "Mi perfil", icon: UserRound, visible: everyone,
-    render: (c) => <Profile session={c.session} employeeId={c.employee} viewerEmployeeId={c.employee} isAdmin={c.can("perfiles", "admin")} canSeeDocuments={c.can("firmas", "admin")} onEvaluations={() => c.navigate("/evaluaciones")} onChangePassword={() => c.navigate("/perfil/contrasena")} /> },
+    render: (c) => <Profile session={c.session} employeeId={c.employee} viewerEmployeeId={c.employee} isAdmin={c.can("perfiles", "admin")} canSeeDocuments={c.can("firmas", "admin")} onEvaluations={() => c.navigate("/evaluaciones")} onTimesheetReport={() => c.navigate("/timesheets/mi-reporte")} onChangePassword={() => c.navigate("/perfil/contrasena")} /> },
   { path: "/perfil/contrasena", name: "cambiar-contrasena", parent: "/perfil", visible: everyone,
     render: (c) => <ChangePassword session={c.session} onBack={() => c.navigate("/perfil")} /> },
   { path: "/perfiles", name: "perfiles", section: "RH", label: "Perfiles", icon: Users, visible: (a) => a.can("perfiles", "ver"),

@@ -1,12 +1,13 @@
 import { attendanceLabel } from '../attendance';
 import { workedHours } from '../utils';
+import { summarizeActivities, type ActivityBreakdown, type ReportSheet } from '../reportData';
 import type { Worksheet } from 'exceljs';
 
 const modeLabel = (mode: string | null) => ({ office: 'Presencial', home_office: 'Home Office', schedule_permission: 'Permiso de horario' })[mode || ''] || mode || '';
 const excelDate = (value: string) => new Date(`${value}T12:00:00`);
 const slug = (value: string) => value.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 
-export async function downloadTimesheetWorkbook(sheets: any[], employeeId: string, name: string, from: string, to: string) {
+export async function downloadTimesheetWorkbook(sheets: any[], employeeId: string, name: string, from: string, to: string, includeBreakdowns = false) {
   const own = sheets.filter(sheet => sheet.employee_id === employeeId).sort((a, b) => a.work_date.localeCompare(b.work_date));
   if (!own.length) return;
   const { default: ExcelJS } = await import('exceljs');
@@ -49,6 +50,31 @@ export async function downloadTimesheetWorkbook(sheets: any[], employeeId: strin
   summary.addRow(['Horas registradas', own.reduce((sum, s) => sum + (s.attendance === 'worked' ? workedHours(s.entry_time, s.exit_time) : 0), 0)]).getCell(2).numFmt = '0.00';
   summary.addRow(['Fuente', 'Central RH · timesheets']);
   summary.addRow(['Nota', 'Los porcentajes de actividades son partes del día, no horas exactas.']);
+
+  const addBreakdown = (title: string, label: string, rows: ActivityBreakdown[]) => {
+    const sheet = workbook.addWorksheet(title);
+    sheet.columns = [
+      { header: label, width: title === 'Por tarea' ? 75 : 40 },
+      { header: 'Días con registro', width: 22 },
+      { header: 'Días equivalentes', width: 22 },
+      { header: '% de actividad', width: 20 },
+    ];
+    styleHeader(sheet);
+    for (const item of rows) {
+      const row = sheet.addRow([item.name, item.days, item.equivalent, item.share]);
+      row.getCell(3).numFmt = '0.00';
+      row.getCell(4).numFmt = '0.0%';
+      if (title === 'Por tarea' && item.name.length > 80) {
+        row.height = item.name.length > 140 ? 48 : 36;
+        row.getCell(1).alignment = { vertical: 'middle', wrapText: true };
+      }
+    }
+  };
+  if (includeBreakdowns) {
+    const breakdown = summarizeActivities(own as ReportSheet[]);
+    addBreakdown('Por cliente', 'Cliente', breakdown.clients);
+    addBreakdown('Por tarea', 'Tarea (actividad)', breakdown.tasks);
+  }
 
   const daily = workbook.addWorksheet('Capturas');
   daily.columns = [

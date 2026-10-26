@@ -10,7 +10,7 @@ import { day } from "./utils";
 import { isMexicoHoliday } from "./holidays";
 import type { useTimesheetDraft } from "./useTimesheetDraft";
 
-type Props = { employee: string; admin: boolean; canViewTimesheetReports: boolean; onReports: () => void; clients: Option[]; activities: Option[]; draft: ReturnType<typeof useTimesheetDraft> };
+type Props = { employee: string; admin: boolean; canViewTimesheetReports: boolean; onReports: () => void; onMyReport: () => void; clients: Option[]; activities: Option[]; draft: ReturnType<typeof useTimesheetDraft> };
 
 const MODES = [
   { value: "office", label: "Presencial" },
@@ -20,7 +20,7 @@ const MODES = [
 const WORKED = [{ value: "yes", label: "Trabajé" }, { value: "no", label: "No trabajé" }] as const;
 const dayTitle = new Intl.DateTimeFormat("es-MX", { weekday: "long", day: "numeric", month: "long" });
 
-export function TimesheetsModule({ employee, admin, canViewTimesheetReports, onReports, clients, activities, draft }: Props) {
+export function TimesheetsModule({ employee, admin, canViewTimesheetReports, onReports, onMyReport, clients, activities, draft }: Props) {
   const { baseline, savedSheetDate, date, setDate, attendance, setAttendance, mode, setMode, entry, setEntry, exit, setExit, permissionEntry, setPermissionEntry, permissionExit, setPermissionExit, rows, setRows, busy, setBusy, saving, error, setError, message, aiCompletionMessage, setAiCompletionMessage, importRevision, setImportRevision, sheetRevision, deleting, dirty, canLeave, workdayHours, totalHours, total, hoursAreComplete, scheduleReady, isWeekend, weekendDayName, deleteSheet, save, update, copying, copyPreviousDay, repeatDay } = draft;
   const dayName = dayTitle.format(new Date(`${date}T12:00:00`));
   const holiday = isMexicoHoliday(date);
@@ -38,6 +38,7 @@ export function TimesheetsModule({ employee, admin, canViewTimesheetReports, onR
                 </button>
               )}
             </div>
+            <nav className="admin-tabs" aria-label="Vistas de Timesheets"><button className="active" aria-current="page">Captura diaria</button><button onClick={() => { if (canLeave()) onMyReport(); }}>Mi reporte</button></nav>
             <TimesheetCalendar
               employeeId={employee}
               selectedDate={date}

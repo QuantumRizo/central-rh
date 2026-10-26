@@ -222,12 +222,14 @@
 }
 
 .profile-evaluations,
+.profile-timesheet-report,
 .profile-account-card {
   display: grid;
   gap: var(--space-4);
 }
 
 .profile-evaluations > button,
+.profile-timesheet-report > button,
 .profile-change-password {
   justify-self: start;
 }
@@ -562,6 +564,7 @@
   }
 
   .profile-evaluations > button,
+  .profile-timesheet-report > button,
   .profile-change-password {
     justify-self: stretch;
   }
