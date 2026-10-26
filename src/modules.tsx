@@ -81,10 +81,10 @@ export const MODULES: AppModule[] = [
     render: (c) => <ToolsHub section="CN Tools" title="Herramientas CN" description="Herramientas de Central de Negocios. Se abren en otra pestaña." hasTool={c.hasTool} /> },
   { path: "/clientes", name: "tools: clientes", section: "Herramientas", label: "Herramientas Clientes", icon: PanelsTopLeft,
     visible: (a) => hasAny(a, "Clientes") || hasAny(a, "Simi"),
-    render: (c) => <ToolsHub section={["Clientes", "Simi"]} title="Herramientas Clientes" description="Dashboards de clientes y herramientas de Farmacias Similares. Se abren en otra pestaña." hasTool={c.hasTool} /> },
+    render: (c) => <ToolsHub section={["Clientes", "Simi"]} title="Herramientas Clientes" description="Dashboards agrupados por cliente. Se abren en otra pestaña." hasTool={c.hasTool} /> },
   // Mantiene operativos enlaces guardados a la antigua sección; ya no aparece como opción aparte.
   { path: "/simi", name: "tools: simi (legacy)", visible: (a) => hasAny(a, "Simi"),
-    render: (c) => <ToolsHub section={["Clientes", "Simi"]} title="Herramientas Clientes" description="Dashboards de clientes y herramientas de Farmacias Similares. Se abren en otra pestaña." hasTool={c.hasTool} /> },
+    render: (c) => <ToolsHub section={["Clientes", "Simi"]} title="Herramientas Clientes" description="Dashboards agrupados por cliente. Se abren en otra pestaña." hasTool={c.hasTool} /> },
   ...TOOLS.map((tool): AppModule => ({
     path: `/tools/${tool.id}`, name: `tools: ${tool.id}`, parent: tool.section === "CN Tools" ? "/cn-tools" : "/clientes",
     visible: (a) => a.hasTool(tool.id), render: () => <ToolsModule tool={tool} />,

@@ -27,16 +27,16 @@ export type Tool = {
 
 export const TOOLS: Tool[] = [
   // Lo ve el cliente de CN Sika: el sitio de Simi lo muestra sin la franja de Plataforma Central.
-  { id: "sika", label: "Sika", section: "Clientes", group: "Dashboards de clientes", icon: Images,
+  { id: "sika", label: "Sika", section: "Clientes", group: "Sika", icon: Images,
     description: "Campañas digitales de Sika: YouTube, Programmatic y Meta, con sus testigos.",
     url: url("simi", "/sika") },
-  { id: "street-planner", label: "Street Planner", section: "Simi", group: "Dashboards Simi", icon: MapPinned,
+  { id: "street-planner", label: "Street Planner", section: "Simi", group: "Farmacias Similares", icon: MapPinned,
     description: "Sitios OOH, farmacias e impactos por estado, ciudad y radio.",
     url: url("simi", "/street-planner") },
-  { id: "inversion", label: "Inversión", section: "Simi", group: "Dashboards Simi", icon: Wallet,
+  { id: "inversion", label: "Inversión", section: "Simi", group: "Farmacias Similares", icon: Wallet,
     description: "Inversión de Farmacias Similares por área, marca y medio.",
     url: url("simi", "/inversion") },
-  { id: "competencia", label: "Competencia", section: "Simi", group: "Dashboards Simi", icon: Tv,
+  { id: "competencia", label: "Competencia", section: "Simi", group: "Farmacias Similares", icon: Tv,
     description: "Inversión y spots de la competencia en TV y radio.",
     url: url("simi", "/competencia") },
   { id: "alcance", label: "Curvas de alcance", section: "CN Tools", group: "Planeación de medios", icon: Target,
