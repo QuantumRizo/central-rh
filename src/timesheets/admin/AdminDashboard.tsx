@@ -1,4 +1,5 @@
 import { ArrowLeft, CalendarDays, Clock3, Download, LayoutDashboard, Search, UserCheck, Users, X } from "lucide-react";
+import { useState } from "react";
 import { AdminSkeleton } from "../../components/LoadingSkeletons";
 import { PendingDays, ReportDetails } from "./ReportDetails";
 import { ABSENCE_OPTIONS, attendanceLabel } from "../attendance";
@@ -11,6 +12,8 @@ import { AdminTable } from "./AdminTable";
 import { useAdminReport, type AdminTab } from "./useAdminReport";
 
 export function AdminDashboard({ canEdit, onBack }: { canEdit: boolean; onBack: () => void }) {
+  const [exporting, setExporting] = useState(false);
+  const [exportError, setExportError] = useState("");
   const { selection, setSelection, revision, setRevision, from, setFrom, to, setTo, tab, setTab, query, setQuery, employees, sheets, busy, error, selectedClientName, setSelectedClientName, selectedPersonId, setSelectedPersonId, worked, absenceCounts, peopleWithCapture, coverage, hours, personRows, clientRows, activityRows, absenceRows, selectedClientDetail, selectedPersonDetail } = useAdminReport();
   const tabs: [AdminTab, string][] = [
     ["summary", "Resumen"],
@@ -19,6 +22,12 @@ export function AdminDashboard({ canEdit, onBack }: { canEdit: boolean; onBack: 
     ["absences", "Ausencias"],
   ];
   const exportData = () => {
+    if (selection?.type === "person") {
+      setExporting(true);
+      setExportError("");
+      void import("./timesheetExcel").then(({ downloadTimesheetWorkbook }) => downloadTimesheetWorkbook(sheets, selection.id, selection.name, from, to)).catch((exportFailure: Error) => setExportError(exportFailure.message)).finally(() => setExporting(false));
+      return;
+    }
     let heading: string[] = [],
       data: (string | number)[][] = [];
     if (tab === "people") {
@@ -100,11 +109,12 @@ export function AdminDashboard({ canEdit, onBack }: { canEdit: boolean; onBack: 
         <button
           className="secondary export-button"
           onClick={exportData}
-          disabled={busy}
+          disabled={busy || exporting || !!error || (selection?.type === "person" && !sheets.some(s => s.employee_id === selection.id))}
         >
-          <Download size={17} /> Exportar CSV
+          <Download size={17} /> {exporting ? "Preparando Excel…" : selection?.type === "person" ? "Descargar reporte Excel" : "Exportar tabla CSV"}
         </button>
       </div>
+      {exportError && <p role="alert" className="error">No se pudo generar el Excel: {exportError}</p>}
       <div className="admin-toolbar">
         <div className="date-filter">
           <label>
@@ -127,6 +137,7 @@ export function AdminDashboard({ canEdit, onBack }: { canEdit: boolean; onBack: 
             />
           </label>
         </div>
+        <button className="secondary" onClick={() => { setFrom(`${day().slice(0, 4)}-01-01`); setTo(day()); }}>Año a la fecha</button>
         {tab !== "summary" && (
           <label className="search">
             <Search size={17} />
@@ -239,7 +250,7 @@ export function AdminDashboard({ canEdit, onBack }: { canEdit: boolean; onBack: 
                 "Horas",
               ]}
               rows={personRows.map((r) => [
-                <button className="detail-link" onClick={()=>setSelection({type:'person',name:r.name})}>{r.name}</button>,
+                <button className="detail-link" onClick={()=>setSelection({type:'person',id:r.id,name:r.name})}>{r.name}</button>,
                 r.position,
                 r.captures,
                 r.worked,
@@ -269,7 +280,7 @@ export function AdminDashboard({ canEdit, onBack }: { canEdit: boolean; onBack: 
               />
             </>
           )}
-          {selection && (tab === 'people' || tab === 'clients') && <ReportDetails key={selection.type+selection.name+from+to} sheets={sheets} selection={selection} onClose={()=>setSelection(null)} db={sb} />}
+          {selection && (tab === 'people' || tab === 'clients') && <ReportDetails key={selection.type+(selection.type === 'person' ? selection.id : selection.name)+from+to} sheets={sheets} selection={selection} from={from} to={to} onClose={()=>setSelection(null)} db={sb} />}
           {tab === 'people' && <PendingDays employees={employees} sheets={sheets} from={from} to={to} today={day()} db={sb} canEdit={canEdit} onRefresh={()=>setRevision(r=>r+1)} />}
           {tab === "absences" && (
             <AdminTable

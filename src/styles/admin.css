@@ -334,8 +334,20 @@
 }
 
 .report-detail h2,
+.report-detail h3,
 .report-detail p {
   margin: 0;
+}
+
+.report-detail h3 {
+  color: var(--color-text);
+  font-size: var(--text-lg);
+}
+
+.report-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
 }
 
 .report-detail > .secondary {

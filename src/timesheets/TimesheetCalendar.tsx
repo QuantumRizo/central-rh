@@ -175,7 +175,7 @@ export function TimesheetCalendar({
             <ChevronLeft size={16} />
           </button>
           <strong>{year}</strong>
-          <button type="button" className="icon" title="Año siguiente" disabled={year >= currentYear} onClick={() => setYear(year + 1)}>
+          <button type="button" className="icon" title="Año siguiente" disabled={year > currentYear} onClick={() => setYear(year + 1)}>
             <ChevronRight size={16} />
           </button>
         </div>
@@ -236,7 +236,7 @@ export function TimesheetCalendar({
           </p>
         ) : (
           <p className="ts-calendar-status done" role="status">
-            <CheckCircle2 size={15} /> Estás al día{year === currentYear ? "" : ` en ${year}`}
+            <CheckCircle2 size={15} /> {year > currentYear ? `${year} aún no inicia · se marcan los feriados oficiales` : `Estás al día${year === currentYear ? "" : ` en ${year}`}`}
           </p>
         )}
         <div className="ts-calendar-legend">

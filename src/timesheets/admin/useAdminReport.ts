@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { sb } from "../../lib/supabase";
 import { ABSENCE_OPTIONS } from "../attendance";
 import { day, workedHours, HIDDEN_CLIENTS } from "../utils";
+import type { ReportSelection } from "./ReportDetails";
 
 export type AdminTab = "summary" | "people" | "clients" | "absences";
 const monthStart = () => {
@@ -10,7 +11,7 @@ const monthStart = () => {
 };
 
 export function useAdminReport() {
-  const [selection, setSelection] = useState<{type:'person'|'client';name:string}|null>(null);
+  const [selection, setSelection] = useState<ReportSelection | null>(null);
   const [revision, setRevision] = useState(0);
   const [from, setFrom] = useState(monthStart()),
     [to, setTo] = useState(day()),
@@ -40,7 +41,7 @@ export function useAdminReport() {
           const { data, error } = await sb
             .from("timesheets")
             .select(
-              "id,employee_id,work_date,attendance,mode,entry_time,exit_time,position_snapshot,employee:employees(full_name,position),timesheet_entries(id,percentage,client:clients(id,name),activity:activities(id,name))",
+              "id,employee_id,work_date,attendance,mode,entry_time,exit_time,permission_entry_time,permission_exit_time,position_snapshot,employee:employees(full_name,position),timesheet_entries(id,percentage,client:clients(id,name),activity:activities(id,name))",
             )
             .gte("work_date", from)
             .lte("work_date", to)
