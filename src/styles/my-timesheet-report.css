@@ -1,3 +1,37 @@
+.timesheet-view-switch {
+  display: inline-grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  justify-self: start;
+  width: fit-content;
+  max-width: 100%;
+  gap: var(--space-1);
+  padding: var(--space-1);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-muted);
+}
+
+.timesheet-view-switch button {
+  min-width: 0;
+  min-height: var(--touch-control-height);
+  padding-inline: var(--space-5);
+  font-size: var(--text-base);
+}
+
+.timesheet-view-switch button:hover:not(.active) {
+  background: var(--color-divider);
+}
+
+.timesheet-view-switch button:active:not(.active) {
+  background: var(--color-primary-soft);
+}
+
+.timesheet-view-switch button:focus-visible {
+  position: relative;
+  z-index: 1;
+  box-shadow: var(--focus-ring);
+}
+
 .my-timesheet-report {
   display: grid;
   gap: var(--space-6);

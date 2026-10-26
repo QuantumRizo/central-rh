@@ -116,6 +116,7 @@
   --page-padding: var(--space-8);
   --card-padding: var(--space-6);
   --control-height: 40px;
+  --touch-control-height: 44px;
   --signature-search-width: 320px;
   --signature-status-width: 120px;
 }

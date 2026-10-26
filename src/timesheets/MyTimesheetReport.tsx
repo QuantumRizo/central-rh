@@ -79,7 +79,7 @@ export function MyTimesheetReport({ employeeId, onCapture }: { employeeId: strin
 
   return <div className="my-timesheet-report">
     <div className="page-header"><div><p className="eyebrow">MI HOJA DE TIEMPO</p><h1>Mi reporte</h1><p>Consulta tus capturas y cómo distribuiste tus días.</p></div><button className="secondary" onClick={exportExcel} disabled={busy || !!error || !sheets.length || exportBusy}><Download size={17} /> {exportBusy ? 'Preparando Excel…' : 'Descargar Excel'}</button></div>
-    <nav className="admin-tabs" aria-label="Vistas de Timesheets"><button onClick={onCapture}>Captura diaria</button><button className="active" aria-current="page">Mi reporte</button></nav>
+    <nav className="admin-tabs timesheet-view-switch" aria-label="Vistas de Timesheets"><button type="button" onClick={onCapture}>Captura diaria</button><button type="button" className="active" aria-current="page">Mi reporte</button></nav>
     <section className="admin-card my-report-filters"><div className="date-filter"><label>Desde<input type="date" value={from} max={day()} onChange={event => event.target.value && setFrom(event.target.value)} /></label><span>—</span><label>Hasta<input type="date" value={to} max={day()} onChange={event => event.target.value && setTo(event.target.value)} /></label></div><button className="secondary" onClick={() => { setFrom(yearStart()); setTo(day()); }}>Año a la fecha</button></section>
     {error && <p role="alert" className="error">{error}</p>}
     {exportError && <p role="alert" className="error">No se pudo generar el Excel: {exportError}</p>}

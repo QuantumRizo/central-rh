@@ -38,7 +38,7 @@ export function TimesheetsModule({ employee, admin, canViewTimesheetReports, onR
                 </button>
               )}
             </div>
-            <nav className="admin-tabs" aria-label="Vistas de Timesheets"><button className="active" aria-current="page">Captura diaria</button><button onClick={() => { if (canLeave()) onMyReport(); }}>Mi reporte</button></nav>
+            <nav className="admin-tabs timesheet-view-switch" aria-label="Vistas de Timesheets"><button type="button" className="active" aria-current="page">Captura diaria</button><button type="button" onClick={() => { if (canLeave()) onMyReport(); }}>Mi reporte</button></nav>
             <TimesheetCalendar
               employeeId={employee}
               selectedDate={date}
