@@ -30,6 +30,10 @@ export const TOOLS: Tool[] = [
   { id: "sika", label: "Sika", section: "Clientes", group: "Sika", icon: Images,
     description: "Campañas digitales de Sika: YouTube, Programmatic y Meta, con sus testigos.",
     url: url("simi", "/sika") },
+  // Igual que Sika: lo ve el cliente (Senosiain).
+  { id: "senosiain", label: "Senosiain", section: "Clientes", group: "Senosiain", icon: Images,
+    description: "Campañas digitales de Senosiain: YouTube, Meta, TikTok y Programmatic, con sus testigos.",
+    url: url("simi", "/senosiain") },
   { id: "street-planner", label: "Street Planner", section: "Simi", group: "Farmacias Similares", icon: MapPinned,
     description: "Sitios OOH, farmacias e impactos por estado, ciudad y radio.",
     url: url("simi", "/street-planner") },
