@@ -225,7 +225,7 @@ export function useTimesheetDraft(employee: string) {
     }
     setSheetRevision((value) => value + 1);
     const skipped = targets.length - missing.length;
-    return `Listo: se guardaron ${saved} días${skipped ? ` y se omitieron ${skipped} que ya tenían registro` : ""}.`;
+    return `Se aplicó la repetición a ${saved} ${saved === 1 ? "día" : "días"}${skipped ? `; se omitieron ${skipped} con registro` : ""}.`;
   };
   const save = async () => {
     if (baseline === null || busy || saving || deleting) return;

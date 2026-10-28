@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { Copy, Info, LayoutDashboard, Plus, Trash2 } from "lucide-react";
 import { SheetSkeleton } from "../components/LoadingSkeletons";
 import { Picker, type Option } from "../components/Picker";
@@ -25,6 +26,8 @@ export function TimesheetsModule({ employee, admin, canViewTimesheetReports, onR
   const dayName = dayTitle.format(new Date(`${date}T12:00:00`));
   const holiday = isMexicoHoliday(date);
   const progress = workdayHours ? Math.min(100, (totalHours / workdayHours) * 100) : 0;
+  const [repeatRangeReady, setRepeatRangeReady] = useState(false);
+  useEffect(() => setRepeatRangeReady(false), [date]);
   return (
     <>
             <div className="page-header">
@@ -289,8 +292,11 @@ export function TimesheetsModule({ employee, admin, canViewTimesheetReports, onR
                         <Plus size={18} /> Agregar actividad
                       </button>
                       <RepeatDays
+                        key={date}
+                        sourceDate={date}
                         disabled={dirty || savedSheetDate !== date || saving || deleting}
                         hint={dirty || savedSheetDate !== date ? "Guarda este día primero; después puedes copiarlo a otros días del periodo." : "Copia este reparto a los días hábiles del periodo que aún no tengan registro. Los días ya capturados no se modifican."}
+                        onRangeReadyChange={setRepeatRangeReady}
                         onRepeat={repeatDay}
                       />
                     </>
@@ -314,6 +320,7 @@ export function TimesheetsModule({ employee, admin, canViewTimesheetReports, onR
               <div className="actions">
                 {dirty && <span className="report-note">Cambios sin guardar</span>}
                 <button
+                  className={attendance === "worked" && repeatRangeReady && !dirty ? "secondary" : undefined}
                   disabled={
                     busy ||
                     saving ||
@@ -327,7 +334,7 @@ export function TimesheetsModule({ employee, admin, canViewTimesheetReports, onR
                   }
                   onClick={save}
                 >
-                  {saving ? "Guardando…" : "Guardar día"}
+                  {saving ? "Guardando…" : "Guardar solo este día"}
                 </button>
               </div>
             </div>
