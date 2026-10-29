@@ -55,6 +55,10 @@ textarea {
   transition: border-color 0.15s, box-shadow 0.15s;
 }
 
+:where(select) {
+  padding-right: var(--space-6);
+}
+
 :where(textarea) {
   line-height: 1.5;
   resize: vertical;
