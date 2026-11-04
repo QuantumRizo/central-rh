@@ -61,13 +61,15 @@
 
   /* Navigation rail */
   --sidebar-width: 248px;
-  --sidebar-bg: #fbfbfd;
-  --sidebar-text: #475569;
-  --sidebar-text-strong: #1e293b;
-  --sidebar-hover: rgba(15, 23, 42, 0.05);
-  --sidebar-active: var(--color-primary-soft);
-  --sidebar-active-text: var(--color-primary-strong);
-  --sidebar-border: var(--color-border);
+  --sidebar-bg: #11233a;
+  --sidebar-text: #b6c2d2;
+  --sidebar-text-muted: #9fb0c6;
+  --sidebar-icon: #8cc0f5;
+  --sidebar-text-strong: #ffffff;
+  --sidebar-hover: rgba(255, 255, 255, 0.08);
+  --sidebar-active: rgba(255, 255, 255, 0.16);
+  --sidebar-active-text: #ffffff;
+  --sidebar-border: rgba(255, 255, 255, 0.22);
   --tab-bar-height: 56px;
 
   /* Typography */

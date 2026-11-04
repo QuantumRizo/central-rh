@@ -171,7 +171,7 @@
 .ts-calendar-tip {
   position: absolute;
   z-index: 2;
-  max-width: 280px;
+  max-width: 100%;
   padding: 6px 10px;
   border-radius: var(--radius-sm);
   background: var(--color-tooltip-bg);
@@ -179,7 +179,7 @@
   font-size: var(--text-sm);
   line-height: 1.4;
   pointer-events: none;
-  transform: translate(-50%, calc(-100% - 8px));
+  transform: translate(-50%, calc(-100% - 10px));
   white-space: nowrap;
   animation: ts-tip-in 0.12s ease-out;
 }
@@ -192,9 +192,9 @@
   content: "";
   position: absolute;
   top: 100%;
-  left: 50%;
+  left: var(--arrow-x, 50%);
   border: 5px solid transparent;
-  border-top-color: var(--sidebar-bg);
+  border-top-color: var(--color-tooltip-bg);
   transform: translateX(-50%);
 }
 

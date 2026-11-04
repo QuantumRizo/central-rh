@@ -48,6 +48,7 @@ export function TimesheetCalendar({
   const [error, setError] = useState("");
   const [hover, setHover] = useState<{ day: Day; x: number; y: number } | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const tipRef = useRef<HTMLDivElement>(null);
   const joinedYear = joined ? Number(joined.slice(0, 4)) : currentYear;
 
   useEffect(() => {
@@ -155,6 +156,17 @@ export function TimesheetCalendar({
     setHover({ day, x: box.left - host.left + box.width / 2, y: box.top - host.top });
   };
 
+  // Keep the tooltip inside the calendar and point its arrow at the hovered cell.
+  useLayoutEffect(() => {
+    const tip = tipRef.current;
+    if (!tip || !hover) return;
+    const hostWidth = tip.parentElement!.clientWidth;
+    const half = tip.offsetWidth / 2;
+    const left = Math.min(Math.max(hover.x, half), Math.max(hostWidth - half, half));
+    tip.style.left = `${left}px`;
+    tip.style.setProperty("--arrow-x", `${half + hover.x - left}px`);
+  }, [hover]);
+
   const shortDate = new Intl.DateTimeFormat("es-MX", { day: "numeric", month: "short" });
   const summary = [
     `${stats.worked} ${stats.worked === 1 ? "día capturado" : "días capturados"}`,
@@ -218,7 +230,7 @@ export function TimesheetCalendar({
       </div>
 
       {hover && (
-        <div className="ts-calendar-tip" style={{ left: hover.x, top: hover.y }} role="tooltip">
+        <div ref={tipRef} className="ts-calendar-tip" style={{ left: hover.x, top: hover.y }} role="tooltip">
           {hover.day.label}
         </div>
       )}

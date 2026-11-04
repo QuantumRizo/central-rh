@@ -316,7 +316,7 @@
   min-height: 220px;
   overflow: hidden;
   border-radius: var(--radius-md);
-  background: var(--sidebar-bg);
+  background: var(--color-bg);
 }
 
 .photo-editor-zoom {
