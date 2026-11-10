@@ -3,7 +3,7 @@ export function formatScore(value: number | null) {
 }
 
 export function formatDate(value: string) {
-  return new Intl.DateTimeFormat('es-MX', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(value));
+  return new Intl.DateTimeFormat('es-MX', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'UTC' }).format(new Date(value));
 }
 
 export function formatAverage(values: number[]) {

@@ -7,9 +7,10 @@ import { EvaluationResultsTable } from './EvaluationResultsTable';
 import { CloseCycleDialog, type CloseCycleInput } from './CloseCycleDialog';
 import { AdminDictamenEditor, dictamenFromReport, type DictamenValues } from './AdminDictamenEditor';
 import { EvaluationResponseDetail } from './EvaluationResponseDetail';
+import { DeadlineExtender } from './DeadlineExtender';
 import type { EvaluationAssignment, EvaluationComment, EvaluationCycle, EvaluationEmployee, EvaluationQuestion, EvaluationResponse, EvaluationFinalReport } from './types';
 
-export function EvaluationCycleDetail({ cycle, report, onBack, onEdit, onReport, onNotify, onClose, onReportSaved, notifying, closing }: {
+export function EvaluationCycleDetail({ cycle, report, onBack, onEdit, onReport, onNotify, onClose, onReportSaved, onDeadlineSaved, notifying, closing }: {
   cycle: EvaluationCycle;
   report?: EvaluationFinalReport;
   onBack: () => void;
@@ -18,6 +19,7 @@ export function EvaluationCycleDetail({ cycle, report, onBack, onEdit, onReport,
   onNotify: () => void;
   onClose: (input: CloseCycleInput) => void;
   onReportSaved: () => void;
+  onDeadlineSaved: (notice: string) => void;
   notifying: boolean;
   closing: boolean;
 }) {
@@ -105,7 +107,7 @@ export function EvaluationCycleDetail({ cycle, report, onBack, onEdit, onReport,
     {error && <div role="alert" className="error">{error} <button type="button" className="secondary" onClick={() => void load()}>Reintentar</button></div>}
     {busy ? <div className="evaluation-loading"><LoaderCircle className="spin" size={22} /> Cargando evaluación…</div> : error ? null : <>
       <div className="evaluation-detail-top">
-      <section className="evaluation-detail-overview evaluation-report-card"><div className="evaluation-detail-overview-heading"><div><p className="evaluation-kicker">RESUMEN DEL CICLO</p><h2>{evaluated?.full_name || 'Persona evaluada'}</h2><p>{[evaluated?.position, evaluated?.department].filter(Boolean).join(' · ') || 'Sin puesto o área registrada'}</p></div><span className={`evaluation-cycle-status ${cycle.status}`}>{cycle.status === 'active' ? 'En evaluación' : cycle.status === 'closed' ? 'Cerrada' : 'Borrador'}</span></div><div className="evaluation-detail-dates"><span>Inicio: <strong>{cycle.start_date ? formatDate(cycle.start_date) : 'Sin fecha'}</strong></span><span>Fin: <strong>{cycle.end_date ? formatDate(cycle.end_date) : 'Sin fecha'}</strong></span></div></section>
+      <section className="evaluation-detail-overview evaluation-report-card"><div className="evaluation-detail-overview-heading"><div><p className="evaluation-kicker">RESUMEN DEL CICLO</p><h2>{evaluated?.full_name || 'Persona evaluada'}</h2><p>{[evaluated?.position, evaluated?.department].filter(Boolean).join(' · ') || 'Sin puesto o área registrada'}</p></div><span className={`evaluation-cycle-status ${cycle.status}`}>{cycle.status === 'active' ? 'En evaluación' : cycle.status === 'closed' ? 'Cerrada' : 'Borrador'}</span></div><div className="evaluation-detail-dates"><span>Inicio: <strong>{cycle.start_date ? formatDate(cycle.start_date) : 'Sin fecha'}</strong></span><span>Fecha límite: <strong>{cycle.end_date ? formatDate(cycle.end_date) : 'Sin fecha'}</strong></span><DeadlineExtender key={cycle.end_date ?? 'none'} cycle={cycle} onSaved={onDeadlineSaved} /></div></section>
       <section className="evaluation-detail-progress evaluation-report-card"><div className="evaluation-detail-progress-heading"><div><p className="evaluation-kicker">AVANCE</p><h2>{completed} de {participants.length} evaluaciones completas</h2><p>{pending} sin completar{inProgress > 0 ? ` · ${inProgress} en curso` : ''}</p></div><strong>{progress}%</strong></div><div className="evaluation-progress-track" role="progressbar" aria-label="Evaluaciones completas" aria-valuenow={completed} aria-valuemin={0} aria-valuemax={participants.length}><span style={{ width: `${progress}%` }} /></div></section>
       </div>
       <section className="evaluation-task-card"><div className="evaluation-card-heading"><div><h2>Quién ha respondido</h2><p>Abre una respuesta para ver todas las preguntas y comentarios. Los promedios incluyen solo evaluaciones completas.</p></div><span>{participants.length} participantes</span></div>{participants.length ? <div className="evaluation-detail-list">{participants.map(({ assignment, employee, answered, complete, started }) => {

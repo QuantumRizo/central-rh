@@ -971,3 +971,12 @@
 .evaluation-close-header p { margin: 0; color: var(--color-text-muted); font-size: var(--text-md); }
 .evaluation-close-dialog label { display: grid; gap: var(--space-2); color: var(--color-text-secondary); font-size: var(--text-md); font-weight: var(--weight-medium); }
 .evaluation-close-warning { margin: 0; padding: var(--space-3); border: 1px solid var(--color-warning-border); border-radius: var(--radius-md); background: var(--color-warning-soft); color: var(--color-warning); font-size: var(--text-md); }
+
+/* Ampliar fecha límite desde el detalle del ciclo */
+.evaluation-detail-dates { align-items: center; }
+.evaluation-deadline-toggle { display: inline-flex; align-items: center; gap: var(--space-2); }
+.evaluation-deadline-extender { display: grid; gap: var(--space-3); flex-basis: 100%; }
+.evaluation-deadline-quick,
+.evaluation-deadline-custom { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
+.evaluation-deadline-custom input { width: auto; }
+.evaluation-deadline-extender .error { margin: 0; }
