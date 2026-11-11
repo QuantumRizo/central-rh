@@ -40,6 +40,6 @@ export function reminderPeriods(wednesdayDate: string) {
   };
 }
 
-export function eligibleStart(startDate: string | null, hireDate: string | null, windowStart: string) {
-  return [startDate, hireDate, windowStart].filter((date): date is string => Boolean(date)).sort().at(-1)!;
+export function eligibleStart(startDate: string | null, windowStart: string) {
+  return [startDate, windowStart].filter((date): date is string => Boolean(date)).sort().at(-1)!;
 }

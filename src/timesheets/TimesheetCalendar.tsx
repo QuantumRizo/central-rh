@@ -56,7 +56,7 @@ export function TimesheetCalendar({
     let live = true;
     (async () => {
       const [employee, rows] = await Promise.all([
-        sb.from("employees").select("start_date,hire_date").eq("id", employeeId).maybeSingle(),
+        sb.from("employees").select("start_date").eq("id", employeeId).maybeSingle(),
         sb
           .from("timesheets")
           .select("work_date,attendance,entry_time,exit_time")
@@ -70,7 +70,7 @@ export function TimesheetCalendar({
         return;
       }
       setError("");
-      setJoined(employee.data?.start_date || employee.data?.hire_date || "");
+      setJoined(employee.data?.start_date || "");
       setSheets((rows.data || []) as Sheet[]);
     })();
     return () => {

@@ -23,7 +23,7 @@ test('weekdays include Friday and group across a year boundary', () => {
   assert.equal(monday('2027-01-01'), '2026-12-28');
 });
 
-test('the latest entry date prevents reminders before hiring', () => {
-  assert.equal(eligibleStart('2026-07-01', '2026-09-14', '2026-07-09'), '2026-09-14');
-  assert.equal(eligibleStart(null, null, '2026-07-09'), '2026-07-09');
+test('the entry date prevents reminders before hiring', () => {
+  assert.equal(eligibleStart('2026-09-14', '2026-07-09'), '2026-09-14');
+  assert.equal(eligibleStart(null, '2026-07-09'), '2026-07-09');
 });

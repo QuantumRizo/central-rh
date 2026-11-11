@@ -2,7 +2,7 @@ import { createClient } from 'npm:@supabase/supabase-js@2';
 import { renderReminderEmail } from './email.ts';
 import { eligibleStart, mexicoNow, reminderPeriods, weekdays } from './logic.ts';
 
-type Employee = { id: string; full_name: string; email: string | null; start_date: string | null; hire_date: string | null };
+type Employee = { id: string; full_name: string; email: string | null; start_date: string | null };
 type Sheet = { employee_id: string; work_date: string };
 type Exclusion = { employee_id: string };
 
@@ -43,7 +43,7 @@ Deno.serve(async (request) => {
     const fromDate = periods.previousStart;
     const [employees, sheets, exclusions] = await Promise.all([
       allRows<Employee>((start, end) => db.from('employees')
-        .select('id,full_name,email,start_date,hire_date').eq('status', 'Activo')
+        .select('id,full_name,email,start_date').eq('status', 'Activo')
         .not('auth_user_id', 'is', null).order('id').range(start, end)),
       allRows<Sheet>((start, end) => db.from('timesheets')
         .select('employee_id,work_date').gte('work_date', fromDate).lte('work_date', periods.currentEnd)
@@ -59,7 +59,7 @@ Deno.serve(async (request) => {
     for (const employee of employees) {
       if (excluded.has(employee.id)) continue;
       // Respect both dates if administrators have filled them separately.
-      const joined = eligibleStart(employee.start_date, employee.hire_date, fromDate);
+      const joined = eligibleStart(employee.start_date, fromDate);
       const expected = days.filter((date) => date >= joined);
       const missing = expected.filter((date) => !captured.has(`${employee.id}:${date}`));
       if (!missing.length) continue;
