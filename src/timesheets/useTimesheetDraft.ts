@@ -19,8 +19,6 @@ export function useTimesheetDraft(employee: string) {
     [saving, setSaving] = useState(false),
     [error, setError] = useState(""),
     [message, setMessage] = useState(""),
-    [aiCompletionMessage, setAiCompletionMessage] = useState(""),
-    [importRevision, setImportRevision] = useState(0),
     [sheetRevision, setSheetRevision] = useState(0);
   const draft = sheetSnapshot({attendance,mode,entry,exit,permissionEntry,permissionExit,rows});
   const dirty = baseline !== null && draft !== baseline;
@@ -83,7 +81,7 @@ export function useTimesheetDraft(employee: string) {
     return () => {
       live = false;
     };
-  }, [employee, date, importRevision]);
+  }, [employee, date]);
   const workdayHours = workedHours(entry, exit);
   const totalHours = rows.reduce((sum, row) => sum + (Number(row.hours) || 0), 0);
   const total = workdayHours ? (totalHours / workdayHours) * 100 : 0;
@@ -256,5 +254,5 @@ export function useTimesheetDraft(employee: string) {
   };
   const update = (i: number, patch: Partial<Entry>) =>
     setRows((prev) => prev.map((r, j) => (i === j ? { ...r, ...patch } : r)));
-  return { baseline, savedSheetDate, date, setDate, attendance, setAttendance, mode, setMode, entry, setEntry, exit, setExit, permissionEntry, setPermissionEntry, permissionExit, setPermissionExit, rows, setRows, busy, setBusy, saving, error, setError, message, aiCompletionMessage, setAiCompletionMessage, importRevision, setImportRevision, sheetRevision, deleting, dirty, canLeave, workdayHours, totalHours, total, hoursAreComplete, scheduleReady, isWeekend, weekendDayName, deleteSheet, save, update, copying, copyPreviousDay, repeatDay };
+  return { baseline, savedSheetDate, date, setDate, attendance, setAttendance, mode, setMode, entry, setEntry, exit, setExit, permissionEntry, setPermissionEntry, permissionExit, setPermissionExit, rows, setRows, busy, setBusy, saving, error, setError, message, sheetRevision, deleting, dirty, canLeave, workdayHours, totalHours, total, hoursAreComplete, scheduleReady, isWeekend, weekendDayName, deleteSheet, save, update, copying, copyPreviousDay, repeatDay };
 }

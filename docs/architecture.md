@@ -7,7 +7,7 @@ Para agregar un módulo: crea su carpeta y agrega una entrada en `MODULES`. Las 
 | Carpeta | Responsabilidad |
 | --- | --- |
 | `auth/` | Acceso, registro y recuperación de contraseña. |
-| `timesheets/` | Captura diaria, calendario, importación con IA y estado de la hoja. |
+| `timesheets/` | Captura diaria, calendario y estado de la hoja. |
 | `timesheets/admin/` | Consultas, cálculos, detalles y exportación de reportes. |
 | `evaluaciones/` | Tareas, formularios, ciclos y reportes de evaluación. |
 | `profile/` | Perfil propio, directorio y edición de perfiles. |
@@ -27,7 +27,7 @@ Las migraciones son cronológicas; cada módulo mantiene sus tablas y políticas
 | Módulo | Datos y archivos | Proceso de servidor |
 | --- | --- | --- |
 | Acceso y perfiles | `employees`, `user_roles`, bucket privado `profile-photos` | Triggers de vinculación de cuentas y funciones de permisos. |
-| Hojas de tiempo | `clients`, `activities`, `timesheets`, `timesheet_entries`, `timesheet_history` | RPC de guardado, eliminación y lote; `/api/generate-timesheets`. |
+| Hojas de tiempo | `clients`, `activities`, `timesheets`, `timesheet_entries`, `timesheet_history` | RPC de guardado, eliminación y lote. |
 | Evaluaciones | `evaluation_cycles`, `evaluation_questions`, `evaluation_assignments`, `evaluation_responses`, `evaluation_comments`, `evaluation_final_reports` | Edge Function `send-assignment-email`. |
 | Reclutamiento | `recruitment_positions`, `recruitment_candidates`, `recruitment_matches`, bucket privado `recruitment-cvs` | `/api/recruitment-sync`; la integración con Outlook sigue sujeta a la configuración de TI. |
 | Reporte de errores | Sin tabla de datos propia | Edge Function `send-bug-report`. |

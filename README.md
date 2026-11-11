@@ -33,11 +33,9 @@ Para aplicar una migración revisada: `supabase db push --linked`. Después, rep
 
 Las reglas de seguridad y acceso a datos se mantienen en las políticas RLS de Supabase. Consulta [AGENTS.md](AGENTS.md) para las instrucciones operativas de agentes.
 
-## Importación de horas
+## Captura de horas
 
-La experiencia principal es el modal **Subir horas con IA**. El colaborador captura periodo, jornada, modalidad, vacaciones, incapacidades o permisos, festivos trabajados, fines de semana trabajados y una descripción compacta de su distribución mensual. Gemini convierte únicamente la distribución en un plan estructurado; `api/generate-timesheets.ts` calcula los días y porcentajes, valida catálogos y muestra una vista previa. La confirmación reutiliza ese plan, sin una segunda llamada a Gemini, y escribe directamente mediante la función batch protegida por RLS.
-
-La generación automática está limitada al 31 de agosto de 2026. Septiembre se captura manualmente para mantener completo el periodo reciente.
+Las horas se capturan día por día en **Time Sheets**. No hay carga automática ni con IA.
 
 ## Recordatorios de Time Sheets
 

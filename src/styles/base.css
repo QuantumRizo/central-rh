@@ -197,7 +197,6 @@ legend {
 .back-link,
 .detail-link,
 .add,
-.ai-add,
 .profiles-clear,
 .auth-links button {
   min-height: 32px;
@@ -210,7 +209,6 @@ legend {
 .back-link:hover:not(:disabled),
 .detail-link:hover:not(:disabled),
 .add:hover:not(:disabled),
-.ai-add:hover:not(:disabled),
 .profiles-clear:hover:not(:disabled),
 .auth-links button:hover:not(:disabled) {
   background: var(--color-primary-soft);

@@ -158,7 +158,6 @@
 .profiles-total,
 .profiles-group h2 span,
 .admin-tabs button span,
-.ai-preview-heading > span,
 .recruitment-skills span {
   display: inline-flex;
   align-items: center;
@@ -185,8 +184,7 @@
 .evaluation-task-status.done,
 .evaluation-cycle-status.active,
 .profile-status,
-.profiles-status.active,
-.ai-preview-heading > span {
+.profiles-status.active {
   background: var(--color-success-soft);
   color: var(--color-success);
 }

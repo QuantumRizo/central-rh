@@ -59,7 +59,7 @@ const hasAny = (access: Access, section: (typeof TOOLS)[number]["section"]) => T
 // Un módulo nuevo = una entrada aquí. El orden es el de la barra lateral.
 export const MODULES: AppModule[] = [
   { path: "/timesheets", name: "timesheets", section: "RH", label: "Timesheets", icon: Clock3, visible: everyone,
-    render: (c) => <TimesheetsModule employee={c.employee} admin={c.can("timesheets", "admin")} canViewTimesheetReports={c.can("timesheets", "reportes")} onReports={() => c.navigate("/timesheets/reportes")} onMyReport={() => c.navigate("/timesheets/mi-reporte")} clients={c.clients} activities={c.activities} draft={c.draft} /> },
+    render: (c) => <TimesheetsModule employee={c.employee} canViewTimesheetReports={c.can("timesheets", "reportes")} onReports={() => c.navigate("/timesheets/reportes")} onMyReport={() => c.navigate("/timesheets/mi-reporte")} clients={c.clients} activities={c.activities} draft={c.draft} /> },
   { path: "/timesheets/mi-reporte", name: "mi reporte de timesheets", parent: "/timesheets", visible: everyone,
     render: (c) => <MyTimesheetReport employeeId={c.employee} onCapture={() => c.navigate("/timesheets")} /> },
   { path: "/timesheets/reportes", name: "timesheets (panel admin)", parent: "/timesheets", visible: (a) => a.can("timesheets", "reportes"),

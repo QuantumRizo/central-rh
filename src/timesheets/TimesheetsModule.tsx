@@ -3,7 +3,6 @@ import { Copy, Info, LayoutDashboard, Plus, Trash2 } from "lucide-react";
 import { SheetSkeleton } from "../components/LoadingSkeletons";
 import { Picker, type Option } from "../components/Picker";
 import { Segmented } from "../components/Segmented";
-import { AiTimesheetGenerator } from "./AiTimesheetGenerator";
 import { TimesheetCalendar } from "./TimesheetCalendar";
 import { RepeatDays } from "./RepeatDays";
 import { ABSENCE_OPTIONS, attendanceLabel } from "./attendance";
@@ -11,7 +10,7 @@ import { day } from "./utils";
 import { isMexicoHoliday } from "./holidays";
 import type { useTimesheetDraft } from "./useTimesheetDraft";
 
-type Props = { employee: string; admin: boolean; canViewTimesheetReports: boolean; onReports: () => void; onMyReport: () => void; clients: Option[]; activities: Option[]; draft: ReturnType<typeof useTimesheetDraft> };
+type Props = { employee: string; canViewTimesheetReports: boolean; onReports: () => void; onMyReport: () => void; clients: Option[]; activities: Option[]; draft: ReturnType<typeof useTimesheetDraft> };
 
 const MODES = [
   { value: "office", label: "Presencial" },
@@ -21,8 +20,8 @@ const MODES = [
 const WORKED = [{ value: "yes", label: "Trabajé" }, { value: "no", label: "No trabajé" }] as const;
 const dayTitle = new Intl.DateTimeFormat("es-MX", { weekday: "long", day: "numeric", month: "long" });
 
-export function TimesheetsModule({ employee, admin, canViewTimesheetReports, onReports, onMyReport, clients, activities, draft }: Props) {
-  const { baseline, savedSheetDate, date, setDate, attendance, setAttendance, mode, setMode, entry, setEntry, exit, setExit, permissionEntry, setPermissionEntry, permissionExit, setPermissionExit, rows, setRows, busy, setBusy, saving, error, setError, message, aiCompletionMessage, setAiCompletionMessage, importRevision, setImportRevision, sheetRevision, deleting, dirty, canLeave, workdayHours, totalHours, total, hoursAreComplete, scheduleReady, isWeekend, weekendDayName, deleteSheet, save, update, copying, copyPreviousDay, repeatDay } = draft;
+export function TimesheetsModule({ employee, canViewTimesheetReports, onReports, onMyReport, clients, activities, draft }: Props) {
+  const { baseline, savedSheetDate, date, setDate, attendance, setAttendance, mode, setMode, entry, setEntry, exit, setExit, permissionEntry, setPermissionEntry, permissionExit, setPermissionExit, rows, setRows, busy, setBusy, saving, error, setError, message, sheetRevision, deleting, dirty, canLeave, workdayHours, totalHours, total, hoursAreComplete, scheduleReady, isWeekend, weekendDayName, deleteSheet, save, update, copying, copyPreviousDay, repeatDay } = draft;
   const dayName = dayTitle.format(new Date(`${date}T12:00:00`));
   const holiday = isMexicoHoliday(date);
   const progress = workdayHours ? Math.min(100, (totalHours / workdayHours) * 100) : 0;
@@ -45,22 +44,13 @@ export function TimesheetsModule({ employee, admin, canViewTimesheetReports, onR
             <TimesheetCalendar
               employeeId={employee}
               selectedDate={date}
-              refreshKey={sheetRevision + importRevision}
+              refreshKey={sheetRevision}
               onPick={(value) => {
                 if (value !== date && !canLeave()) return;
                 setDate(value);
                 document.getElementById("timesheet-capture")?.scrollIntoView({ behavior: "smooth", block: "start" });
               }}
             />
-            <AiTimesheetGenerator
-              isAdmin={admin}
-              activities={activities}
-              onImported={(completionMessage) => {
-                setImportRevision((value) => value + 1);
-                setAiCompletionMessage(completionMessage);
-              }}
-            />
-            {aiCompletionMessage && <p role="status" className="success ai-completion-message">{aiCompletionMessage}</p>}
             <div className="panel" id="timesheet-capture">
               <div className="day-heading">
                 <div>
