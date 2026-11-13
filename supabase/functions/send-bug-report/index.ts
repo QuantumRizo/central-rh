@@ -59,12 +59,31 @@ Deno.serve(async (request) => {
       .maybeSingle();
 
     const reporter = employee?.full_name || user.email || 'Usuario sin nombre';
+    const automatic = module === 'alerta-automatica';
+    const clip = (value: unknown, max: number) => typeof value === 'string' && value ? value.slice(0, max) : null;
+
+    // Se guarda antes de enviar: si el correo falla, el reporte no se pierde.
+    const { data: stored, error: storeError } = await adminClient
+      .from('error_reports')
+      .insert({
+        reporter_user_id: user.id,
+        reporter_email: user.email ?? null,
+        reporter_name: employee?.full_name ?? null,
+        module: clip(module, 100),
+        automatic,
+        message: message.trim(),
+        url: clip(url, 2000),
+        user_agent: clip(userAgent, 1000),
+      })
+      .select('id')
+      .single();
+    if (storeError) console.error('error_reports insert failed', storeError);
     const sentAt = new Date().toLocaleString('es-MX', { timeZone: 'America/Mexico_City', dateStyle: 'long', timeStyle: 'short' });
     const firstLine = message.trim().split('\n')[0].slice(0, 60);
     const detail = (label: string, value: unknown) => value
       ? `<tr><td style="padding:4px 12px 4px 0;color:#64748b;vertical-align:top">${label}</td><td style="padding:4px 0">${escapeHtml(value)}</td></tr>`
       : '';
-    const html = `<div style="font-family:Arial,sans-serif;line-height:1.6;color:#1e293b"><h2 style="color:#0b5eb7;margin:0 0 12px">Reporte de error</h2><div style="white-space:pre-wrap;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px 16px">${escapeHtml(message.trim())}</div><table style="margin-top:16px;font-size:13px;border-collapse:collapse">${detail('Reportó', reporter)}${detail('Correo', user.email)}${detail('Puesto', [employee?.position, employee?.department].filter(Boolean).join(' · '))}${detail('Módulo', module)}${detail('URL', url)}${detail('Navegador', userAgent)}${detail('Fecha', sentAt)}</table></div>`;
+    const html = `<div style="font-family:Arial,sans-serif;line-height:1.6;color:#1e293b"><h2 style="color:#0b5eb7;margin:0 0 12px">${automatic ? 'Alerta automática' : 'Reporte de error'}</h2><div style="white-space:pre-wrap;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px 16px">${escapeHtml(message.trim())}</div><table style="margin-top:16px;font-size:13px;border-collapse:collapse">${detail(automatic ? 'Sesión de' : 'Reportó', reporter)}${detail('Correo', user.email)}${detail('Puesto', [employee?.position, employee?.department].filter(Boolean).join(' · '))}${detail('Módulo', module)}${detail('URL', url)}${detail('Navegador', userAgent)}${detail('Fecha', sentAt)}${detail('Folio', stored?.id)}</table></div>`;
 
     const response = await fetch('https://api.resend.com/emails', {
       method: 'POST',
@@ -73,13 +92,18 @@ Deno.serve(async (request) => {
         from,
         to,
         reply_to: user.email || undefined,
-        subject: `🐞 Bug de ${reporter}: ${firstLine}`,
+        subject: automatic ? `⚠️ ${firstLine}` : `🐞 Bug de ${reporter}: ${firstLine}`,
         html,
       }),
     });
     if (!response.ok) {
       console.error('Resend error', response.status, await response.text());
       return json({ success: false, message: 'No se pudo enviar el reporte. Intenta de nuevo en un momento.' }, 502);
+    }
+
+    if (stored) {
+      const { error: markError } = await adminClient.from('error_reports').update({ email_sent: true }).eq('id', stored.id);
+      if (markError) console.error('error_reports update failed', markError);
     }
 
     return json({ success: true, message: 'Reporte enviado.' });
