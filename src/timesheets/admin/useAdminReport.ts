@@ -37,16 +37,17 @@ export function useAdminReport() {
           .eq("status", "Activo")
           .order("full_name");
         const all: any[] = [];
+        // RPC en lugar del select embebido: con RLS por fila en timesheets,
+        // timesheet_entries, clients y activities, rangos de ~2 meses agotaban
+        // el statement timeout (57014). Además ordena por (work_date, id), así
+        // la paginación por offset no repite ni salta filas.
         for (let start = 0; ; start += 500) {
-          const { data, error } = await sb
-            .from("timesheets")
-            .select(
-              "id,employee_id,work_date,attendance,mode,entry_time,exit_time,permission_entry_time,permission_exit_time,position_snapshot,employee:employees(full_name,position),timesheet_entries(id,percentage,client:clients(id,name),activity:activities(id,name))",
-            )
-            .gte("work_date", from)
-            .lte("work_date", to)
-            .order("work_date", { ascending: false })
-            .range(start, start + 499);
+          const { data, error } = await sb.rpc("admin_timesheet_report_page", {
+            p_from: from,
+            p_to: to,
+            p_offset: start,
+            p_limit: 500,
+          });
           if (error) throw error;
           all.push(...(data || []));
           if ((data?.length || 0) < 500) break;
