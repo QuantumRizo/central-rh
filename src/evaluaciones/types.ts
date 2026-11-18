@@ -15,6 +15,7 @@ export type EvaluationEmployee = {
   full_name: string;
   position: string;
   department: string | null;
+  status?: 'Activo' | 'Baja';
 };
 
 export type EvaluationQuestion = {

@@ -980,3 +980,21 @@
 .evaluation-deadline-custom { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
 .evaluation-deadline-custom input { width: auto; }
 .evaluation-deadline-extender .error { margin: 0; }
+
+/* ---------- Admin list filters ---------- */
+
+.evaluation-list-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--card-padding);
+  border-bottom: 1px solid var(--color-divider);
+}
+
+@media (max-width: 640px) {
+  .evaluation-list-toolbar .search {
+    width: 100%;
+  }
+}

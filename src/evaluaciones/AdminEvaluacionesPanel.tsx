@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { ArrowLeft, Check, ClipboardCheck, LoaderCircle, Send } from "lucide-react";
+import { ArrowLeft, Check, ClipboardCheck, LoaderCircle, Search, Send } from "lucide-react";
 import { sb } from "../lib/supabase";
 import {
   CATEGORY_LABELS,
@@ -20,12 +20,26 @@ import { EvaluationCycleDetail } from "./EvaluationCycleDetail";
 import { averageNumber, formatDate, formatScore } from "./format";
 import type { CloseCycleInput } from "./CloseCycleDialog";
 import { hasAllResponses, hasRequiredComments } from "./taskUtils";
+import { Segmented } from "../components/Segmented";
 
-const employeeFields = "id,full_name,position,department";
+const employeeFields = "id,full_name,position,department,status";
+
+type CycleFilter = 'all' | 'open' | 'closed';
+const CYCLE_FILTERS = [
+  { value: 'all', label: 'Todas' },
+  { value: 'open', label: 'Activas' },
+  { value: 'closed', label: 'Cerradas' },
+] as const satisfies readonly { value: CycleFilter; label: string }[];
+
+const normalize = (value: string) => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 
 export function AdminEvaluacionesPanel({ onViewMine }: { onViewMine: () => void }) {
   const [cycles, setCycles] = useState<EvaluationCycle[]>([]);
+  // Todas las personas (incluidas las dadas de baja) para conservar el nombre en el histórico.
   const [employees, setEmployees] = useState<EvaluationEmployee[]>([]);
+  const activeEmployees = useMemo(() => employees.filter((employee) => employee.status === 'Activo'), [employees]);
+  const [filter, setFilter] = useState<CycleFilter>('all');
+  const [query, setQuery] = useState('');
   const [responseCount, setResponseCount] = useState(0);
   const [reports, setReports] = useState<EvaluationFinalReport[]>([]);
   const [selectedReport, setSelectedReport] = useState<EvaluationFinalReport | null>(null);
@@ -43,7 +57,7 @@ export function AdminEvaluacionesPanel({ onViewMine }: { onViewMine: () => void 
     try {
       const [cyclesResult, employeesResult, responsesResult, reportsResult] = await Promise.all([
         sb.from('evaluation_cycles').select('*').order('created_at', { ascending: false }),
-        sb.from('employees').select(employeeFields).eq('status', 'Activo').order('full_name'),
+        sb.from('employees').select(employeeFields).order('full_name'),
         sb.from('evaluation_responses').select('id', { count: 'exact', head: true }),
         sb.from('evaluation_final_reports').select('*').order('created_at', { ascending: false }),
       ]);
@@ -62,6 +76,18 @@ export function AdminEvaluacionesPanel({ onViewMine }: { onViewMine: () => void 
 
   useEffect(() => { void load(); }, [load]);
 
+  const employeeNames = useMemo(() => new Map(employees.map((employee) => [employee.id, employee.full_name])), [employees]);
+  const visibleCycles = useMemo(() => {
+    const terms = normalize(query.trim()).split(/\s+/).filter(Boolean);
+    return cycles.filter((cycle) => {
+      if (filter === 'open' && cycle.status === 'closed') return false;
+      if (filter === 'closed' && cycle.status !== 'closed') return false;
+      if (!terms.length) return true;
+      const haystack = normalize(`${cycle.name} ${cycle.description ?? ''} ${cycle.evaluated_employee_id ? employeeNames.get(cycle.evaluated_employee_id) ?? '' : ''}`);
+      return terms.every((term) => haystack.includes(term));
+    });
+  }, [cycles, employeeNames, filter, query]);
+
   if (selectedReport) {
     const cycle = cycles.find((item) => item.id === selectedReport.cycle_id);
     const reportEmployee = employees.find((item) => item.id === selectedReport.employee_id);
@@ -71,7 +97,9 @@ export function AdminEvaluacionesPanel({ onViewMine }: { onViewMine: () => void 
   if (showCreate || selectedCycle) return <CycleEditor
     key={selectedCycle?.id ?? 'new'}
     cycle={selectedCycle}
-    employees={employees}
+    employees={selectedCycle?.evaluated_employee_id && !activeEmployees.some((employee) => employee.id === selectedCycle.evaluated_employee_id)
+      ? [...activeEmployees, ...employees.filter((employee) => employee.id === selectedCycle.evaluated_employee_id)]
+      : activeEmployees}
     onBack={() => { setShowCreate(false); setSelectedCycle(null); void load(); }}
     onSaved={(notice) => { setShowCreate(false); setSelectedCycle(null); setMessage(notice); void load(); }}
   />;
@@ -159,6 +187,6 @@ export function AdminEvaluacionesPanel({ onViewMine }: { onViewMine: () => void 
     <div className="page-header"><div><p className="eyebrow">ADMINISTRACIÓN</p><h1>Panel de evaluaciones</h1><p>Gestiona ciclos y consulta el avance de las evaluaciones.</p></div><div className="page-header-actions"><button className="secondary" onClick={onViewMine}>Mis evaluaciones</button><button onClick={() => { setMessage(''); setShowCreate(true); }}>Nuevo ciclo</button></div></div>
     {error && <p className="error" role="alert">{error}</p>}
     {message && <p className="success" role="status">{message}</p>}
-    {busy ? <div className="evaluation-loading"><LoaderCircle className="spin" size={22} /> Cargando panel…</div> : <><div className="evaluation-admin-metrics"><div><span>Ciclos</span><strong>{cycles.length}</strong></div><div><span>Activos</span><strong>{cycles.filter((cycle) => cycle.status === 'active').length}</strong></div><div><span>Respuestas</span><strong>{responseCount}</strong></div></div><section className="evaluation-task-card evaluation-table-card"><div className="evaluation-card-heading"><div><h2>Evaluaciones</h2><p>Abre una evaluación para ver el resumen y quién ha respondido.</p></div><span>{cycles.length} registradas</span></div>{cycles.length ? <div className="evaluation-table-wrap"><table className="evaluation-table"><thead><tr><th>Evaluación</th><th>Persona evaluada</th><th>Estado</th><th>Autoevaluación</th><th>Evaluación colectiva</th><th>Resultado final</th><th aria-label="Acciones" /></tr></thead><tbody>{cycles.map((cycle) => { const report = reports.find((item) => item.cycle_id === cycle.id); const evaluatedEmployee = employees.find((employee) => employee.id === cycle.evaluated_employee_id); return <tr key={cycle.id}><td><button type="button" className="evaluation-cycle-link" onClick={() => setDetailCycle(cycle)}>{cycle.name}</button><small>{cycle.description || 'Sin descripción'}{cycle.start_date ? ` · ${formatDate(cycle.start_date)}` : ''}</small></td><td>{evaluatedEmployee?.full_name || 'Sin persona asignada'}</td><td><span className={`evaluation-cycle-status ${cycle.status}`}>{cycle.status === 'active' ? 'En evaluación' : cycle.status === 'closed' ? 'Cerrada' : 'Borrador'}</span></td><td>{report ? formatScore(report.self_score) : '—'}</td><td>{report ? formatScore(report.collective_score) : '—'}</td><td className="evaluation-final-cell">{report ? report.final_score === null ? 'Pendiente' : formatScore(report.final_score) : '—'}</td><td><div className="evaluation-table-actions"><button className="secondary" onClick={() => setDetailCycle(cycle)}>Ver detalle</button></div></td></tr>; })}</tbody></table></div> : <div className="evaluation-empty"><ClipboardCheck size={30} /><strong>Aún no hay evaluaciones</strong><p>Crea el primer ciclo para comenzar.</p></div>}</section></>}
+    {busy ? <div className="evaluation-loading"><LoaderCircle className="spin" size={22} /> Cargando panel…</div> : <><div className="evaluation-admin-metrics"><div><span>Ciclos</span><strong>{cycles.length}</strong></div><div><span>Activos</span><strong>{cycles.filter((cycle) => cycle.status === 'active').length}</strong></div><div><span>Respuestas</span><strong>{responseCount}</strong></div></div><section className="evaluation-task-card evaluation-table-card"><div className="evaluation-card-heading"><div><h2>Evaluaciones</h2><p>Abre una evaluación para ver el resumen y quién ha respondido.</p></div><span>{visibleCycles.length === cycles.length ? `${cycles.length} registradas` : `${visibleCycles.length} de ${cycles.length}`}</span></div>{cycles.length ? <div className="evaluation-list-toolbar"><Segmented label="Estado de la evaluación" options={CYCLE_FILTERS} value={filter} onChange={setFilter} /><label className="search"><Search size={17} /><input type="search" aria-label="Buscar por persona o evaluación" placeholder="Buscar persona o evaluación…" value={query} onChange={(event) => setQuery(event.target.value)} /></label></div> : null}{!cycles.length ? null : visibleCycles.length ? <div className="evaluation-table-wrap"><table className="evaluation-table"><thead><tr><th>Evaluación</th><th>Persona evaluada</th><th>Estado</th><th>Autoevaluación</th><th>Evaluación colectiva</th><th>Resultado final</th><th aria-label="Acciones" /></tr></thead><tbody>{visibleCycles.map((cycle) => { const report = reports.find((item) => item.cycle_id === cycle.id); const evaluatedEmployee = employees.find((employee) => employee.id === cycle.evaluated_employee_id); return <tr key={cycle.id}><td><button type="button" className="evaluation-cycle-link" onClick={() => setDetailCycle(cycle)}>{cycle.name}</button><small>{cycle.description || 'Sin descripción'}{cycle.start_date ? ` · ${formatDate(cycle.start_date)}` : ''}</small></td><td>{evaluatedEmployee ? <>{evaluatedEmployee.full_name}{evaluatedEmployee.status === 'Baja' && <small>Baja</small>}</> : 'Sin persona asignada'}</td><td><span className={`evaluation-cycle-status ${cycle.status}`}>{cycle.status === 'active' ? 'En evaluación' : cycle.status === 'closed' ? 'Cerrada' : 'Borrador'}</span></td><td>{report ? formatScore(report.self_score) : '—'}</td><td>{report ? formatScore(report.collective_score) : '—'}</td><td className="evaluation-final-cell">{report ? report.final_score === null ? 'Pendiente' : formatScore(report.final_score) : '—'}</td><td><div className="evaluation-table-actions"><button className="secondary" onClick={() => setDetailCycle(cycle)}>Ver detalle</button></div></td></tr>; })}</tbody></table></div> : <div className="evaluation-empty"><Search size={30} /><strong>Sin resultados</strong><p>Ninguna evaluación coincide con el filtro o la búsqueda.</p></div>}{cycles.length ? null : <div className="evaluation-empty"><ClipboardCheck size={30} /><strong>Aún no hay evaluaciones</strong><p>Crea el primer ciclo para comenzar.</p></div>}</section></>}
   </div>;
 }

@@ -277,6 +277,7 @@
   background: var(--color-divider);
 }
 
+.segmented label,
 .card .segmented label,
 .panel .segmented label {
   position: relative;
@@ -325,6 +326,7 @@
     width: 100%;
   }
 
+  .segmented label,
   .card .segmented label,
   .panel .segmented label {
     padding: 0 var(--space-2);
