@@ -45,6 +45,7 @@ export function TimesheetCalendar({
   const [year, setYear] = useState(currentYear);
   const [sheets, setSheets] = useState<Sheet[] | null>(null);
   const [joined, setJoined] = useState("");
+  const [left, setLeft] = useState("");
   const [error, setError] = useState("");
   const [hover, setHover] = useState<{ day: Day; x: number; y: number } | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -56,7 +57,7 @@ export function TimesheetCalendar({
     let live = true;
     (async () => {
       const [employee, rows] = await Promise.all([
-        sb.from("employees").select("start_date").eq("id", employeeId).maybeSingle(),
+        sb.from("employees").select("start_date,end_date").eq("id", employeeId).maybeSingle(),
         sb
           .from("timesheets")
           .select("work_date,attendance,entry_time,exit_time")
@@ -71,6 +72,7 @@ export function TimesheetCalendar({
       }
       setError("");
       setJoined(employee.data?.start_date || "");
+      setLeft(employee.data?.end_date || "");
       setSheets((rows.data || []) as Sheet[]);
     })();
     return () => {
@@ -114,6 +116,8 @@ export function TimesheetCalendar({
           day = { date, kind: isMexicoHoliday(date) ? "holiday" : "future", label: isMexicoHoliday(date) ? `${pretty} · Feriado` : pretty };
         } else if (joined && date < joined) {
           day = { date, kind: "before", label: `${pretty} · Antes de tu ingreso` };
+        } else if (left && date > left) {
+          day = { date, kind: "before", label: `${pretty} · Después de la baja` };
         } else if (weekend) {
           day = { date, kind: "off", label: `${pretty} · Fin de semana` };
         } else if (isMexicoHoliday(date)) {
@@ -139,7 +143,7 @@ export function TimesheetCalendar({
       stats.streak++;
     }
     return { weeks, months, stats };
-  }, [sheets, joined, year]);
+  }, [sheets, joined, left, year]);
 
   // On narrow screens, scroll so today sits near the right edge.
   useLayoutEffect(() => {
