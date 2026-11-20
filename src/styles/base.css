@@ -56,7 +56,12 @@ textarea {
 }
 
 :where(select) {
-  padding-right: var(--space-6);
+  appearance: none;
+  padding-right: calc(var(--space-4) * 3);
+  background-image: var(--select-chevron-icon);
+  background-position: right var(--space-4) center;
+  background-repeat: no-repeat;
+  background-size: var(--space-4);
 }
 
 :where(textarea) {
@@ -71,7 +76,7 @@ textarea {
 }
 
 :where(input, select, textarea):disabled {
-  background: var(--color-surface-muted);
+  background-color: var(--color-surface-muted);
   color: var(--color-text-muted);
 }
 

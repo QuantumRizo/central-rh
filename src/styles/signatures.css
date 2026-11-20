@@ -15,9 +15,9 @@
 .signature-table th { color: var(--color-text-muted); font-size: var(--text-sm); }
 .signature-table td { font-size: var(--text-md); }
 .signature-status { min-width: var(--signature-status-width); }
-.signature-status.signed { color: var(--color-success); background: var(--color-success-soft); border-color: var(--color-success-border); }
-.signature-status.pending { color: var(--color-warning); background: var(--color-warning-soft); border-color: var(--color-warning-border); }
-.signature-status.not_applicable { color: var(--color-text-muted); background: var(--color-surface-muted); }
+.signature-status.signed { color: var(--color-success); background-color: var(--color-success-soft); border-color: var(--color-success-border); }
+.signature-status.pending { color: var(--color-warning); background-color: var(--color-warning-soft); border-color: var(--color-warning-border); }
+.signature-status.not_applicable { color: var(--color-text-muted); background-color: var(--color-surface-muted); }
 .signature-document-links { display: flex; gap: var(--space-2); flex-wrap: wrap; }
 .signature-document-links button { white-space: nowrap; }
 @media (max-width: 640px) { .signature-file-list li, .signature-document-list li { align-items: start; flex-direction: column; } }
