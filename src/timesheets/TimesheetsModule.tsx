@@ -216,13 +216,13 @@ export function TimesheetsModule({ employee, canViewTimesheetReports, onReports,
                       <div className="entries">
                         {rows.map((r, i) => (
                           <div className="entry" key={i}>
-                            {isMeal(r.activity_id) ? <span className="meal-entry-label">Comida · sin cliente</span> : <Picker
+                            {isMeal(r.activity_id) ? <span className="meal-entry-label">Comida</span> : <Picker
                               label={`Cliente ${i + 1}`}
                               options={clients}
                               value={r.client_id ?? ''}
                               onChange={(v) => update(i, { client_id: v })}
                             />}
-                            {isMeal(r.activity_id) ? <span className="meal-entry-label">Comida</span> : <Picker
+                            {!isMeal(r.activity_id) && <Picker
                               label={`Actividad ${i + 1}`}
                               options={workActivities}
                               value={r.activity_id}
