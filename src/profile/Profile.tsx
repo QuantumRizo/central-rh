@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import type { Area } from 'react-easy-crop';
-import { ArrowLeft, Camera, Check, ClipboardCheck, Clock3, KeyRound, LoaderCircle, Mail, Pencil, UserRound, X } from 'lucide-react';
+import { ArrowLeft, Camera, Check, ClipboardCheck, Clock3, FileText, KeyRound, LoaderCircle, Mail, Pencil, UserRound, X } from 'lucide-react';
 import { sb } from '../lib/supabase';
 import { TimesheetCalendar } from '../timesheets/TimesheetCalendar';
 import { cropProfilePhoto, PhotoCropper } from './PhotoCropper';
@@ -17,6 +17,7 @@ type Employee = {
   status: string;
   start_date: string | null;
   end_date: string | null;
+  job_description: string | null;
   created_at: string;
   avatar_path: string | null;
 };
@@ -36,7 +37,7 @@ export function Profile({ session, employeeId, viewerEmployeeId, isAdmin = false
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
   const [editing, setEditing] = useState(false);
   const [savingProfile, setSavingProfile] = useState(false);
-  const [profileForm, setProfileForm] = useState({ full_name: '', email: '', position: '', department: '', status: 'Activo', start_date: '', end_date: '' });
+  const [profileForm, setProfileForm] = useState({ full_name: '', email: '', position: '', department: '', status: 'Activo', start_date: '', end_date: '', job_description: '' });
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
@@ -47,7 +48,7 @@ export function Profile({ session, employeeId, viewerEmployeeId, isAdmin = false
     setError('');
     try {
       const [employeeResult, reportsResult] = await Promise.all([
-        sb.from('employees').select('id,full_name,position,department,email,status,start_date,end_date,created_at,avatar_path').eq('id', employeeId).single(),
+        sb.from('employees').select('id,full_name,position,department,email,status,start_date,end_date,job_description,created_at,avatar_path').eq('id', employeeId).single(),
         sb.from('evaluation_final_reports').select('id,created_at,final_score,self_score,collective_score').eq('employee_id', employeeId).order('created_at', { ascending: false }).limit(3),
       ]);
       const failure = [employeeResult, reportsResult].find((result) => result.error);
@@ -72,7 +73,7 @@ export function Profile({ session, employeeId, viewerEmployeeId, isAdmin = false
 
   const beginEdit = () => {
     if (!employee) return;
-    setProfileForm({ full_name: employee.full_name, email: employee.email || '', position: employee.position || '', department: employee.department || '', status: employee.status, start_date: employee.start_date || '', end_date: employee.end_date || '' });
+    setProfileForm({ full_name: employee.full_name, email: employee.email || '', position: employee.position || '', department: employee.department || '', status: employee.status, start_date: employee.start_date || '', end_date: employee.end_date || '', job_description: employee.job_description || '' });
     setError('');
     setEditing(true);
   };
@@ -88,7 +89,8 @@ export function Profile({ session, employeeId, viewerEmployeeId, isAdmin = false
         status: profileForm.status,
         start_date: profileForm.start_date || null,
         end_date: profileForm.status === 'Baja' ? profileForm.end_date || null : null,
-      }).eq('id', employee.id).select('id,full_name,position,department,email,status,start_date,end_date,created_at,avatar_path').single();
+        job_description: profileForm.job_description.trim() || null,
+      }).eq('id', employee.id).select('id,full_name,position,department,email,status,start_date,end_date,job_description,created_at,avatar_path').single();
       if (saveError) throw saveError;
       setEmployee(data as Employee);
       setEditing(false);
@@ -173,7 +175,8 @@ export function Profile({ session, employeeId, viewerEmployeeId, isAdmin = false
           {isAdmin && <button className="secondary profile-edit-button" type="button" onClick={beginEdit}><Pencil size={16} /> Editar perfil</button>}
         </div>
       </section>
-      <section className="profile-card"><div className="profile-card-title"><UserRound size={19} /><h2>Datos del sistema</h2></div>{editing ? <div className="profile-edit-form"><label>Nombre completo<input value={profileForm.full_name} onChange={(event) => setProfileForm((current) => ({ ...current, full_name: event.target.value }))} /></label><label>Correo<input type="email" value={profileForm.email} onChange={(event) => setProfileForm((current) => ({ ...current, email: event.target.value }))} /></label><label>Puesto<input value={profileForm.position} onChange={(event) => setProfileForm((current) => ({ ...current, position: event.target.value }))} /></label><label>Estado<select value={profileForm.status} onChange={(event) => setProfileForm((current) => ({ ...current, status: event.target.value }))}><option value="Activo">Activo</option><option value="Baja">Baja</option></select></label><label>Ingreso<input type="date" value={profileForm.start_date} onChange={(event) => setProfileForm((current) => ({ ...current, start_date: event.target.value }))} /></label>{profileForm.status === 'Baja' && <label>Baja<input type="date" min={profileForm.start_date || undefined} value={profileForm.end_date} onChange={(event) => setProfileForm((current) => ({ ...current, end_date: event.target.value }))} /></label>}{endBeforeStart && <p className="error" role="alert">La fecha de baja no puede ser anterior a la de ingreso.</p>}<div className="profile-edit-actions"><button type="button" className="secondary" disabled={savingProfile} onClick={() => setEditing(false)}><X size={16} /> Cancelar</button><button type="button" disabled={savingProfile || !profileForm.full_name.trim() || endBeforeStart} onClick={() => void saveProfile()}>{savingProfile ? <><LoaderCircle className="spin" size={16} /> Guardando…</> : <><Check size={16} /> Guardar cambios</>}</button></div></div> : <dl className="profile-details"><div><dt>Nombre</dt><dd>{employee.full_name}</dd></div><div><dt>Correo</dt><dd><Mail size={14} /> {employee.email || (isOwn ? session.user.email : null) || 'Sin registrar'}</dd></div><div><dt>Puesto</dt><dd>{employee.position || 'Por asignar'}</dd></div><div><dt>Estado</dt><dd>{employee.status}</dd></div><div><dt>Ingreso</dt><dd>{hireDate}</dd></div>{employee.status === 'Baja' && <div><dt>Baja</dt><dd>{leaveDate}</dd></div>}</dl>}</section>
+      <section className="profile-card"><div className="profile-card-title"><UserRound size={19} /><h2>Datos del sistema</h2></div>{editing ? <div className="profile-edit-form"><label>Nombre completo<input value={profileForm.full_name} onChange={(event) => setProfileForm((current) => ({ ...current, full_name: event.target.value }))} /></label><label>Correo<input type="email" value={profileForm.email} onChange={(event) => setProfileForm((current) => ({ ...current, email: event.target.value }))} /></label><label>Puesto<input value={profileForm.position} onChange={(event) => setProfileForm((current) => ({ ...current, position: event.target.value }))} /></label><label>Estado<select value={profileForm.status} onChange={(event) => setProfileForm((current) => ({ ...current, status: event.target.value }))}><option value="Activo">Activo</option><option value="Baja">Baja</option></select></label><label>Ingreso<input type="date" value={profileForm.start_date} onChange={(event) => setProfileForm((current) => ({ ...current, start_date: event.target.value }))} /></label>{profileForm.status === 'Baja' && <label>Baja<input type="date" min={profileForm.start_date || undefined} value={profileForm.end_date} onChange={(event) => setProfileForm((current) => ({ ...current, end_date: event.target.value }))} /></label>}<label className="profile-edit-wide">Job Description<textarea rows={8} value={profileForm.job_description} placeholder="Objetivo del puesto, responsabilidades principales, a quién reporta…" onChange={(event) => setProfileForm((current) => ({ ...current, job_description: event.target.value }))} /></label>{endBeforeStart && <p className="error" role="alert">La fecha de baja no puede ser anterior a la de ingreso.</p>}<div className="profile-edit-actions"><button type="button" className="secondary" disabled={savingProfile} onClick={() => setEditing(false)}><X size={16} /> Cancelar</button><button type="button" disabled={savingProfile || !profileForm.full_name.trim() || endBeforeStart} onClick={() => void saveProfile()}>{savingProfile ? <><LoaderCircle className="spin" size={16} /> Guardando…</> : <><Check size={16} /> Guardar cambios</>}</button></div></div> : <dl className="profile-details"><div><dt>Nombre</dt><dd>{employee.full_name}</dd></div><div><dt>Correo</dt><dd><Mail size={14} /> {employee.email || (isOwn ? session.user.email : null) || 'Sin registrar'}</dd></div><div><dt>Puesto</dt><dd>{employee.position || 'Por asignar'}</dd></div><div><dt>Estado</dt><dd>{employee.status}</dd></div><div><dt>Ingreso</dt><dd>{hireDate}</dd></div>{employee.status === 'Baja' && <div><dt>Baja</dt><dd>{leaveDate}</dd></div>}</dl>}</section>
+      {!editing && <section className="profile-card profile-job-description"><div className="profile-card-title"><FileText size={19} /><h2>Job Description</h2></div>{employee.job_description ? <p>{employee.job_description}</p> : <p className="profile-empty">{isAdmin ? 'Sin registrar. Agrégala desde "Editar perfil".' : 'Aún no hay una Job Description registrada.'}</p>}</section>}
       <TimesheetCalendar employeeId={employeeId} selectedDate={localDate(today)} refreshKey={0} />
       {isOwn && onTimesheetReport && <section className="profile-card profile-timesheet-report"><div className="profile-card-title"><Clock3 size={19} /><h2>Mi reporte de horas</h2></div><p>Consulta tus capturas, horas y distribución por cliente y tarea.</p><button className="secondary" type="button" onClick={onTimesheetReport}>Ver mi reporte</button></section>}
       <section className="profile-card profile-evaluations"><div className="profile-card-title"><ClipboardCheck size={19} /><h2>Evaluaciones</h2></div>{reports.length ? <div className="profile-report-list">{reports.map((report) => <div className="profile-report" key={report.id}><div><strong>Resultado final</strong><span>{dateLabel.format(new Date(report.created_at))}</span></div><strong className="profile-report-score">{score(report.final_score)}</strong><small>Autoevaluación {score(report.self_score)} · Equipo {score(report.collective_score)}</small></div>)}</div> : <p className="profile-empty">Aún no hay resultados finales de evaluaciones.</p>}<button className="secondary" type="button" onClick={onEvaluations}>{isOwn ? 'Ir a evaluaciones' : 'Ir al panel de evaluaciones'}</button></section>

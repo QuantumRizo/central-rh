@@ -153,6 +153,24 @@
   min-width: 0;
 }
 
+.profile-edit-form .profile-edit-wide {
+  grid-column: 1 / -1;
+}
+
+.profile-edit-form textarea {
+  width: 100%;
+  min-width: 0;
+  resize: vertical;
+}
+
+.profile-job-description > p:not(.profile-empty) {
+  margin: var(--space-4) 0 0;
+  color: var(--color-text);
+  font-size: var(--text-base);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
 .profile-edit-actions,
 .password-actions {
   grid-column: 1 / -1;
