@@ -4,10 +4,9 @@
 
 .profile-hero {
   display: grid;
-  justify-items: center;
-  gap: var(--space-4);
-  padding-block: var(--space-8);
-  text-align: center;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-5);
 }
 
 .profile-avatar,
@@ -23,9 +22,9 @@
 }
 
 .profile-avatar {
-  width: 112px;
-  height: 112px;
-  font-size: var(--text-4xl);
+  width: 96px;
+  height: 96px;
+  font-size: var(--text-3xl);
 }
 
 .profile-avatar img,
@@ -37,18 +36,15 @@
 }
 
 .profile-identity {
-  flex: 1;
+  display: grid;
+  justify-items: start;
+  gap: var(--space-1);
   min-width: 0;
 }
 
-.profile-identity {
-  display: grid;
-  justify-items: center;
-}
-
 .profile-identity h2 {
-  margin: var(--space-2) 0 2px;
-  font-size: var(--text-4xl);
+  margin: 0;
+  font-size: var(--text-3xl);
   letter-spacing: -0.02em;
   overflow-wrap: anywhere;
 }
@@ -59,30 +55,31 @@
   font-size: var(--text-base);
 }
 
-.profile-photo-action,
+.profile-identity .profile-status {
+  margin-top: var(--space-1);
+}
+
+.profile-status.inactive {
+  background: var(--color-surface-muted);
+  color: var(--color-text-secondary);
+}
+
 .profile-hero-actions {
-  display: grid;
-  justify-items: center;
-  align-self: center;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
   gap: var(--space-2);
-}
-
-.profile-hero-actions {
-  grid-auto-flow: column;
-  align-items: start;
-  gap: var(--space-3);
-}
-
-.profile-photo-action small {
-  color: var(--color-text-muted);
-  font-size: var(--text-sm);
-  text-align: center;
 }
 
 .profile-grid {
   display: grid;
-  grid-template-columns: 1.1fr 0.9fr;
-  gap: var(--space-4);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: var(--space-6);
+}
+
+.profile-grid > :only-child {
+  grid-column: 1 / -1;
 }
 
 .profile-card-title {
@@ -94,37 +91,29 @@
 
 .profile-details {
   display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4) var(--space-5);
   margin: var(--space-4) 0 0;
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-divider);
 }
 
 .profile-details > div {
   display: grid;
-  grid-template-columns: minmax(90px, 1fr) minmax(0, 2fr);
-  gap: var(--space-3);
-  padding: var(--space-3) 0;
-  border-top: 1px solid var(--color-divider);
-  font-size: var(--text-base);
+  gap: 2px;
+  min-width: 0;
 }
 
 .profile-details dt {
   color: var(--color-text-muted);
+  font-size: var(--text-md);
 }
 
 .profile-details dd {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 6px;
-  text-align: right;
-  min-width: 0;
   margin: 0;
   color: var(--color-text);
-  font-weight: var(--weight-regular);
+  font-size: var(--text-base);
   overflow-wrap: anywhere;
-}
-
-.profile-details dd svg {
-  flex: none;
 }
 
 .profile-edit-form,
@@ -163,8 +152,13 @@
   resize: vertical;
 }
 
-.profile-job-description > p:not(.profile-empty) {
+.profile-job-description > p {
   margin: var(--space-4) 0 0;
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-divider);
+}
+
+.profile-job-description > p:not(.profile-empty) {
   color: var(--color-text);
   font-size: var(--text-base);
   white-space: pre-wrap;
@@ -541,24 +535,30 @@
 }
 
 @media (max-width: 640px) {
+  .profile-details {
+    grid-template-columns: 1fr;
+  }
+
+  .profile-hero {
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: var(--space-4);
+  }
+
   .profile-avatar {
-    width: 88px;
-    height: 88px;
-    font-size: var(--text-3xl);
+    width: 72px;
+    height: 72px;
+    font-size: var(--text-2xl);
   }
 
   .profile-identity h2 {
-    font-size: var(--text-3xl);
-  }
-
-  .profile-photo-action,
-  .profile-hero-actions {
-    justify-items: stretch;
-    width: 100%;
+    font-size: var(--text-2xl);
   }
 
   .profile-hero-actions {
-    grid-auto-flow: row;
+    grid-column: 1 / -1;
+    display: grid;
+    grid-auto-columns: minmax(0, 1fr);
+    grid-auto-flow: column;
   }
 
   .profile-edit-form,
@@ -593,10 +593,6 @@
 }
 
 @media (max-width: 400px) {
-  .profile-details > div {
-    grid-template-columns: 90px minmax(0, 1fr);
-  }
-
   .profiles-filters {
     grid-template-columns: 1fr;
   }
