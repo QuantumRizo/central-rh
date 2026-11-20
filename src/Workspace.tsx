@@ -17,7 +17,7 @@ export function Workspace({ session }: { session: Session }) {
   const [accessReady, setAccessReady] = useState(false);
   const [clients, setClients] = useState<Option[]>([]);
   const [activities, setActivities] = useState<Option[]>([]);
-  const draft = useTimesheetDraft(employee);
+  const draft = useTimesheetDraft(employee, activities.find((activity) => activity.name.trim().toLocaleLowerCase('es-MX') === 'comida')?.id);
   const { canLeave, setError, setBusy } = draft;
   const { path, navigate, replace } = usePath(canLeave);
   const superadmin = tools.includes("*");

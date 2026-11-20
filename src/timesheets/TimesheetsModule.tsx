@@ -26,6 +26,9 @@ export function TimesheetsModule({ employee, canViewTimesheetReports, onReports,
   const holiday = isMexicoHoliday(date);
   const progress = workdayHours ? Math.min(100, (totalHours / workdayHours) * 100) : 0;
   const [repeatRangeReady, setRepeatRangeReady] = useState(false);
+  const mealActivity = activities.find((activity) => activity.name.trim().toLocaleLowerCase('es-MX') === 'comida');
+  const workActivities = activities.filter((activity) => activity.id !== mealActivity?.id);
+  const isMeal = (activityId: string) => activityId === mealActivity?.id;
   useEffect(() => setRepeatRangeReady(false), [date]);
   return (
     <>
@@ -204,7 +207,7 @@ export function TimesheetsModule({ employee, canViewTimesheetReports, onReports,
                       )}
                       {rows.length > 0 && (
                         <div className="entry-labels" aria-hidden="true">
-                          <span>Cliente</span>
+                          <span>Cliente / tipo</span>
                           <span>Actividad</span>
                           <span>Horas / % del día</span>
                           <span />
@@ -213,18 +216,18 @@ export function TimesheetsModule({ employee, canViewTimesheetReports, onReports,
                       <div className="entries">
                         {rows.map((r, i) => (
                           <div className="entry" key={i}>
-                            <Picker
+                            {isMeal(r.activity_id) ? <span className="meal-entry-label">Comida · sin cliente</span> : <Picker
                               label={`Cliente ${i + 1}`}
                               options={clients}
-                              value={r.client_id}
+                              value={r.client_id ?? ''}
                               onChange={(v) => update(i, { client_id: v })}
-                            />
-                            <Picker
+                            />}
+                            {isMeal(r.activity_id) ? <span className="meal-entry-label">Comida</span> : <Picker
                               label={`Actividad ${i + 1}`}
-                              options={activities}
+                              options={workActivities}
                               value={r.activity_id}
                               onChange={(v) => update(i, { activity_id: v })}
-                            />
+                            />}
                             <div className="hours-field">
                               <input
                                 className="hours-input"
@@ -260,27 +263,21 @@ export function TimesheetsModule({ employee, canViewTimesheetReports, onReports,
                           </div>
                         ))}
                       </div>
-                      {rows.some((r) => !r.client_id || !r.activity_id) && (
+                      {rows.some((r) => !r.activity_id || (!isMeal(r.activity_id) && !r.client_id)) && (
                         <p className="under-warning" role="status">
-                          Elige cliente y actividad en todas las filas para poder guardar.
+                          Elige cliente y actividad en cada fila de trabajo para poder guardar.
                         </p>
                       )}
-                      <button
-                        className="add"
-                        onClick={() =>
-                          setRows([
-                            ...rows,
-                            {
-                              client_id: "",
-                              activity_id: "",
-                              hours: 0,
-                              percentage: 0,
-                            },
-                          ])
-                        }
-                      >
-                        <Plus size={18} /> Agregar actividad
-                      </button>
+                      <div className="entry-actions">
+                        <button type="button" className="add" onClick={() => setRows([...rows, { client_id: '', activity_id: '', hours: 0, percentage: 0 }])}>
+                          <Plus size={18} /> Agregar actividad
+                        </button>
+                        {mealActivity && !rows.some((row) => isMeal(row.activity_id)) && (
+                          <button type="button" className="add" onClick={() => setRows([...rows, { client_id: null, activity_id: mealActivity.id, hours: 1, percentage: 0 }])}>
+                            <Plus size={18} /> Agregar comida
+                          </button>
+                        )}
+                      </div>
                       <RepeatDays
                         key={date}
                         sourceDate={date}
@@ -319,7 +316,7 @@ export function TimesheetsModule({ employee, canViewTimesheetReports, onReports,
                     baseline === null ||
                     (attendance === "worked" &&
                       (!hoursAreComplete ||
-                        rows.some((r) => (Number(r.hours) || 0) <= 0 || !r.client_id || !r.activity_id) ||
+                        rows.some((r) => (Number(r.hours) || 0) <= 0 || !r.activity_id || (!isMeal(r.activity_id) && !r.client_id)) ||
                         !scheduleReady))
                   }
                   onClick={save}

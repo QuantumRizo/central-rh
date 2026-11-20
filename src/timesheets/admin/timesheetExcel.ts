@@ -97,7 +97,7 @@ export async function downloadTimesheetWorkbook(sheets: any[], employeeId: strin
   ];
   styleHeader(activities);
   for (const sheet of own) for (const entry of sheet.timesheet_entries || []) {
-    const row = activities.addRow([excelDate(sheet.work_date), entry.client?.name || 'Sin cliente', entry.activity?.name || 'Sin actividad', Number(entry.percentage) / 100, attendanceLabel(sheet.attendance)]);
+    const row = activities.addRow([excelDate(sheet.work_date), entry.client?.name || '', entry.activity?.name || 'Sin actividad', Number(entry.percentage) / 100, attendanceLabel(sheet.attendance)]);
     row.getCell(1).numFmt = dateFormat;
     row.getCell(4).numFmt = '0.00%';
   }

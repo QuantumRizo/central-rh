@@ -103,7 +103,8 @@ export function ReportDetails({ sheets, selection, from, to, onClose, db }: { sh
   const summary = (snapshot: any) => snapshot ? `${attendanceLabel(snapshot.day.attendance)} · ${snapshot.day.entry_time || '—'} a ${snapshot.day.exit_time || '—'}${snapshot.day.permission_entry_time ? ` · Permiso ${snapshot.day.permission_entry_time} a ${snapshot.day.permission_exit_time}` : ''}` : 'Sin captura anterior';
   const entryLabel = (entry: any) => {
     const ref = sheets.flatMap(s=>s.timesheet_entries || []).find((e: any)=>e.client?.id===entry.client_id && e.activity?.id===entry.activity_id);
-    return `${entry.client_name || ref?.client?.name || entry.client_id} · ${entry.activity_name || ref?.activity?.name || entry.activity_id}: ${entry.percentage}%`;
+    const activityName = entry.activity_name || ref?.activity?.name || entry.activity_id;
+    return `${entry.client_name || ref?.client?.name || (entry.client_id ? entry.client_id : 'Sin cliente')} · ${activityName}: ${entry.percentage}%`;
   };
   return <section ref={section} className="admin-card report-detail">
     <div className="card-heading"><div><h2>{selection.name}</h2><p>Del {from} al {to}. {selection.type === 'person' ? `${personSheets.length} capturas registradas.` : 'Detalle de actividades.'}</p></div><button className="secondary" onClick={onClose}>Cerrar detalle</button></div>

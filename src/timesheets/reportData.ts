@@ -34,7 +34,8 @@ export function summarizeActivities(sheets: ReportSheet[]) {
     for (const entry of sheet.timesheet_entries || []) {
       const equivalent = (Number(entry.percentage) || 0) / 100;
       totalEquivalent += equivalent;
-      for (const [group, name] of [[clients, entry.client?.name || 'Sin cliente'], [tasks, entry.activity?.name || 'Sin tarea']] as const) {
+      for (const [group, name] of [[entry.client ? clients : null, entry.client?.name || ''], [tasks, entry.activity?.name || 'Sin tarea']] as const) {
+        if (!group) continue;
         const item = group.get(name) || { dates: new Set<string>(), equivalent: 0 };
         item.dates.add(sheet.work_date);
         item.equivalent += equivalent;

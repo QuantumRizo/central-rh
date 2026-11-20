@@ -4,7 +4,7 @@ import { day, workedHours } from "./utils";
 import { isMexicoHoliday } from "./holidays";
 import { mergeDuplicateEntries, sheetSnapshot, type Entry } from "./model";
 
-export function useTimesheetDraft(employee: string) {
+export function useTimesheetDraft(employee: string, mealActivityId?: string) {
   const [baseline, setBaseline] = useState<string | null>(null);
   const [savedSheetDate, setSavedSheetDate] = useState<string | null>(null);
   const [date, setDate] = useState(day()),
@@ -128,9 +128,10 @@ export function useTimesheetDraft(employee: string) {
       setDeleting(false);
     }
   };
+  const normalizedRows = (entries: Entry[]) => entries.map((row) => row.activity_id === mealActivityId ? { ...row, client_id: null } : row);
   const toSaveRows = (mergedRows: Entry[]) => {
     const saveRows = mergedRows.map((row) => ({
-      client_id: row.client_id,
+      client_id: row.client_id || null,
       activity_id: row.activity_id,
       percentage: Number(((Number(row.hours) || 0) / workdayHours * 100).toFixed(2)),
     }));
@@ -211,7 +212,7 @@ export function useTimesheetDraft(employee: string) {
     const taken = new Set((existing || []).map((row: { work_date: string }) => row.work_date));
     const missing = targets.filter((iso) => !taken.has(iso));
     if (!missing.length) return "Todos esos días ya tienen registro; no se cambió ninguno.";
-    const saveRows = toSaveRows(mergeDuplicateEntries(rows));
+    const saveRows = toSaveRows(mergeDuplicateEntries(normalizedRows(rows)));
     let saved = 0;
     for (const iso of missing) {
       const { error: saveError } = await sb.rpc("save_timesheet", { payload: sheetPayload(iso, saveRows) });
@@ -231,7 +232,7 @@ export function useTimesheetDraft(employee: string) {
     setError("");
     setMessage("");
     try {
-      const mergedRows = attendance === "worked" ? mergeDuplicateEntries(rows) : [];
+      const mergedRows = attendance === "worked" ? mergeDuplicateEntries(normalizedRows(rows)) : [];
       const saveRows = toSaveRows(mergedRows);
       const { error } = await sb.rpc("save_timesheet", { payload: sheetPayload(date, saveRows) });
       if (error) throw error;

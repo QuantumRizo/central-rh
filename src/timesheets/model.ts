@@ -1,4 +1,4 @@
-export type Entry = { client_id: string; activity_id: string; percentage: number; hours?: number };
+export type Entry = { client_id: string | null; activity_id: string; percentage: number; hours?: number };
 export const mergeDuplicateEntries = (entries: Entry[]) => {
   const merged = new Map<string, Entry>();
   for (const row of entries) {

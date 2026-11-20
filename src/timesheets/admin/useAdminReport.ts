@@ -124,22 +124,21 @@ export function useAdminReport() {
   const activityMap = new Map<string, number>();
   for (const sheet of worked)
     for (const entry of sheet.timesheet_entries || []) {
-      const client = entry.client?.name || "Sin cliente",
+      const client = entry.client?.name,
         activity = entry.activity?.name || "Sin actividad",
         percentage = Number(entry.percentage) || 0;
-      const item = clientMap.get(client) || {
-        name: client,
-        equivalent: 0,
-        people: new Set<string>(),
-        activities: new Map<string, number>(),
-      };
-      item.equivalent += percentage / 100;
-      item.people.add(sheet.employee_id);
-      item.activities.set(
-        activity,
-        (item.activities.get(activity) || 0) + percentage / 100,
-      );
-      clientMap.set(client, item);
+      if (client) {
+        const item = clientMap.get(client) || {
+          name: client,
+          equivalent: 0,
+          people: new Set<string>(),
+          activities: new Map<string, number>(),
+        };
+        item.equivalent += percentage / 100;
+        item.people.add(sheet.employee_id);
+        item.activities.set(activity, (item.activities.get(activity) || 0) + percentage / 100);
+        clientMap.set(client, item);
+      }
       activityMap.set(
         activity,
         (activityMap.get(activity) || 0) + percentage / 100,
