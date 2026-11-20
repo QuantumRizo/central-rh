@@ -89,7 +89,7 @@ export function EvaluacionesModule({ employeeId, isAdmin }: Props) {
 
   useEffect(() => { if (!isAdmin || !adminView) void loadTasks(); }, [loadTasks, revision, isAdmin, adminView]);
 
-  if (isAdmin && adminView) return <AdminEvaluacionesPanel onViewMine={() => setAdminView(false)} />;
+  if (isAdmin && adminView) return <AdminEvaluacionesPanel employeeId={employeeId} onViewMine={() => setAdminView(false)} />;
 
   if (view.type === 'form') {
     return <EvaluationForm task={view.task} employeeId={employeeId} onBack={() => setView({ type: 'home' })} onSaved={() => { setView({ type: 'home' }); setRevision((value) => value + 1); }} />;

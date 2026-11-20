@@ -33,7 +33,7 @@ const CYCLE_FILTERS = [
 
 const normalize = (value: string) => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 
-export function AdminEvaluacionesPanel({ onViewMine }: { onViewMine: () => void }) {
+export function AdminEvaluacionesPanel({ employeeId, onViewMine }: { employeeId: string; onViewMine: () => void }) {
   const [cycles, setCycles] = useState<EvaluationCycle[]>([]);
   // Todas las personas (incluidas las dadas de baja) para conservar el nombre en el histórico.
   const [employees, setEmployees] = useState<EvaluationEmployee[]>([]);
@@ -63,16 +63,16 @@ export function AdminEvaluacionesPanel({ onViewMine }: { onViewMine: () => void 
       ]);
       const failure = [cyclesResult, employeesResult, responsesResult, reportsResult].find((result) => result.error);
       if (failure?.error) throw failure.error;
-      setCycles((cyclesResult.data ?? []) as EvaluationCycle[]);
+      setCycles(((cyclesResult.data ?? []) as EvaluationCycle[]).filter((cycle) => cycle.evaluated_employee_id !== employeeId));
       setEmployees((employeesResult.data ?? []) as EvaluationEmployee[]);
       setResponseCount(responsesResult.count ?? 0);
-      setReports((reportsResult.data ?? []) as EvaluationFinalReport[]);
+      setReports(((reportsResult.data ?? []) as EvaluationFinalReport[]).filter((report) => report.employee_id !== employeeId));
     } catch (loadError) {
       setError((loadError as Error).message);
     } finally {
       setBusy(false);
     }
-  }, []);
+  }, [employeeId]);
 
   useEffect(() => { void load(); }, [load]);
 
@@ -98,8 +98,8 @@ export function AdminEvaluacionesPanel({ onViewMine }: { onViewMine: () => void 
     key={selectedCycle?.id ?? 'new'}
     cycle={selectedCycle}
     employees={selectedCycle?.evaluated_employee_id && !activeEmployees.some((employee) => employee.id === selectedCycle.evaluated_employee_id)
-      ? [...activeEmployees, ...employees.filter((employee) => employee.id === selectedCycle.evaluated_employee_id)]
-      : activeEmployees}
+      ? [...activeEmployees.filter((employee) => employee.id !== employeeId), ...employees.filter((employee) => employee.id === selectedCycle.evaluated_employee_id)]
+      : activeEmployees.filter((employee) => employee.id !== employeeId)}
     onBack={() => { setShowCreate(false); setSelectedCycle(null); void load(); }}
     onSaved={(notice) => { setShowCreate(false); setSelectedCycle(null); setMessage(notice); void load(); }}
   />;
